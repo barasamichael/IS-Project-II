@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -13,12 +14,13 @@ from rich.panel import Panel
 from rich.table import Table
 
 from config.settings import settings
-from services.document_processor import DocumentProcessor
+from config.settings import ROOT_DIR
+from services.vector_db import VectorDBService
 from services.embeddings import EmbeddingService
 from services.intent_recognizer import IntentRecognizer
 from services.language_processor import LanguageProcessor
 from services.response_generator import ResponseGenerator
-from services.vector_db import VectorDBService
+from services.document_processor import DocumentProcessor
 
 # Setup rich console
 console = Console()
@@ -221,7 +223,8 @@ def process_folder(
         ]
 
         if not files:
-            console.print("[bold yellow]No supported files found[/bold yellow]")
+            console.print(
+                "[bold yellow]No supported files found[/bold yellow]")
             return
 
         console.print(f"Found {len(files)} supported files")
@@ -293,8 +296,8 @@ def query(
             detected_lang = language
             language_result = {"needs_translation": False}
 
-        # Intent recognition
-        intent_info = intent_recognizer.recognize_intent(english_query)
+        # Intent recognition - Updated to use new method
+        intent_info = intent_recognizer.get_intent_info(english_query)
 
         # Display intent analysis
         intent_table = Table(title="Query Analysis")
@@ -396,8 +399,8 @@ def interactive():
                     f"[dim]Detected language: {language_result['detected_language']}[/dim]"
                 )
 
-            # Intent recognition
-            intent_info = intent_recognizer.recognize_intent(english_query)
+            # Intent recognition - Updated to use new method
+            intent_info = intent_recognizer.get_intent_info(english_query)
 
             # Retrieve context
             retrieved_chunks = []
@@ -534,7 +537,8 @@ def rebuild_index():
 
         # Index documents
         for i, doc in enumerate(documents, 1):
-            console.print(f"Indexing {doc['file_name']} ({i}/{len(documents)})")
+            console.print(
+                f"Indexing {doc['file_name']} ({i}/{len(documents)})")
             vector_db_service.index_chunks(doc["chunks_path"])
 
         # Final stats
@@ -756,6 +760,127 @@ def process_sitemap(
 
 
 @app.command()
+def validate_intent():
+    """Validate intent recognizer patterns and embeddings."""
+    console.print(
+        "[bold blue]Validating Intent Recognition System[/bold blue]")
+
+    try:
+        # Get validation results
+        validation_results = intent_recognizer.validate_patterns()
+
+        console.print(
+            f"Valid patterns: {validation_results['valid_patterns']}")
+        console.print(
+            f"Invalid patterns: {validation_results['invalid_patterns']}")
+        console.print(
+            f"Overall health: {validation_results['overall_health']}")
+
+        # Show pattern details table
+        details_table = Table(title="Pattern Validation Details")
+        details_table.add_column("Intent Type", style="cyan")
+        details_table.add_column("Status", style="green")
+        details_table.add_column("Examples", style="yellow")
+
+        for intent_type, details in validation_results['pattern_details'].items():
+            status_color = "green" if details['status'] == 'valid' else "red"
+            example_count = details.get('example_count', 0)
+
+            details_table.add_row(
+                intent_type,
+                f"[{status_color}]{details['status']}[/{status_color}]",
+                str(example_count)
+            )
+
+        console.print(details_table)
+
+        # Get intent recognizer stats
+        stats = intent_recognizer.get_stats()
+        console.print(f"\nTotal intents: {stats['total_intents']}")
+        console.print(
+            f"Classification method: {stats['classification_method']}")
+        console.print(f"Cache enabled: {stats['cache_enabled']}")
+
+    except Exception as e:
+        console.print(
+            f"[bold red]Error validating intent recognizer:[/bold red] {str(e)}")
+
+
+@app.command()
+def test_intent(
+    test_query: str = typer.Argument(...,
+                                     help="Query to test intent recognition")
+):
+    """Test intent recognition for a specific query."""
+    console.print(
+        f"Testing intent recognition for: [bold blue]{test_query}[/bold blue]")
+
+    try:
+        # Get intent classification
+        intent_info = intent_recognizer.get_intent_info(test_query)
+
+        # Display results table
+        results_table = Table(title="Intent Classification Results")
+        results_table.add_column("Property", style="cyan")
+        results_table.add_column("Value", style="green")
+
+        results_table.add_row("Intent Type", intent_info['intent_type'].value)
+        results_table.add_row("Topic", intent_info['topic'].value)
+        results_table.add_row("Confidence", f"{intent_info['confidence']:.3f}")
+        results_table.add_row("Settlement Relevance",
+                              f"{intent_info['settlement_relevance']:.3f}")
+        results_table.add_row("Classification Method",
+                              intent_info['classification_method'])
+        results_table.add_row("Off Topic", str(intent_info['is_off_topic']))
+
+        console.print(results_table)
+
+        # Show semantic scores if available
+        if intent_info.get('semantic_scores'):
+            console.print(
+                "\n[bold yellow]Semantic Scores by Intent:[/bold yellow]")
+            semantic_scores = intent_info['semantic_scores']
+
+            # Sort by score for better display
+            sorted_scores = sorted(
+                semantic_scores.items(), key=lambda x: x[1], reverse=True)
+
+            for intent_type, score in sorted_scores[:5]:  # Show top 5
+                console.print(f"  {intent_type.value}: {score:.3f}")
+
+        # Show off-topic indicators if any
+        if intent_info.get('off_topic_indicators'):
+            console.print("\n[bold red]Off-topic indicators:[/bold red]")
+            for indicator in intent_info['off_topic_indicators']:
+                console.print(f"  - {indicator}")
+
+    except Exception as e:
+        console.print(f"[bold red]Error testing intent:[/bold red] {str(e)}")
+
+
+@app.command()
+def clear_intent_cache():
+    """Clear the intent recognizer embedding cache."""
+    try:
+        intent_recognizer.clear_cache()
+        console.print(
+            "[bold green]Intent recognizer cache cleared successfully![/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Error clearing cache:[/bold red] {str(e)}")
+
+
+@app.command()
+def rebuild_intent_cache():
+    """Rebuild the intent recognizer embedding cache."""
+    try:
+        intent_recognizer.rebuild_cache()
+        console.print(
+            "[bold green]Intent recognizer cache rebuilt successfully![/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Error rebuilding cache:[/bold red] {str(e)}")
+
+
+@app.command()
 def web_stats():
     """Display statistics for web-processed documents."""
     console.print("[bold blue]Web Processing Statistics[/bold blue]")
@@ -909,7 +1034,8 @@ def validate_url(
         )
 
         if keyword_matches:
-            validation_table.add_row("Keywords", ", ".join(keyword_matches[:5]))
+            validation_table.add_row(
+                "Keywords", ", ".join(keyword_matches[:5]))
 
         console.print(validation_table)
 
@@ -928,6 +1054,542 @@ def validate_url(
 
     except Exception as e:
         console.print(f"[bold red]Error validating URL:[/bold red] {str(e)}")
+
+
+@app.command()
+def delete_document(
+    doc_id: str = typer.Argument(..., help="Document ID to delete")
+):
+    """Delete a document and all associated files (chunks, embeddings, etc.)."""
+    console.print(f"Deleting document: [bold red]{doc_id}[/bold red]")
+
+    try:
+        # Get document info first
+        doc_info = document_processor.get_document_info(doc_id)
+
+        if not doc_info:
+            console.print(f"[bold red]Document not found:[/bold red] {doc_id}")
+            return
+
+        console.print(f"Document: {doc_info['file_name']}")
+
+        # Confirm deletion
+        if not typer.confirm(
+            f"Are you sure you want to delete '{doc_info['file_name']}'? This action cannot be undone.",
+            default=False,
+        ):
+            console.print("Deletion cancelled.")
+            return
+
+        # Delete from vector database first
+        try:
+            # Remove chunks from vector database
+            chunks_path = Path(doc_info.get("chunks_path", ""))
+            if chunks_path.exists():
+                console.print("Removing chunks from vector database...")
+                # Note: ChromaDB doesn't have a direct way to delete by doc_id
+                # We'll need to rebuild the index or implement chunk-level deletion
+                console.print(
+                    "[yellow]Warning: Vector database cleanup requires manual index rebuild[/yellow]"
+                )
+        except Exception as e:
+            console.print(
+                f"[yellow]Warning: Vector database cleanup failed: {str(e)}[/yellow]"
+            )
+
+        # Delete document using document processor
+        success = document_processor.delete_document(doc_id)
+
+        if success:
+            console.print(
+                "[bold green]Document deleted successfully![/bold green]"
+            )
+
+            # Show what was deleted
+            deleted_table = Table(title="Deleted Files")
+            deleted_table.add_column("Type", style="cyan")
+            deleted_table.add_column("Status", style="green")
+
+            deleted_table.add_row("Document metadata", "✓ Removed")
+            deleted_table.add_row("Processed text", "✓ Removed")
+            deleted_table.add_row("Chunks", "✓ Removed")
+            deleted_table.add_row("Embeddings", "✓ Removed")
+            deleted_table.add_row("Vector database", "⚠ Requires rebuild")
+
+            console.print(deleted_table)
+            console.print(
+                "\n[yellow]Note: Run 'rebuild-index' to clean up vector database[/yellow]"
+            )
+
+        else:
+            console.print("[bold red]Document deletion failed[/bold red]")
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+
+
+@app.command()
+def update_document(
+    doc_id: str = typer.Argument(..., help="Document ID to update"),
+    file_path: str = typer.Argument(..., help="Path to new document file"),
+):
+    """Update an existing document by replacing it with a new file."""
+    console.print(f"Updating document: [bold blue]{doc_id}[/bold blue]")
+
+    try:
+        # Check if document exists
+        doc_info = document_processor.get_document_info(doc_id)
+
+        if not doc_info:
+            console.print(f"[bold red]Document not found:[/bold red] {doc_id}")
+            console.print(
+                "Use 'process-document' to add a new document instead."
+            )
+            return
+
+        # Check if new file exists
+        new_file_path = Path(file_path)
+        if not new_file_path.exists():
+            console.print(
+                f"[bold red]New file not found:[/bold red] {file_path}"
+            )
+            return
+
+        if not document_processor.is_file_supported(new_file_path):
+            console.print(
+                f"[bold red]Unsupported file type:[/bold red] {new_file_path.suffix}"
+            )
+            return
+
+        # Show current document info
+        console.print(
+            f"Current document: [cyan]{doc_info['file_name']}[/cyan]")
+        console.print(f"New document: [cyan]{new_file_path.name}[/cyan]")
+
+        # Confirm update
+        if not typer.confirm(
+            f"Replace '{doc_info['file_name']}' with '{new_file_path.name}'?",
+            default=False,
+        ):
+            console.print("Update cancelled.")
+            return
+
+        console.print("Updating document...")
+
+        # Step 1: Delete old document
+        console.print("1. Removing old document...")
+        delete_success = document_processor.delete_document(doc_id)
+
+        if not delete_success:
+            console.print("[bold red]Failed to remove old document[/bold red]")
+            return
+
+        # Step 2: Process new document
+        console.print("2. Processing new document...")
+
+        # Process the new document
+        metadata = document_processor.process_document(new_file_path)
+
+        if not metadata:
+            console.print(
+                "[bold red]Failed to process new document[/bold red]")
+            return
+
+        new_doc_id = metadata["doc_id"]
+
+        # Step 3: Generate embeddings
+        console.print("3. Generating embeddings...")
+        embedding_service.embed_chunks(metadata["chunks_path"])
+
+        # Step 4: Update vector database
+        console.print("4. Updating vector database...")
+        vector_db_service.index_chunks(metadata["chunks_path"])
+
+        # Success summary
+        console.print(
+            "[bold green]Document updated successfully![/bold green]")
+
+        update_table = Table(title="Update Results")
+        update_table.add_column("Metric", style="cyan")
+        update_table.add_column("Old Value", style="yellow")
+        update_table.add_column("New Value", style="green")
+
+        update_table.add_row("Document ID", doc_id, new_doc_id)
+        update_table.add_row(
+            "Filename", doc_info["file_name"], new_file_path.name
+        )
+        update_table.add_row(
+            "Chunks", str(doc_info["num_chunks"]), str(metadata["num_chunks"])
+        )
+        update_table.add_row(
+            "Document Type", doc_info["doc_type"], metadata["doc_type"]
+        )
+
+        if "avg_settlement_score" in metadata:
+            old_score = doc_info.get("avg_settlement_score", 0)
+            update_table.add_row(
+                "Settlement Score",
+                f"{old_score:.3f}",
+                f"{metadata['avg_settlement_score']:.3f}",
+            )
+
+        console.print(update_table)
+
+        if new_doc_id != doc_id:
+            console.print(
+                f"\n[yellow]Note: Document ID changed from {doc_id} to {new_doc_id}[/yellow]"
+            )
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+
+
+@app.command()
+def get_document_info(
+    doc_id: str = typer.Argument(...,
+                                 help="Document ID to get information for")
+):
+    """Get detailed information about a document."""
+    console.print(f"Document Information: [bold blue]{doc_id}[/bold blue]")
+
+    try:
+        # Get document info
+        doc_info = document_processor.get_document_info(doc_id)
+
+        if not doc_info:
+            console.print(f"[bold red]Document not found:[/bold red] {doc_id}")
+            return
+
+        # Basic information table
+        info_table = Table(title="Document Details")
+        info_table.add_column("Property", style="cyan")
+        info_table.add_column("Value", style="green")
+
+        info_table.add_row("Document ID", doc_info["doc_id"])
+        info_table.add_row("Filename", doc_info["file_name"])
+        info_table.add_row("Document Type", doc_info["doc_type"])
+        info_table.add_row("File Path", str(doc_info["file_path"]))
+
+        # File size
+        file_size = doc_info.get("file_size", 0)
+        if file_size > 0:
+            size_mb = file_size / (1024 * 1024)
+            info_table.add_row("File Size", f"{size_mb:.2f} MB")
+
+        # Processing info
+        info_table.add_row("Number of Chunks", str(doc_info["num_chunks"]))
+
+        if "avg_settlement_score" in doc_info:
+            info_table.add_row(
+                "Settlement Score", f"{doc_info['avg_settlement_score']:.3f}"
+            )
+
+        # Dates
+        if "last_modified" in doc_info and doc_info["last_modified"]:
+            last_mod = datetime.fromtimestamp(
+                doc_info["last_modified"]
+            ).strftime("%Y-%m-%d %H:%M")
+            info_table.add_row("Last Modified", last_mod)
+
+        if "processed_date" in doc_info:
+            processed = datetime.fromtimestamp(
+                doc_info["processed_date"]
+            ).strftime("%Y-%m-%d %H:%M")
+            info_table.add_row("Processed Date", processed)
+
+        # Processing configuration
+        if "chunking_strategy" in doc_info:
+            info_table.add_row(
+                "Chunking Strategy", doc_info["chunking_strategy"]
+            )
+
+        if "settlement_optimized" in doc_info:
+            info_table.add_row(
+                "Settlement Optimized", str(doc_info["settlement_optimized"])
+            )
+
+        console.print(info_table)
+
+        # File paths table
+        paths_table = Table(title="Associated Files")
+        paths_table.add_column("Type", style="cyan")
+        paths_table.add_column("Path", style="green")
+        paths_table.add_column("Exists", style="yellow")
+
+        # Check file existence
+        paths_to_check = [
+            ("Original File", doc_info["file_path"]),
+            ("Processed Text", doc_info.get("processed_path")),
+            ("Chunks File", doc_info.get("chunks_path")),
+        ]
+
+        # Check for embeddings file
+        embeddings_dir = ROOT_DIR / "data" / "embeddings"
+        embeddings_file = (
+            embeddings_dir / f"{doc_info['doc_id']}_embeddings.npz"
+        )
+        paths_to_check.append(("Embeddings", str(embeddings_file)))
+
+        for file_type, file_path in paths_to_check:
+            if file_path:
+                exists = "✓" if Path(file_path).exists() else "✗"
+                exists_style = "green" if exists == "✓" else "red"
+                paths_table.add_row(
+                    file_type,
+                    str(file_path),
+                    f"[{exists_style}]{exists}[/{exists_style}]",
+                )
+
+        console.print(paths_table)
+
+        # Show chunk statistics if chunks file exists
+        chunks_path = doc_info.get("chunks_path")
+        if chunks_path and Path(chunks_path).exists():
+            try:
+                chunk_count = 0
+                total_chars = 0
+                total_words = 0
+
+                with open(chunks_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        try:
+                            chunk = json.loads(line)
+                            chunk_count += 1
+                            text = chunk.get("text", "")
+                            total_chars += len(text)
+                            total_words += len(text.split())
+                        except json.JSONDecodeError:
+                            continue
+
+                if chunk_count > 0:
+                    stats_table = Table(title="Chunk Statistics")
+                    stats_table.add_column("Metric", style="cyan")
+                    stats_table.add_column("Value", style="green")
+
+                    stats_table.add_row("Total Chunks", str(chunk_count))
+                    stats_table.add_row("Total Characters", f"{total_chars:,}")
+                    stats_table.add_row("Total Words", f"{total_words:,}")
+                    stats_table.add_row(
+                        "Avg Characters per Chunk",
+                        f"{total_chars // chunk_count:,}",
+                    )
+                    stats_table.add_row(
+                        "Avg Words per Chunk", f"{total_words // chunk_count:,}"
+                    )
+
+                    console.print(stats_table)
+
+            except Exception as e:
+                console.print(
+                    f"[yellow]Could not read chunk statistics: {str(e)}[/yellow]"
+                )
+
+        # Vector database status
+        try:
+            vector_stats = vector_db_service.get_collection_stats()
+            console.print(
+                f"\nVector Database: {vector_stats['count']} total vectors"
+            )
+        except Exception as e:
+            console.print(
+                f"\n[yellow]Vector database info unavailable: {str(e)}[/yellow]"
+            )
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+
+
+@app.command()
+def find_document(
+    search_term: str = typer.Argument(
+        ..., help="Search term (filename, doc_id, or keyword)"
+    ),
+    limit: int = typer.Option(
+        10, "--limit", "-l", help="Maximum number of results"
+    ),
+):
+    """Find documents by filename, document ID, or keyword."""
+    console.print(
+        f"Searching for documents: [bold blue]{search_term}[/bold blue]"
+    )
+
+    try:
+        documents = document_processor.list_documents()
+
+        if not documents:
+            console.print("[yellow]No documents found in the system.[/yellow]")
+            return
+
+        # Search in multiple fields
+        matches = []
+        search_lower = search_term.lower()
+
+        for doc in documents:
+            score = 0
+
+            # Exact doc_id match (highest priority)
+            if doc["doc_id"].lower() == search_lower:
+                score += 100
+            elif search_lower in doc["doc_id"].lower():
+                score += 50
+
+            # Filename match
+            if search_lower in doc["file_name"].lower():
+                score += 30
+
+            # File path match
+            if search_lower in str(doc["file_path"]).lower():
+                score += 20
+
+            # Doc type match
+            if search_lower in doc["doc_type"].lower():
+                score += 10
+
+            if score > 0:
+                matches.append((doc, score))
+
+        if not matches:
+            console.print(
+                f"[yellow]No documents found matching '{search_term}'[/yellow]"
+            )
+            return
+
+        # Sort by score and limit results
+        matches.sort(key=lambda x: x[1], reverse=True)
+        matches = matches[:limit]
+
+        # Display results
+        results_table = Table(title=f"Search Results ({len(matches)} found)")
+        results_table.add_column("Doc ID", style="cyan", no_wrap=True)
+        results_table.add_column("Filename", style="green")
+        results_table.add_column("Type", style="blue")
+        results_table.add_column("Chunks", style="magenta", justify="right")
+        results_table.add_column(
+            "Settlement Score", style="red", justify="right"
+        )
+        results_table.add_column(
+            "Match Score", style="yellow", justify="right")
+
+        for doc, match_score in matches:
+            settlement_score = doc.get("avg_settlement_score", 0)
+            results_table.add_row(
+                doc["doc_id"][:12] + "...",
+                doc["file_name"][:40]
+                + ("..." if len(doc["file_name"]) > 40 else ""),
+                doc["doc_type"],
+                str(doc["num_chunks"]),
+                f"{settlement_score:.3f}",
+                str(match_score),
+            )
+
+        console.print(results_table)
+
+        console.print(f"\nFound {len(matches)} matching documents")
+        console.print(
+            "Use 'get-document-info <doc_id>' for detailed information"
+        )
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+
+
+@app.command()
+def check_health():
+    """Check the health of all system components."""
+    console.print("[bold blue]SettleBot System Health Check[/bold blue]")
+
+    try:
+        # Check vector database health
+        health_results = vector_db_service.health_check()
+
+        health_table = Table(title="System Health Status")
+        health_table.add_column("Component", style="cyan")
+        health_table.add_column("Status", style="green")
+        health_table.add_column("Details", style="dim")
+
+        # Vector DB health
+        db_status = "✓ Healthy" if health_results["overall_health"] else "✗ Unhealthy"
+        status_style = "green" if health_results["overall_health"] else "red"
+
+        health_table.add_row(
+            "Vector Database",
+            f"[{status_style}]{db_status}[/{status_style}]",
+            f"Vectors: {health_results.get('vector_count', 0)}"
+        )
+
+        # Embedding service health
+        embedding_status = "✓ Available" if health_results[
+            "embedding_service_available"] else "✗ Unavailable"
+        embedding_style = "green" if health_results["embedding_service_available"] else "red"
+
+        health_table.add_row(
+            "Embedding Service",
+            f"[{embedding_style}]{embedding_status}[/{embedding_style}]",
+            f"Model: {embedding_service.model_name}"
+        )
+
+        # Search functionality
+        search_status = "✓ Working" if health_results["search_functional"] else "✗ Failed"
+        search_style = "green" if health_results["search_functional"] else "red"
+
+        health_table.add_row(
+            "Search Function",
+            f"[{search_style}]{search_status}[/{search_style}]",
+            "Semantic search capability"
+        )
+
+        # Intent recognition health
+        intent_validation = intent_recognizer.validate_patterns()
+        intent_status = "✓ Working" if intent_validation["overall_health"] else "✗ Issues"
+        intent_style = "green" if intent_validation["overall_health"] else "red"
+
+        health_table.add_row(
+            "Intent Recognition",
+            f"[{intent_style}]{intent_status}[/{intent_style}]",
+            f"Valid patterns: {intent_validation['valid_patterns']}"
+        )
+
+        # Language processing health
+        lang_stats = language_processor.get_language_stats()
+        lang_status = "✓ Ready" if lang_stats["detection_enabled"] else "⚠ Disabled"
+        lang_style = "green" if lang_stats["detection_enabled"] else "yellow"
+
+        health_table.add_row(
+            "Language Processing",
+            f"[{lang_style}]{lang_status}[/{lang_style}]",
+            f"Languages: {lang_stats['total_languages']}"
+        )
+
+        # Response generation health
+        response_stats = response_generator.get_response_stats()
+        resp_status = "✓ Ready"
+        resp_style = "green"
+
+        health_table.add_row(
+            "Response Generator",
+            f"[{resp_style}]{resp_status}[/{resp_style}]",
+            f"Model: {response_stats['model']}"
+        )
+
+        console.print(health_table)
+
+        # Overall system status
+        overall_healthy = health_results["overall_health"] and intent_validation["overall_health"]
+        overall_status = "System Healthy" if overall_healthy else "System Issues Detected"
+        overall_style = "bold green" if overall_healthy else "bold red"
+
+        console.print(f"\n[{overall_style}]{overall_status}[/{overall_style}]")
+
+        if not overall_healthy:
+            console.print("\n[bold yellow]Recommended Actions:[/bold yellow]")
+            if not health_results["overall_health"]:
+                console.print(
+                    "  - Check vector database connection and rebuild index if needed")
+            if not intent_validation["overall_health"]:
+                console.print("  - Rebuild intent recognition cache")
+
+    except Exception as e:
+        console.print(f"[bold red]Health check failed:[/bold red] {str(e)}")
 
 
 if __name__ == "__main__":

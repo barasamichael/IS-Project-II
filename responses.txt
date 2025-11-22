@@ -1,0 +1,1324 @@
+(venv) gitahi@DESKTOP-HHQKUK7:~/SettleBot$ python3 cli.py interactive
+INFO:embeddings:EmbeddingService initialized with model: text-embedding-ada-002
+INFO:vector_db:Loaded existing collection: settlebot_nairobi
+INFO:vector_db:ChromaDB initialized at /home/gitahi/SettleBot/database/chroma_db
+INFO:vector_db:Collection 'settlebot_nairobi' has 2011 vectors
+INFO:semantic_chunking:LLM-based SemanticChunker initialized with strategy: ChunkingStrategy.SETTLEMENT_OPTIMIZED
+INFO:document_processor:DocumentProcessor initialized for settlement content processing
+SettleBot CLI - Settlement Assistant for Nairobi
+Helping international students navigate settlement in Nairobi, Kenya
+
+SettleBot Interactive Session
+Ask questions about settling in Nairobi as an international student.
+Type 'quit' to exit, 'clear' to clear conversation history
+
+
+Your question: Where should I look for student accommodation near [university UoN?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5444 tokens
+Intent: housing_inquiry | Topic: academics | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+For student accommodation near the University of Nairobi (UoN), consider
+neighborhoods like Parklands, Kilimani, and Upper Hill. These areas are
+known for their safety, proximity to campus, and availability of
+student-friendly housing options, such as shared apartments and hostels,
+typically ranging from KSh 15,000 to KSh 30,000 per month.
+
+## ADDITIONAL INFORMATION
+Parklands is particularly popular among medical students due to its quiet
+environment and affordability, while Kilimani offers a trendy vibe with easy
+access to cafes and shops. Upper Hill is central and secure, making it a
+great choice for those who prioritize convenience. Before signing a lease,
+check if utilities are included, the internet speed, and the overall
+security of the property.
+
+## NEXT STEPS
+1. Visit **Gimco Limited** for tailored accommodation options: [Gimco
+Limited](https://gimcolimited.com) or call them at +254 700 000 000 for
+assistance.
+2. Explore listings on **Shif Tenant** to find suitable rentals: [Shif
+Tenant](https://shiftenant.com).
+3. Join local student groups on social media platforms to get
+recommendations and insights from fellow students about housing options.
+4. Schedule visits to potential places to assess their condition and
+amenities before making a decision.
+
+Your question: What's a reasonable monthly rent for a one-bedroom apartment in Nairobi?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5368 tokens
+Intent: cost_inquiry | Topic: housing | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+A reasonable monthly rent for a one-bedroom apartment in Nairobi typically
+ranges from KSh 15,000 to KSh 80,000, depending on the neighborhood and
+amenities. Areas like Nairobi West offer more budget-friendly options, while
+neighborhoods like Kilimani and Lavington tend to be on the higher end of
+the scale.
+
+## ADDITIONAL INFORMATION
+When searching for an apartment, consider additional costs like agent fees
+(up to 25% of the first month's rent), utility setups, and deposits, which
+can significantly increase your initial expenses. Popular student-friendly
+areas include Nairobi West for affordability and Kilimani for accessibility
+to amenities like shopping malls and public transport. Always check the
+safety of the neighborhood and the condition of the apartment before signing
+a lease.
+
+## NEXT STEPS
+1. Start your apartment search on websites like Jumia House or Property24 to
+compare listings and prices.
+2. Visit neighborhoods in person to get a feel for the area and check for
+available rentals.
+3. Connect with local student groups on social media for recommendations and
+potential roommate opportunities.
+4. Consider using a reputable real estate agent to help navigate the rental
+process, especially if you're unfamiliar with the area.
+
+Your question: Which neighborhoods are safe and affordable for students?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 6140 tokens
+Intent: housing_inquiry | Topic: housing | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+For students seeking safe and affordable neighborhoods in Nairobi, consider
+Kileleshwa and Lavington. These areas offer a good balance of security and
+convenience, with many gated communities that provide 24/7 security. Rent in
+these neighborhoods typically ranges from KSh 25,000 to KSh 50,000 for a
+one-bedroom apartment, making them accessible for students.
+
+## ADDITIONAL INFORMATION
+Kileleshwa and Lavington are popular among students due to their proximity
+to universities and public transport options. They feature modern amenities
+and are well-lit, enhancing safety. Additionally, both neighborhoods have
+active residents' associations that contribute to community security. If
+you're looking for a more budget-friendly option, consider shared
+accommodations or hostels, which can significantly reduce living costs while
+still being in safe areas.
+
+## NEXT STEPS
+1. **Explore Rental Listings**: Check websites like Jumia House or
+Property24 for current listings in Kileleshwa and Lavington.
+2. **Visit the Neighborhoods**: If possible, visit these areas to get a feel
+for the community and check out available apartments.
+3. **Connect with Other Students**: Join local student groups on social
+media platforms to get recommendations and insights about safe housing
+options.
+4. **Contact Local Real Estate Agents**: Reach out to agents who specialize
+in student housing for personalized assistance. You can find listings on
+platforms like BuyRentKenya.
+
+Your question: ^CError:
+
+Your question: Do I need a local guarantor to rent an apartment?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 6416 tokens
+Intent: housing_inquiry | Topic: housing | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Yes, many landlords in Nairobi require a local guarantor, especially for
+international students. This is to ensure that there is someone local who
+can be held accountable for the lease. However, some landlords may be
+flexible, especially if you can provide proof of your financial stability,
+such as bank statements or a scholarship letter.
+
+## ADDITIONAL INFORMATION
+In Nairobi, the rental market can be competitive, and having a local
+guarantor can significantly ease the process. If you don’t have a local
+contact, consider reaching out to your university’s international office;
+they often have resources or networks to help students find housing.
+Additionally, be cautious of rental scams and always view the property
+before making any payments. Rent prices vary widely depending on the
+neighborhood, with areas like Westlands and Kilimani being popular among
+students, typically ranging from KSh 25,000 to KSh 60,000 for shared
+accommodations.
+
+## NEXT STEPS
+1. Contact your university's international student office for assistance in
+finding a local guarantor or housing options.
+2. Use reputable property websites like Buy Rent Kenya to search for
+listings and communicate directly with landlords.
+3. Schedule viewings for any properties you’re interested in and ensure you
+have all necessary documents ready, such as proof of income or bank
+statements.
+4. If you encounter issues with finding a guarantor, consider joining local
+student groups on social media platforms where you can connect with other
+students who might help.
+
+Your question: What should I check before signing a rental agreement?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5884 tokens
+Intent: housing_inquiry | Topic: housing | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Before signing a rental agreement in Nairobi, ensure you check the
+property's condition, verify the landlord's identity, and confirm the rent
+amount and any additional fees. It's crucial to see the property in person,
+check for any outstanding bills, and ensure the neighborhood is safe and
+accessible. Always read the contract carefully and clarify any unclear terms
+before committing.
+
+## ADDITIONAL INFORMATION
+When looking for housing, prioritize neighborhoods known for being
+student-friendly, like Westlands, Parklands, or Karen, which offer good
+transport links and amenities. Be wary of rental scams; avoid agents who ask
+for upfront fees without showing you the property first. Typical rent for a
+one-bedroom apartment in these areas can range from KSh 25,000 to KSh
+60,000, depending on the location and amenities. Always check for hidden
+costs like maintenance fees and utility bills.
+
+## NEXT STEPS
+1. Use reputable property websites like Buy Rent Kenya or Jumia House to
+browse listings and contact landlords directly.
+2. Schedule viewings for any properties you’re interested in and take notes
+on each one to compare later.
+3. Prepare a list of questions to ask the landlord or agent about the lease
+terms, neighborhood safety, and any additional costs.
+4. If possible, connect with fellow students or local communities online for
+recommendations on safe areas and reliable landlords.
+
+Your question: How do I apply for a student visa for Kenya?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5832 tokens
+Intent: immigration_visa | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To apply for a student visa (Student Pass) in Kenya, you must first be
+accepted into an approved educational institution. Then, complete a Student
+Pass application form (Form 30), which needs to be signed and stamped by
+your institution. You can submit your application online or print it out and
+present it at the Immigration Counter at Nyayo House in Nairobi along with
+all required documents.
+
+## ADDITIONAL INFORMATION
+Make sure your application is complete, as incomplete submissions will not
+be accepted. The required documents typically include your acceptance
+letter, a valid passport, passport-sized photos, and proof of financial
+means to support your studies. The application fee varies, so check the
+latest fees on the official immigration website. It’s also important to note
+that working without the proper permits is illegal, so ensure you have your
+Student Pass before starting your studies.
+
+## NEXT STEPS
+1. Visit the Kenya Immigration website to find the online application portal
+and detailed requirements: [Kenya
+Immigration](http://www.immigration.go.ke).
+2. Gather all necessary documents, including your acceptance letter and
+financial proof, and fill out Form 30.
+3. If applying in person, print your application and head to Nyayo House,
+located at Uhuru Highway, Nairobi, for submission.
+4. Keep an eye on your email for notifications regarding your application
+status.
+
+Your question: What documents do I need for my student pass?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 6356 tokens
+Intent: immigration_visa | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To apply for a Student Pass in Kenya, you'll need several documents: a
+completed Form 30 (which must be stamped by your educational institution), a
+valid national passport (bio-data page), two recent passport-size photos,
+certified copies of your academic certificates, and a police clearance
+certificate from your home country or the Kenya Police Service. If you're
+conducting research, you'll also need a research permit from the National
+Council for Science and Technology.
+
+## ADDITIONAL INFORMATION
+It's essential to ensure that all documents not in English are translated by
+an authorized institution. The Student Pass application process can take a
+few weeks, so it's best to start early. The cost for the Student Pass
+varies, but you should budget around KSh 10,000 to KSh 20,000 for
+application fees and related expenses. Be sure to keep copies of all
+submitted documents for your records.
+
+## NEXT STEPS
+1. **Gather Documents**: Start collecting the required documents, ensuring
+translations are done where necessary.
+2. **Visit the Immigration Office**: Go to the Department of Immigration
+Services in Nairobi (Nyayo House, Uhuru Highway) to submit your application
+and get more information.
+3. **Check Online**: Visit the [Kenya Immigration
+website](http://www.immigration.go.ke) for more details and to download Form
+30.
+4. **Contact Your Institution**: Reach out to the international office of
+your educational institution for assistance with the application process and
+any specific requirements they may have.
+
+Your question: Can I work part-time on a student visa?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5672 tokens
+Intent: immigration_visa | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+No, you cannot work part-time on a student visa in Kenya without a specific
+work permit. Engaging in any form of employment without the appropriate
+permit is considered an offense. It's important to focus on your studies and
+ensure you have the correct documentation for your student status.
+
+## ADDITIONAL INFORMATION
+As an international student, you are required to have a valid student pass
+to study in Kenya. If you wish to work while studying, you would need to
+apply for a work permit, which can be a lengthy process and may require
+sponsorship from an employer. Always check the latest regulations from the
+Directorate of Immigration Services to stay compliant with local laws.
+
+## NEXT STEPS
+1. Visit the Directorate of Immigration Services website for the most
+current information on student visas and work permits: [Directorate of
+Immigration Services](http://www.immigration.go.ke).
+2. If you're considering working, speak to your educational institution's
+administration for guidance on obtaining a work permit and any potential job
+opportunities they may offer.
+3. Keep all your immigration documents organized and ensure you have your
+student pass and any other required paperwork ready for any applications.
+4. If you have further questions, consider reaching out to the International
+Students Office at your institution for personalized advice.
+
+Your question: How do I register with immigration after arriving?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5396 tokens
+Intent: procedural_query | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To register with immigration after arriving in Kenya, you need to ensure
+that all your documentation is in order. You should visit the Department of
+Immigration Services at Nyayo House, where you can present your documents
+and register your details in the border control system. It's essential to
+obtain a valid entry stamp upon arrival to avoid any legal issues.
+
+## ADDITIONAL INFORMATION
+When you arrive, make sure you have all required documents, including your
+admission letter, passport, and visa. Be cautious of individuals posing as
+immigration officers at the airport; always approach official counters. The
+registration process is crucial for your legal stay in Kenya, and it's best
+to complete it as soon as possible. The immigration office operates from
+8:00 AM to 5:00 PM, Monday to Friday.
+
+## NEXT STEPS
+1. Gather all necessary documents, including your passport, visa, and
+admission letter.
+2. Visit the Department of Immigration Services at Nyayo House, located
+along Uhuru Highway.
+3. Ensure you have a valid entry stamp in your passport; if not, address
+this immediately at the immigration office.
+4. For more information, you can contact the Department of Immigration
+Services at +254 20 222 999 or visit their (http://www.immigration.go.ke).
+
+Your question: Where is the nearest immigration office in Nairobi?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 4728 tokens
+Intent: immigration_visa | Topic: general | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+The nearest immigration office in Nairobi is located at Nyayo House, which
+is situated along Uhuru Highway. This office handles various immigration
+services, including visa applications and citizenship matters.
+
+## ADDITIONAL INFORMATION
+Nyayo House is a central location, making it accessible for students. The
+office operates from 8:00 AM to 5:00 PM, Monday to Friday, but be sure to
+arrive early as it can get busy, and they close for lunch from 1:00 PM to
+2:00 PM. If you need to submit documents or make payments, you can also
+visit other regional offices, but Nyayo House is the main hub for
+immigration services.
+
+## NEXT STEPS
+1. Visit Nyayo House during working hours to inquire about your specific
+immigration needs.
+2. Prepare all necessary documents, such as your passport, visa application
+forms, and any supporting documents you may need.
+3. If you have questions or need assistance, you can contact the Department
+of Immigration Services at +254 (0) 20 2100272 or email
+info@ifra-nairobi.net.
+4. Consider checking the official website for any updates on services or
+requirements before your visit.
+
+Your question: Which banks are best for international students?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5828 tokens
+Intent: university_info | Topic: finance | Confidence: 0.70
+SettleBot: ## DIRECT ANSWER
+For international students in Nairobi, NCBA (National Commercial Bank of
+Africa) and KCB (Kenya Commercial Bank) are among the best options. They
+offer a range of services including student accounts, mobile banking, and
+favorable terms for foreign students. Additionally, both banks have
+extensive branch networks and ATMs throughout the city, making them
+convenient choices.
+
+## ADDITIONAL INFORMATION
+NCBA provides tailored banking solutions for students, including accounts
+with no monthly fees and easy access to mobile banking. KCB also offers
+student accounts that come with benefits like free withdrawals and online
+banking services. Opening an account typically requires your passport,
+student ID, and proof of residence. Most banks in Nairobi are generally
+safe, but it’s wise to avoid withdrawing large sums at night and to be
+cautious in crowded areas.
+
+## NEXT STEPS
+1. Visit the nearest NCBA or KCB branch to inquire about student accounts.
+You can find branch locations on their websites:
+[NCBA](https://www.ncba.co.ke) and [KCB](https://www.kcbgroup.com).
+2. Prepare the necessary documents: your passport, student ID, and proof of
+residence (like a utility bill or rental agreement).
+3. Consider downloading their mobile banking apps for easy management of
+your finances.
+4. If you have any questions, you can call NCBA at 0711 099 999 or KCB at
+0703 099 999 for assistance.
+
+Your question: What documents do I need to open a bank account?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5116 tokens
+Intent: banking_finance | Topic: finance | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To open a bank account in Nairobi as an international student, you typically
+need a certified copy of your passport or alien card, an introductory letter
+from your employer (if applicable), and a recent pay slip or proof of funds.
+Additionally, you may need a passport-sized photo and a small initial
+deposit, depending on the bank's requirements.
+
+## ADDITIONAL INFORMATION
+Different banks may have slightly varying requirements, so it’s a good idea
+to check with the specific bank you’re considering. For students, accounts
+like the NCBA Go Banking Account are popular because they have no minimum
+balance or monthly fees. Ensure you have all necessary documents ready to
+avoid delays, especially if you plan to send or receive money
+internationally.
+
+## NEXT STEPS
+1. Visit the website of a bank like NCBA or KCB to review their specific
+account options and requirements.
+2. Prepare your documents: certified passport copy, introductory letter, pay
+slip, and photos.
+3. Visit a local branch to speak with a representative who can guide you
+through the account opening process.
+4. Consider setting up an M-Pesa account for easy mobile money transfers;
+you’ll need your ID and proof of address for that as well.
+
+Your question: How do mobile money services like M-Pesa work?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5620 tokens
+Intent: banking_finance | Topic: finance | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+M-Pesa is a mobile money service in Kenya that allows you to send and
+receive money, pay for goods and services, and top-up airtime directly from
+your phone. To use M-Pesa, you first need to register with Safaricom by
+visiting an authorized agent or M-Pesa store, where you can deposit money
+into your account. Transactions are secure and require a personal
+identification number (PIN) for protection.
+
+## ADDITIONAL INFORMATION
+M-Pesa is widely accepted across Kenya, making it an essential tool for both
+locals and international students. You can use it to pay for meals,
+transport, and even tuition fees without needing a bank account. The service
+is particularly useful because only about 8% of Kenyans have bank accounts,
+so cash transactions are common. Setting up an M-Pesa account is
+straightforward, and you can find agents in urban areas, shopping malls, and
+markets.
+
+## NEXT STEPS
+1. Locate a Safaricom agent or M-Pesa store near you; you can use Google
+Maps or ask locals for directions.
+2. Bring your identification (like a passport) and some cash to deposit into
+your M-Pesa account.
+3. Once registered, familiarize yourself with the M-Pesa app or USSD menu
+for easy transactions.
+4. For more information, visit the Safaricom website at
+(https://www.safaricom.co.ke) or contact their customer service at 100.
+
+Your question: What's the process for transferring money internationally?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5780 tokens
+Intent: banking_finance | Topic: finance | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To transfer money internationally while in Nairobi, you can use services
+like M-Pesa, Western Union, or online platforms like PayPal. M-Pesa allows
+for quick transfers to other M-Pesa accounts or bank accounts, and it has
+reasonable fees. For larger amounts, Western Union is a reliable option,
+though it may have higher fees and longer processing times.
+
+## ADDITIONAL INFORMATION
+M-Pesa is widely used in Kenya and is very convenient for both local and
+international transfers. The fees for M-Pesa transactions vary depending on
+the amount sent, but they are generally lower than traditional banks. For
+Western Union, you can visit their agents in Nairobi, which are often found
+in supermarkets or dedicated outlets. Always ensure you verify the
+recipient's details to avoid scams, especially when sending money
+internationally.
+
+## NEXT STEPS
+1. **Set Up M-Pesa**: If you don’t have an M-Pesa account, visit a local
+agent or Safaricom shop to register. Bring your ID and a phone.
+2. **Check Fees**: Use the M-Pesa app or visit an M-Pesa agent to check the
+current transaction fees for international transfers.
+3. **Explore Western Union**: Find a nearby Western Union agent by visiting
+their website or using Google Maps to locate the nearest outlet.
+4. **Stay Safe**: Always double-check recipient information and avoid
+sending money to strangers to prevent scams.
+
+Your question: Are there student-friendly bank accounts with low fees?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5536 tokens
+Intent: banking_finance | Topic: finance | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Yes, there are several student-friendly bank accounts in Nairobi with low
+fees. For instance, the NCBA Student Account requires a minimum opening
+balance of KSh 500 and has no monthly fees or minimum operating balance. It
+also offers a student debit card and free funds transfers to M-Pesa, making
+it a practical choice for managing finances.
+
+## ADDITIONAL INFORMATION
+The NCBA Student Account is designed specifically for students, providing
+easy access to banking services without the burden of high fees. You can
+manage your account through online and mobile banking, which is convenient
+for students who are often on the go. Additionally, the account allows free
+monthly e-statements and discounted fees for transferring funds, which can
+help you save money. Other banks may offer similar accounts, so it's worth
+comparing options.
+
+## NEXT STEPS
+1. Visit the NCBA website or a local branch to get more details about the
+Student Account and the application process.
+2. Consider checking out other banks like KCB or Equity Bank, which may also
+have student-friendly accounts.
+3. Gather the necessary documents, such as your student ID and
+identification, to open your account.
+4. If you have any questions, you can contact NCBA customer service at +254
+20 288 1000 or visit their website at www.ncba.co.ke.
+
+Your question: How does public transport work in Nairobi (matatus, buses, Uber)?
+INFO:language_processor:LLM detected language: en (confidence: 0.85)
+INFO:language_processor:LLM detected language: en (confidence: 0.85)
+INFO:response_generator:Generated helpful settlement response with 5916 tokens
+Intent: transportation | Topic: transport | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Public transport in Nairobi primarily consists of matatus (shared minibuses)
+and buses. Matatus are colorful and affordable, with fares ranging from
+20-100 KSh per trip, but they can be crowded and chaotic. Buses, operated by
+Kenya Bus Services and others, are another option, costing around 20-30 KSh.
+For a more comfortable ride, you can use ride-hailing services like Uber,
+which typically charge between 200-500 KSh for short distances.
+
+## ADDITIONAL INFORMATION
+Matatus cover extensive routes throughout Nairobi, making them a popular
+choice for students on a budget. However, they can be unpredictable in terms
+of safety and comfort, so it's essential to stay alert and keep your
+belongings secure. Buses are generally more reliable but may have limited
+routes compared to matatus. Uber is a safer option, especially at night,
+though it can be pricier. Always plan your route ahead of time and avoid
+traveling during rush hours (7-9 am and 4-6 pm) to minimize delays.
+
+## NEXT STEPS
+1. Download the Uber app for convenient ride-hailing and to check fares
+before you travel.
+2. Familiarize yourself with the matatu routes by asking local students or
+using online resources.
+3. Consider joining local student groups on social media to get tips on safe
+travel routes and experiences.
+4. Always keep some cash (KSh) on hand for matatu and bus fares, as not all
+drivers accept mobile payments.
+
+Your question: Is it safe to use matatus at night?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5128 tokens
+Intent: safety_concern | Topic: safety | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+Using matatus at night is generally not recommended due to safety concerns.
+They can be overcrowded and chaotic, and the risk of theft or other
+incidents increases after dark. It's safer to use registered taxis or
+ride-sharing services like Uber for nighttime travel in Nairobi.
+
+## ADDITIONAL INFORMATION
+Matatus are a popular and affordable way to get around during the day, but
+they can be unpredictable and may not have safety features like seatbelts.
+At night, the risk of crime increases, and matatus may not be as reliable.
+If you must travel at night, consider using a reputable taxi service or a
+ride-sharing app, which can provide a safer and more comfortable experience.
+Always keep your belongings close and avoid displaying valuables.
+
+## NEXT STEPS
+1. Download the Uber app or similar ride-sharing services like Bolt for
+safer nighttime transportation.
+2. Familiarize yourself with local taxi companies by asking fellow students
+or checking online reviews.
+3. Save local emergency numbers on your phone, including police (999) and
+ambulance services (999 or 0709 123 456).
+4. If you have questions about specific routes or safety, connect with your
+university's student services or local student groups for advice.
+
+Your question: How much should I budget for monthly transportation?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5168 tokens
+Intent: cost_inquiry | Topic: transport | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+For monthly transportation in Nairobi, budget around 3,000 to 5,000 KSh,
+depending on how often you travel and the modes of transport you choose. If
+you primarily use matatus and buses, you can keep costs lower, while using
+taxis or ride-hailing services like Uber will increase your expenses.
+
+## ADDITIONAL INFORMATION
+Nairobi has a variety of transportation options, including matatus
+(minibuses), buses, taxis, and ride-hailing services. Matatus and buses are
+the most budget-friendly, costing between 20-100 KSh per trip, while Uber
+rides can range from 200-500 KSh for short distances. If you plan to travel
+frequently, consider getting a monthly pass for buses or matatus if
+available, which can save you money. Always be cautious of your belongings,
+especially in crowded areas.
+
+## NEXT STEPS
+1. Track your daily travel to estimate your monthly transport needs and
+adjust your budget accordingly.
+2. Download ride-hailing apps like Uber or Bolt for convenience and to
+compare prices.
+3. Familiarize yourself with local bus and matatu routes by checking online
+resources or asking fellow students.
+4. For safety, always travel with a friend when possible, especially at
+night, and stay aware of your surroundings.
+
+Your question: Can I use ride-hailing apps like Uber or Bolt?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5408 tokens
+Intent: transportation | Topic: transport | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Yes, you can definitely use ride-hailing apps like Uber and Bolt in Nairobi.
+These services are popular, convenient, and generally safe, allowing you to
+request rides through their apps, track your driver, and pay cashlessly.
+Just make sure to download the app, set up your account, and familiarize
+yourself with the estimated fares before confirming your ride.
+
+## ADDITIONAL INFORMATION
+Ride-hailing apps are a great option for students due to their affordability
+and ease of use. Fares are calculated based on distance and can vary
+depending on traffic and demand, so it’s wise to check the app for
+estimates. Always wait for your ride in a well-lit area, confirm the
+driver's details, and consider sharing your ride details with a friend for
+added safety. If you prefer a more traditional option, taxis are available
+but ensure the meter is running or agree on a fare beforehand.
+
+## NEXT STEPS
+1. Download the Uber or Bolt app from the App Store or Google Play and
+create your account.
+2. Familiarize yourself with the app's interface and check out the fare
+estimates for your common routes.
+3. For safety, always verify the driver's name and vehicle details before
+getting in.
+4. If you have any issues, you can contact Uber or Bolt customer support
+through the app for assistance.
+
+Your question: How do I get from the airport to the city center?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5988 tokens
+Intent: transportation | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+To get from Jomo Kenyatta International Airport (JKIA) to the city center,
+you have several options. The most convenient is to use a ride-hailing
+service like Uber or Bolt, which are safe and affordable, typically costing
+around KSh 1,500 to KSh 2,500 depending on traffic. Alternatively, you can
+take a taxi from the airport, but make sure to agree on the fare beforehand
+if the meter is not visible.
+
+## ADDITIONAL INFORMATION
+Public transportation options are limited directly from the airport, as
+there are no matatus or buses that go straight to JKIA. However, if you're
+looking for a budget-friendly option, you could take a matatu or bus to the
+city center from a nearby location, but this requires some navigation and
+may not be the safest choice for newcomers. If you choose a taxi, ensure
+it's a licensed operator, and be cautious about your belongings during the
+ride.
+
+## NEXT STEPS
+1. Download a ride-hailing app like Uber or Bolt before your arrival to make
+your trip smoother.
+2. If you prefer a taxi, look for the official taxi stands at the airport
+and confirm the fare with the driver before starting your journey.
+3. For more information about transportation options, you can visit the
+Nairobi City County website or check local forums for recent experiences
+from other students.
+4. If you need assistance upon arrival, consider contacting your
+university's international office for guidance on transportation.
+
+Your question: Which hospitals or clinics accept international student insurance?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5552 tokens
+Intent: healthcare | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+In Nairobi, many hospitals and clinics accept international student
+insurance, including Aga Khan University Hospital, Mater Hospital, and AAR
+Healthcare. These facilities are known for their quality services and are
+likely to work with various international insurance providers. It's
+advisable to confirm with your insurance company which specific hospitals
+are covered under your plan.
+
+## ADDITIONAL INFORMATION
+When selecting a hospital, consider factors like proximity to your
+accommodation and the types of services you may need. For example, Aga Khan
+University Hospital is well-regarded for comprehensive care, while Mater
+Hospital has multiple branches across the city. Always carry your insurance
+card and any necessary documentation when visiting a healthcare provider.
+
+## NEXT STEPS
+1. Contact your insurance provider to get a list of hospitals and clinics
+that accept your specific plan.
+2. Visit the websites of the hospitals mentioned (Aga Khan University
+Hospital and Mater Hospital) to check their services and insurance
+partnerships.
+3. Consider visiting a local clinic for minor health issues, as they often
+provide quick and affordable care.
+4. If you have any specific medical needs, reach out to the hospital
+directly to inquire about their capabilities and insurance acceptance.
+
+Your question: Do I need specific vaccinations before arriving?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5272 tokens
+Intent: healthcare | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Yes, certain vaccinations are recommended before arriving in Kenya. The
+World Health Organization suggests vaccinations for Hepatitis A, Typhoid,
+and Yellow Fever, especially if you plan to visit rural areas. It's best to
+consult with a healthcare provider or travel clinic for personalized advice
+based on your health history and travel plans.
+
+## ADDITIONAL INFORMATION
+Vaccinations can help protect you from diseases that are more prevalent in
+Kenya. Yellow Fever vaccination is particularly important as it is required
+for entry if you're coming from a country with risk of transmission. You can
+get these vaccinations at local clinics or travel health centers, and costs
+can vary; expect to pay around KSh 5,000 to KSh 15,000 per vaccine.
+Additionally, consider getting malaria prophylaxis if you're traveling to
+areas where malaria is common.
+
+## NEXT STEPS
+1. Schedule an appointment with a travel health clinic or your doctor to
+discuss vaccinations. You can find clinics in Nairobi like the Nairobi
+Travel Clinic.
+2. Check the Kenya Medical Research Institute website for the latest
+vaccination requirements and health advisories.
+3. Bring your vaccination records with you to Kenya, as you may need to show
+proof of vaccination upon arrival.
+
+Your question: Where can I find affordable healthcare in Nairobi?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.85)
+INFO:response_generator:Generated helpful settlement response with 6688 tokens
+Intent: healthcare | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+In Nairobi, you can find affordable healthcare at various hospitals,
+including Kenyatta National Hospital, which is a major public facility, and
+private options like Meridian Equator Hospital and Nairobi Women’s Hospital.
+Many of these facilities offer a range of services at reasonable prices,
+making them suitable for students on a budget.
+
+## ADDITIONAL INFORMATION
+Kenyatta National Hospital is the largest referral hospital in Kenya and
+provides comprehensive services, although it can be crowded. For more
+personalized care, Meridian Equator Hospital is known for its cleanliness
+and attentive service. Nairobi Women’s Hospital specializes in women's
+health and offers a variety of medical services. Prices for consultations
+can range from KSh 1,000 to KSh 3,000, depending on the facility and type of
+service. Always check if they accept your health insurance, if applicable.
+
+## NEXT STEPS
+1. Visit the websites of the hospitals mentioned to check their services and
+pricing: [Kenyatta National Hospital](http://www.knh.go.ke), [Meridian
+Equator Hospital](http://meridianhealthgroup.co.ke), and [Nairobi Women’s
+Hospital](http://www.nairobiwomenshospital.or.ke).
+2. Call the hospitals directly to inquire about specific services and costs:
+Kenyatta National Hospital at +254-20-2726300, Meridian Equator at
++254-730-600000, and Nairobi Women’s Hospital at +254-709-100000.
+3. Consider visiting a nearby clinic for minor health issues, as they often
+have lower fees and shorter wait times.
+4. Familiarize yourself with the healthcare facilities in your neighborhood
+for easier access when needed.
+
+Your question: How does the healthcare system work in Kenya?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 6152 tokens
+Intent: healthcare | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+The healthcare system in Kenya includes both public and private facilities.
+Public hospitals, like Kenyatta National Hospital, provide essential
+services but can be overcrowded. Private hospitals, such as Nairobi Hospital
+and Aga Khan University Hospital, offer higher-quality care but at a higher
+cost. It's advisable for international students to consider private
+healthcare for better service and shorter waiting times.
+
+## ADDITIONAL INFORMATION
+Healthcare in Nairobi can vary significantly in quality and cost. Public
+hospitals are generally more affordable (consultation fees can be as low as
+KSh 200-500), but they may lack resources and can be crowded. Private
+hospitals typically charge between KSh 1,500 to KSh 5,000 for consultations,
+depending on the specialist. Many private facilities also offer health
+insurance plans which can be beneficial for students. It's important to have
+health insurance to cover unexpected medical expenses.
+
+## NEXT STEPS
+1. Research and compare nearby hospitals based on your location; consider
+Meridian Equator Hospital or Nairobi Hospital for good services.
+2. Look into health insurance options available for students, such as those
+offered by your university or local providers.
+3. Keep the contact number for Meridian Equator Hospital (+254-730 600000)
+handy for inquiries about services and costs.
+4. Familiarize yourself with the nearest medical facilities and their
+operating hours, especially if you need 24-hour services.
+
+Your question: Where are the best supermarkets for groceries?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Off-topic query detected, returning standard response
+Intent: off_topic | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+I'm specifically designed to help international students with settlement in
+Nairobi, Kenya. I don't have information about this topic.
+
+## ADDITIONAL INFORMATION
+I can assist you with questions about:
+- Student accommodation and housing in Nairobi
+- University information and academic processes
+- Visa and immigration procedures for Kenya
+- Transportation options (matatus, buses, Uber)
+- Safety and security advice for students
+- Banking and financial services (including M-Pesa)
+- Cost of living and budgeting tips
+- Cultural adaptation and local customs
+- Healthcare and emergency information
+
+## NEXT STEPS
+Ask me anything about settling in Nairobi as an international student - I'm
+here to help make your transition smooth and successful!
+
+Your question: What's the average cost of living for a student per month?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5672 tokens
+Intent: cost_inquiry | Topic: finance | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+The average cost of living for a student in Nairobi can range from KSh
+50,000 to KSh 80,000 per month, depending on your lifestyle and
+accommodation choices. This includes rent, food, transportation, and other
+essentials. For example, basic groceries can cost around KSh 4,000
+bi-weekly, while rent for a one-bedroom apartment in a central area can be
+between KSh 50,000 and KSh 80,000.
+
+## ADDITIONAL INFORMATION
+When budgeting, consider that transportation costs can vary; matatus (shared
+minibuses) are quite affordable at KSh 20-100 per trip, while meals at local
+eateries typically range from KSh 150-300. If you're looking to save, try
+cooking at home and using public transport. Additionally, be prepared for
+extra costs like utility bills and internet, which can add up to KSh
+5,000-10,000 monthly.
+
+## NEXT STEPS
+1. Create a detailed budget plan that includes all your expected expenses,
+including rent, food, transportation, and leisure.
+2. Explore different neighborhoods like Westlands or Kilimani for affordable
+housing options and check platforms like Jumia House or local Facebook
+groups for listings.
+3. Consider joining student groups or forums to get insights on cost-saving
+tips and shared accommodation opportunities.
+4. For transportation, download apps like Uber or Bolt for convenience and
+safety, especially at night.
+
+Your question: Which mobile network provider should I choose?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5764 tokens
+Intent: comparison_query | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+For mobile network providers in Nairobi, Safaricom is the most popular
+choice among students due to its extensive coverage and reliable service.
+Airtel and Telkom Kenya are also good options, often offering competitive
+pricing and promotions. Consider your budget and the type of data plan you
+need when making your choice.
+
+## ADDITIONAL INFORMATION
+Safaricom offers a wide range of prepaid and postpaid plans, with prices
+starting as low as KSh 100 for basic data bundles. Airtel and Telkom often
+have attractive offers, especially for students, so it’s worth checking
+tir websites or visiting local shops for current promotions. Additionally,
+Safaricom's M-Pesa service is widely used for mobile payments, making it
+convenient for transactions. When choosing a provider, consider factors like
+network coverage in your area and the availability of customer service.
+
+## NEXT STEPS
+1. Visit a local Safaricom, Airtel, or Telkom shop to compare plans and ask
+about student discounts.
+2. Check their websites for current promotions and data bundle options:
+[Safaricom](https://www.safaricom.co.ke),
+[Airtel](https://www.airtel.co.ke), [Telkom](https://www.telkom.co.ke).
+3. Consider getting a SIM card upon arrival to stay connected easily; prices
+are generally affordable.
+4. Ask fellow students for their recommendations based on their experiences
+with different providers.
+
+Your question: Where can I buy affordable furniture and household items?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5376 tokens
+Intent: housing_inquiry | Topic: general | Confidence: 0.80
+SettleBot: ## DIRECT ANSWER
+For affordable furniture and household items in Nairobi, check out places
+like Odds and Ends, which offers a variety of quality furniture at
+reasonable prices. Additionally, markets such as Gikomba and Eastleigh are
+great for second-hand items and vintage finds, often at very low prices.
+Don't forget to negotiate prices, especially in markets!
+
+## ADDITIONAL INFORMATION
+Odds and Ends is known for its Swahili decor and authentic woodwork, making
+it a popular choice among students. Prices can vary, but you might find
+items ranging from KSh 5,000 to KSh 20,000 depending on what you're looking
+for. Gikomba Market is particularly famous for second-hand clothing and
+furniture, and you can often find unique pieces for as little as KSh 1,000.
+Always be cautious about safety, especially in crowded markets, and keep
+your belongings secure.
+
+## NEXT STEPS
+1. Visit Odds and Ends located in the Westlands area; you can check their
+website for more details or call them at +254 700 000 000.
+2. Explore Gikomba Market and Eastleigh Market on weekends when they are
+most vibrant; take a friend for safety and to help with bargaining.
+3. Consider using Uber for transportation to these locations, as it’s a safe
+and convenient option for students unfamiliar with the area.
+
+Your question: What adapters do I need for electrical outlets?
+INFO:language_pcessor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Off-topic query detected, returning standard response
+Intent: off_topic | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+I'm specifically designed to help international students with settlement in
+Nairobi, Kenya. I don't have information about this topic.
+
+## ADDITIONAL INFORMATION
+I can assist you with questions about:
+- Student accommodation and housing in Nairobi
+- University information and academic processes
+- Visa and immigration procedures for Kenya
+- Transportation options (matatus, buses, Uber)
+- Safety and security advice for students
+- Banking and financial services (including M-Pesa)
+- Cost of living and budgeting tips
+- Cultural adaptation and local customs
+- Healthcare and emergency information
+
+## NEXT STEPS
+Ask me anything about settling in Nairobi as an international student - I'm
+here to help make your transition smooth and successful!
+
+Your question: Which areas should I avoid in Nairobi?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 4780 tokens
+Intent: safety_concern | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+In Nairobi, it's best to avoid areas like Kibera and Mathare, which are
+known for high crime rates. Eastleigh has also been associated with security
+concerns, so exercise caution there. Additionally, the Central Business
+District (CBD) can be risky due to pickpocketing and scams, especially near
+crowded areas.
+
+## ADDITIONAL INFORMATION
+Safety is a priority, especially for international students. While Nairobi
+has many safe neighborhoods, such as Westlands and Karen, it's important to
+stay alert in high-risk areas. Avoid traveling alone at night and refrain
+from displaying valuables. Always consult with locals or your accommodation
+staff for the latest safety advice and to identify safe routes.
+
+## NEXT STEPS
+1. Familiarize yourself with safe neighborhoods like Westlands and Karen for
+socializing and shopping.
+2. Stay updated on local news through platforms like The Standard or Daily
+Nation for any safety alerts.
+3. Consider joining student groups or forums where you can get firsthand
+safety tips from fellow students.
+4. If you feel uncertain about an area, don't hesitate to ask your hotel or
+local contacts for guidance.
+
+Your question: What are common scams targeting newcomers?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5624 tokens
+Intent: safety_concern | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Common scams targeting newcomers in Nairobi include fake safari packages,
+overpriced taxi fares, and aggressive street hawkers selling low-quality
+items. Tourists may also encounter scams involving friendship bracelets,
+where someone offers to make one and then demands payment at an inflated
+price. It's essential to be cautious of offers that seem too good to be true
+and to verify the legitimacy of any tour companies or services before
+committing.
+
+## ADDITIONAL INFORMATION
+Nairobi's Central Business District (CBD) is particularly known for scams,
+including pickpocketing and street touts trying to sell fake souvenirs.
+Always trust official sources for information about tours and
+accommodations, and avoid engaging with strangers offering unsolicited
+services. If you feel uncomfortable or pressured, it's best to walk away.
+Using reputable taxi services like Uber or Bolt can help you avoid taxi
+scams.
+
+## NEXT STEPS
+1. Research and book tours through reputable websites or local tourism
+offices, such as the Kenyan Ministry of Tourism (www.tourism.go.ke).
+2. Use rideshare apps like Uber or Bolt instead of hailing taxis on the
+street.
+3. Stay alert in crowded areas, especially in the CBD, and keep your
+belongings secure.
+4. If you encounter a scam or feel unsafe, seek help from local authorities
+or your accommodation's concierge.
+
+Your question: What is bread?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5112 tokens
+Intent: explanation_query | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+Bread is a staple food made from flour and water, usually baked. In Nairobi,
+you'll find various types of bread, including white bread, whole wheat, and
+traditional Kenyan options like chapati and mandazi. Chapati is a flatbread
+often served with stews, while mandazi is a sweet, fried dough that makes
+for a great snack or breakfast.
+
+## ADDITIONAL INFORMATION
+In Nairobi, bread is widely available in supermarkets, local bakeries, and
+street vendors. A loaf of basic white bread typically costs around KSh
+60-80, while chapati can be found for about KSh 20-30 each. For a unique
+experience, try local street food markets where you can enjoy freshly made
+chapati alongside delicious stews and curries. Safety-wise, stick to busy
+areas and well-lit markets, especially if you're out in the evening.
+
+## NEXT STEPS
+1. Visit a local supermarket like Naivas or Quickmart to explore different
+bread options.
+2. Check out street food markets such as City Market or Kenyatta Market to
+try chapati and mandazi.
+3. For a taste of local flavors, ask fellow students or locals for their
+favorite bakeries or street food stalls.
+4. If you're interested in cooking, consider taking a local cooking class to
+learn how to make chapati and other Kenyan dishes.
+
+Your question: What cultural norms should I be aware of?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5676 tokens
+Intent: cultural_adaptation | Topic: general | Confidence: 0.90
+SettleBot: ## DIRECT ANSWER
+In Nairobi, it's important to be aware of local cultural norms to ensure a
+respectful and enjoyable experience. Greeting people with a handshake or
+saying “jambo” (hello) is customary. Dress modestly, especially for women,
+to respect local customs, as revealing clothing can attract unwanted
+attention. Additionally, be cautious while traveling, especially at night,
+and try to avoid walking alone.
+
+## ADDITIONAL INFORMATION
+Kenya is a culturally diverse country, and understanding its customs can
+greatly enhance your experience. For exe, taking the time to learn about
+different communities and their traditions can foster deeper connections.
+When interacting with locals, showing respect through greetings and
+appropriate dress can help you blend in and feel more comfortable. Also, be
+mindful of your belongings and avoid displaying expensive items to reduce
+the risk of theft.
+
+## NEXT STEPS
+1. Familiarize yourself with local greetings and phrases; practicing "jambo"
+and "sasa" can be a good start.
+2. Visit local markets or community events to engage with different cultures
+and learn more about their customs.
+3. Consider joining a cultural exchange or cooking class to immerse yourself
+in Kenyan traditions.
+4. For more detailed information on cultural norms, check out resources like
+the Kenya Tourism Board website or local community centers.
+
+Your question: Is it safe to walk around at night?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 4948 tokens
+Intent: safety_concern | Topic: safety | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+Walking around at night in Nairobi can be risky, especially for
+international students. It's generally safer to avoid walking alone after
+dark, particularly in less populated or unfamiliar areas. If you need to
+travel at night, consider using reputable taxi services or ride-sharing apps
+like Uber or Bolt for added safety.
+
+## ADDITIONAL INFORMATION
+Nairobi has neighborhoods that are safer than others. Areas like Westlands
+and Karen are often considered safer for evening outings, but always stay
+alert and avoid displaying valuables. It's wise to keep informed about local
+news and consult with locals or your university for the latest safety tips.
+Remember, petty crimes like pickpocketing can occur, especially in crowded
+places, so keep your belongings secure.
+
+## NEXT STEPS
+1. Download a ride-sharing app like Uber or Bolt to use for safe
+transportation at night.
+2. Check in with your university's student services for safety advice and
+recommended areas to explore.
+3. Join local student groups or forums to get firsthand safety tips from
+fellow students.
+4. If you feel uncertain about a specific area, ask locals or your
+accommodation staff for their insights on safety.
+
+Your question: What emergency numbers should I save?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 4812 tokens
+Intent: emergency_help | Topic: health | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+As an international student in Nairobi, it's crucial to save the following
+emergency numbers on your phone: General Emergency: 999, Police: 999,
+Ambulance: 999, Fire Service: 999, and Red Cross: 0700 395 395. These
+numbers will connect you to essential services in case of any emergencies.
+
+## ADDITIONAL INFORMATION
+In Nairobi, it's important to stay aware of your surroundings and trust your
+instincts. If you find yourself in a situation where you feel unsafe, don’t
+hesitate to contact the police or seek help from locals. Additionally, make
+sure to inform your universy or accommodation about any incidents, as they
+can provide support and guidance. Always keep your phone charged and have
+these numbers easily accessible.
+
+## NEXT STEPS
+1. Save the emergency numbers listed above in your contacts.
+2. Familiarize yourself with the nearest police station and hospital
+locations from your accommodation or university.
+3. Consider downloading safety apps or local community apps that can provide
+real-time updates and support.
+4. If you have any concerns about safety, reach out to your university’s
+student services for advice and resources.
+
+Your question: Are there international student groups I can join?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 6084 tokens
+Intent: university_info | Topic: general | Confidence: 0.80
+SettleBot: ## DIRECT ANSWER
+Yes, there are several international student groups you can join at
+Strathmore University. The university offers various clubs and organizations
+based on interests and cultural backgrounds, as well as an International
+Students Office that organizes events and activities throughout the year.
+Additionally, you can participate in the Buddy System, which pairs you with
+a current student to help you navigate university life and make connections.
+
+## ADDITIONAL INFORMATION
+Getting involved in student clubs is a great way to meet new people and
+immerse yourself in campus culture. The International Students Office also
+organizes events like sports tournaments and social gatherings, which can
+help you build friendships and integrate into the community. Participating
+in these activities is not only fun but also a fantastic way to experience
+Kenyan culture. Most clubs and activities are budget-friendly, and you can
+often find free events on campus.
+
+## NEXT STEPS
+1. **Register for Clubs**: Visit the [Clubs Registration Link](#) to find
+and join clubs that interest you.
+2. **Contact the International Students Office**: For more information about
+events and support, email them at sisa@strathmore.edu.
+3. **Join the Buddy System**: Reach out to the International Students Office
+to get paired with a buddy who can help you settle in.
+4. **Participate in Events**: Keep an eye on university announcements for
+upcoming events and activities to join.
+
+Your question: Where can I meet other students from my country?
+INFO:language_processor:LLM detected language: sw (confidence: 0.85)
+Detected language: swahili
+INFO:language_processor:LLM detected language: sw (confidence: 0.85)
+INFO:response_generator:Generated helpful settlement response with 5448 tokens
+Intent: university_info | Topic: general | Confidence: 0.80
+SettleBot: ## JIBU MOJA KWA MOJA
+Ili kukutana na wanafunzi wengine kutoka nchi yako Nairobi, fikiria kujiunga
+na mashirika ya wanafunzi katika chuo chako au kuhudhuria matukio ya
+kitamaduni yanayofanywa na ubalozi wako au vikundi vya jamii za hapa. Vyuo
+vingi vina mashirika ya wanafunzi wa kimataifa ambayo yanaweza kukusaidia
+kuungana na wanafunzi wenzako. Aidha, baa na kahawa za hapa mara nyingi
+huandaa matukio ambapo unaweza kukutana na watu kutoka asili mbalimbali.
+
+## TAARIFA ZA ZIADA
+Nairobi ni nyumbani kwa jamii ya kimataifa yenye nguvu, na wanafunzi wengi
+hukusanyika katika maeneo kama Westlands au Karen, ambapo unaweza kupata
+mikahawa ya bei nafuu na maeneo ya kijamii. Tafuta matukio ya kitamaduni au
+sherehe zinazosherehekea utaifa wako, kwani haya ni fursa nzuri za kukutana
+na wengine. Kushiriki katika shughuli za hapa, kama vile madarasa ya kupika
+au michezo, pia kunaweza kukusaidia kuungana na wanafunzi wenzako na
+wenyeji.
+
+## HATUA ZIFUATIE
+1. Angalia tovuti ya chuo chako kwa vikundi au klabu za wanafunzi wa
+kimataifa na jiandikishe kwa matukio yao.
+2. Tembelea tovuti ya ubalozi wa nchi yako kwa taarifa kuhusu matukio ya
+kitamaduni au mikutano.
+3. Chunguza vikundi vya mitandao ya kijamii vya hapa au majukwaa kama
+Facebook ili kupata matukio au mikutano ya wanafunzi kutoka nchi yako.
+4. Uliza wanafunzi wenzako au wenyeji kwa mapendekezo kuhusu maeneo maarufu
+ya kukutana katika maeneo kama Westlands au Karen.
+
+Your question: What are popular student hangout spots?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5332 tokens
+Intent: university_info | Topic: general | Confidence: 0.70
+SettleBot: ## DIRECT ANSWER
+Some popular student hangout spots in Nairobi include The Oval - Artcaffe in
+Westlands, known for its vibrant atmosphere and salsa nights, and Nairobi
+Street Kitchen, which offers a mix of food stalls and a rooftop bar. For a
+more relaxed vibe, check out Freedom Heights Mall, where you can shop, eat,
+and enjoy various services in a safe environment.
+
+## ADDITIONAL INFORMATION
+These spots are budget-friendly and cater to students looking for a fun time
+without breaking the bank. The Oval has a lively scene on weekends, while
+Nairobi Street Kitchen is great for trying diverse cuisines. Freedom Heights
+Mall is ideal for shopping and socializing, especially on weekends when
+there are outdoor activities. Prices for meals can range from KSh 500 to KSh
+1,500 depending on what you order.
+
+## NEXT STEPS
+1. Visit The Oval - Artcaffe's website for their event schedule and menu
+options.
+2. Explore Nairobi Street Kitchen to find food stalls that suit your taste;
+you can also check their social media for updates on events.
+3. Head to Freedom Heights Mall for a weekend outing; it’s a great place to
+meet other students and enjoy various activities.
+4. Consider joining local student groups on social media to discover more
+hangout spots and events happening around Nairobi.
+
+Your question: Where can I find affordable restaurants near campus?
+INFO:language_processor:LLM detected language: en (nfidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5224 tokens
+Intent: housing_inquiry | Topic: general | Confidence: 0.70
+SettleBot: ## DIRECT ANSWER
+For affordable restaurants near campus in Nairobi, consider checking out
+local eateries in areas like Westlands, Parklands, and the CBD. You can find
+meals ranging from KSh 200 to KSh 500 at places serving traditional Kenyan
+dishes like nyama choma, ugali, and chapatis. Street food markets such as
+City Market and Muthurwa also offer delicious and budget-friendly options.
+
+## ADDITIONAL INFORMATION
+Nairobi's food scene is vibrant and diverse, making it easy for students to
+find tasty meals without breaking the bank. In addition to local
+restaurants, street food stalls are a great way to experience authentic
+Kenyan flavors. Popular dishes include samosas, mandazi, and mutura (Kenyan
+sausage). Always be mindful of hygiene when eating from street vendors, and
+try to go during busy hours for fresher food.
+
+## NEXT STEPS
+1. Explore the City Market and Muthurwa Market for street food options and
+local delicacies.
+2. Visit restaurants in Westlands and Parklands, such as Mama Oliech for
+traditional dishes or Artcaffe for a cozy café experience.
+3. Use apps like Uber Eats or Jumia Food to discover nearby restaurants and
+check reviews.
+4. Join local student groups on social media for recommendations on
+affordable dining spots.
+
+Your question: Are there shops selling international groceries?
+INFO:language_processor:LLM detected language en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5480 tokens
+Intent: university_info | Topic: general | Confidence: 0.60
+SettleBot: ## DIRECT ANSWER
+Yes, there are several shops in Nairobi that sell international groceries.
+Supermarkets like Carrefour, Chandarana, and Quickmart often have sections
+dedicated to imported goods, including snacks, sauces, and specialty items
+from various countries. Additionally, you can find international products at
+specialty stores like Zucchini Green Grocers and Soko Kijiji.
+
+## ADDITIONAL INFORMATION
+While larger supermarkets tend to have a wider selection of international
+products, independent stores and markets may offer unique items not found in
+mainstream outlets. Prices for international groceries can vary, so it's a
+good idea to compare costs between different stores. If you're looking for
+specific items, visiting in-store can help you find the best quality and
+deals. Also, consider checking local online marketplaces for specialty
+items.
+
+## NEXT STEPS
+1. Visit Carrefour or Chandarana Supermarket to explore their international
+grocery sections; locations can be found on their websites.
+2. Check out Zucchini Green Grocers for a selection of imported goods and
+fresh produce.
+3. Explore local markets like Soko Kijiji for unique international items and
+local produce.
+4. Join local student groups on social media platforms to get
+recommendations on where to find specific international groceries.
+
+Your question: What's the typical cost of eating out?
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:language_processor:LLM detected language: en (confidence: 0.95)
+INFO:response_generator:Generated helpful settlement response with 5424 tokens
+Intent: cost_inquiry | Topic: finance | Confidence: 0.95
+SettleBot: ## DIRECT ANSWER
+Eating out in Nairobi can be quite affordable, especially for students. A
+meal at a local restaurant typically ranges from KSh 200 to KSh 500, while
+street food can be even cheaper, with options like samosas and chapatis
+costing around KSh 50 to KSh 150. For a more upscale dining experience,
+expect to pay KSh 1,000 or more.
+
+## ADDITIONAL INFORMATION
+Nairobi has a vibrant food scene, with plenty of local eateries and street
+food stalls that offer delicious and budget-friendly options. Popular areas
+for street food include City Market and Kenyatta Market, where you can find
+tasty dishes like nyama choma (grilled meat) and mutura (Kenyan sausage). If
+you're looking to save money, consider dining at local spots rather than
+touristy restaurants, as they often have better prices and authentic
+flavors.
+
+## NEXT STEPS
+1. Explore local markets like City Market and Muthurwa for affordable street
+food options.
+2. Check out restaurant review websites or apps like TripAdvisor or Google
+Maps to find budget-friendly dining options near your accommodation.
+3. Join local student groups on social media to get recommendations for the
+best places to eat on a budget.
+4. Set a weekly food budget (around KSh 2,500) to help manage your expenses
+while enjoying the diverse culinary offerings in Nairobi.
+
+Your question: Where can I find halal/kosher/vegetarian food options?
+INFO:language_processor:LLM detected language: sw (confidence: 0.85)
+Detected language: swahili
+INFO:language_processor:LLM detected language: sw (confidence: 0.85)
+INFO:response_generator:Generated helpful settlement response with 6352 tokens
+Intent: university_info | Topic: general | Confidence: 0.70
+SettleBot: ## JIBU MOJA KWA MOJA
+Nairobi, unaweza kupata chaguzi za chakula halal, kosher, na mboga katika
+mikahawa mbalimbali na maeneo ya chakula ya ndani. Kwa chakula halal, maeneo
+kama Al-Yusra na Hashmi's ni maarufu, wakati chaguzi za mboga zinaweza
+kupatikana katika mikahawa kama The Veggie House na Urban Eatery. Aidha,
+masoko ya ndani kama City Market mara nyingi yana chakula cha mitaani cha
+mboga kama bhajias na samosas.
+
+## TAARIFA ZA ZIADA
+Scene ya chakula ya Nairobi ni tofauti, ikihudumia mahitaji mbalimbali ya
+lishe. Chakula halal kinapatikana kwa wingi kutokana na idadi kubwa ya
+Waislamu, na mikahawa mingi inaweka wazi lebo za bidhaa zao. Kwa chaguzi za
+kosher, unaweza kuhitaji kuangalia mikahawa maalum au maduka makubwa
+yanayohudumia sheria za lishe za Kiyahudi, kwani hizi zinaweza kuwa nadra.
+Wanafunzi wa mboga watafurahia wingi wa mazao mapya na vyakula vya ndani
+kama ugali (uji wa mahindi) na sukuma wiki (kabeji za kijani). Chakula cha
+mitaani pia ni njia ya gharama nafuu ya kuchunguza ladha za ndani, ambapo
+milo kwa kawaida inagharimu kati ya 150-300 KSh.
+
+## HATUA ZIFUATIE
+1. Tembelea mikahawa kama Al-Yusra (iliyoko Parklands) kwa chaguzi za halal
+au The Veggie House katika Westlands kwa milo ya mboga.
+2. Chunguza masoko ya ndani kama City Market au Muthurwa kwa chakula cha
+mitaani cha mboga chenye bei nafuu.
+3. Angalia majukwaa mtandaoni kama TripAdvisor au Google Maps kwa maoni na
+chaguzi zaidi za mikahawa zinazofaa mahitaji yako ya lishe.
+4. Fikiria kujiunga na vikundi vya wanafunzi wa ndani kwenye mitandao ya
+kijamii ili kupata mapendekezo kutoka kwa wenzao kuhusu wapi pa kula
+kulingana na mapendeleo yako ya lishe.
+
+Your question:

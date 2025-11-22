@@ -1,0 +1,17 @@
+{
+  "intent_types": [
+    "housing_inquiry",
+    "university_info",
+    "immigration_visa",
+    "transportation",
+    "safety_concern",
+    "cost_inquiry",
+    "banking_finance",
+    "healthcare",
+    "cultural_adaptation",
+    "emergency_help",
+    "procedural_query"
+  ],
+  "embedding_model": "text-embedding-ada-002",
+  "embedding_dim": 1536
+}

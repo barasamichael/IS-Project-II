@@ -33,6 +33,7 @@ from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_community.document_loaders import UnstructuredPowerPointLoader
 from langchain_community.document_loaders import UnstructuredWordDocumentLoader
 
+from config.settings import settings
 from config.settings import ROOT_DIR
 from services.semantic_chunking import SemanticChunker
 from services.embeddings import EmbeddingService
@@ -120,7 +121,8 @@ class DocumentProcessor:
             Path(chunk_dir) if chunk_dir else ROOT_DIR / "data" / "chunks"
         )
         self.dedup_dir = (
-            Path(dedup_dir) if dedup_dir else ROOT_DIR / "data" / "deduplicated"
+            Path(dedup_dir) if dedup_dir else ROOT_DIR /
+            "data" / "deduplicated"
         )
 
         # Create directories
@@ -790,7 +792,8 @@ class DocumentProcessor:
         try:
             logger.info(f"Processing URL: {url}")
 
-            loader = WebBaseLoader(url)
+            loader = WebBaseLoader(
+                url, verify_ssl=settings.ssl.enable_verification)
             documents = loader.load()
 
             if not documents:
@@ -955,7 +958,8 @@ class DocumentProcessor:
                     )
 
                 except Exception as e:
-                    logger.error(f"Error processing sitemap page {i}: {str(e)}")
+                    logger.error(
+                        f"Error processing sitemap page {i}: {str(e)}")
                     continue
 
             self._save_document_index()

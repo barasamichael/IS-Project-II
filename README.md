@@ -234,14 +234,14 @@ IS-Project-II/
 **Production Ready** - The system is fully functional and ready for deployment with comprehensive testing, error handling, and monitoring capabilities.
 
 ### **Features**
-- 🌍 **Multilingual Support**: English, Swahili, French, Spanish
-- 🏠 **Settlement Optimization**: Specialized for Nairobi international students
-- 🧠 **LLM-Powered**: Advanced semantic understanding and response generation
-- 📊 **Comprehensive Evaluation**: Built-in testing and quality assessment
-- 🔍 **Smart Search**: Vector-based search with settlement-specific boosting
-- 💬 **Interactive CLI**: Rich terminal interface for easy interaction
-- 🌐 **Web API**: RESTful endpoints for integration
-- 📈 **Analytics**: System performance monitoring and usage statistics
+- **Multilingual Support**: English, Swahili, French, Spanish
+- **Settlement Optimization**: Specialized for Nairobi international students
+- **LLM-Powered**: Advanced semantic understanding and response generation
+- **Comprehensive Evaluation**: Built-in testing and quality assessment
+- **Smart Search**: Vector-based search with settlement-specific boosting
+- **Interactive CLI**: Rich terminal interface for easy interaction
+- **Web API**: RESTful endpoints for integration
+- **Analytics**: System performance monitoring and usage statistics
 
 ### **Known Issues**
 None at the moment. The system has been thoroughly tested and optimized for production use.

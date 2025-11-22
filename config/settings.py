@@ -36,6 +36,10 @@ class ChunkingConfig(BaseModel):
     semantic_threshold: float
 
 
+class SSLConfig(BaseModel):
+    enable_verification: bool
+
+
 class DeduplicationConfig(BaseModel):
     enabled: bool
     similarity_threshold: float
@@ -67,6 +71,7 @@ class Settings(BaseModel):
     deduplication: DeduplicationConfig
     language: LanguageConfig
     api: APIConfig
+    ssl: SSLConfig
 
     @classmethod
     def from_yaml(cls, file_path: Path) -> "Settings":
