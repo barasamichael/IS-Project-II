@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+
+{% block title %}Terms and Conditions - SettleBot{% endblock %}
+
+{% block meta_description %}Read SettleBot's terms and conditions for using our AI settlement assistant service for international students in Nairobi, Kenya.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .terms-page {
+        padding: 6rem 0 4rem 0;
+        background: white;
+    }
+
+    .terms-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .terms-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .terms-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .terms-header p {
+        font-size: 1.1rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        max-width: 700px;
+        margin: 0 auto 2rem auto;
+    }
+
+    .last-updated {
+        background: var(--brown-50);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--brown-700);
+        font-size: 0.95rem;
+        color: var(--brown-900);
+        font-weight: 500;
+        margin-bottom: 3rem;
+    }
+
+    .terms-content {
+        background: white;
+        border-radius: 16px;
+        padding: 3rem;
+        border: 1px solid var(--brown-200);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .terms-section {
+        margin-bottom: 3rem;
+    }
+
+    .terms-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--brown-700);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .terms-content p {
+        color: var(--gray-700);
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .terms-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    .terms-list {
+        margin: 1.5rem 0;
+        padding-left: 2rem;
+    }
+
+    .terms-list li {
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .subsection {
+        margin-left: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .subsection-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1rem;
+    }
+
+    .highlight-box {
+        background: var(--brown-50);
+        border: 1px solid var(--brown-200);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .highlight-box h4 {
+        color: var(--brown-900);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .highlight-box p {
+        color: var(--brown-800);
+        margin: 0;
+    }
+
+    .contact-info {
+        background: var(--gray-50);
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid var(--gray-200);
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .contact-info h3 {
+        color: var(--brown-900);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .contact-info p {
+        color: var(--gray-700);
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .contact-link {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .contact-link:hover {
+        text-decoration: underline;
+    }
+
+    .back-nav {
+        margin-bottom: 3rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: var(--brown-900);
+        transform: translateX(-2px);
+    }
+
+    /* Table of Contents */
+    .toc {
+        background: var(--brown-50);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid var(--brown-200);
+    }
+
+    .toc h3 {
+        color: var(--brown-900);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+    }
+
+    .toc-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .toc-list li {
+        margin-bottom: 0.75rem;
+    }
+
+    .toc-link {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+        display: block;
+        padding: 0.5rem 0;
+    }
+
+    .toc-link:hover {
+        color: var(--brown-900);
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .terms-page {
+            padding: 4rem 0 2rem 0;
+        }
+
+        .terms-container {
+            padding: 0 1rem;
+        }
+
+        .terms-header h1 {
+            font-size: 2.25rem;
+        }
+
+        .terms-content {
+            padding: 2rem;
+        }
+
+        .subsection {
+            margin-left: 1rem;
+        }
+
+        .terms-list {
+            padding-left: 1.5rem;
+        }
+
+        .toc,
+        .contact-info {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .terms-content {
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .section-number {
+            font-size: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terms-page">
+    <div class="terms-container">
+        
+        <div class="back-nav">
+            <a href="{{ url_for('main.index') }}" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5"/>
+                    <path d="M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Home
+            </a>
+        </div>
+
+        <div class="terms-header">
+            <h1>Terms and Conditions</h1>
+            <p>Please read these terms and conditions carefully before using SettleBot. By creating an account or using our service, you agree to be bound by these terms.</p>
+            
+            <div class="last-updated">
+                <strong>Last Updated:</strong> November 22, 2025
+            </div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul class="toc-list">
+                <li><a href="#acceptance" class="toc-link">1. Acceptance of Terms</a></li>
+                <li><a href="#description" class="toc-link">2. Service Description</a></li>
+                <li><a href="#user-accounts" class="toc-link">3. User Accounts and Registration</a></li>
+                <li><a href="#acceptable-use" class="toc-link">4. Acceptable Use</a></li>
+                <li><a href="#ai-limitations" class="toc-link">5. AI Assistant Limitations and Disclaimers</a></li>
+                <li><a href="#privacy" class="toc-link">6. Privacy and Data Collection</a></li>
+                <li><a href="#intellectual-property" class="toc-link">7. Intellectual Property</a></li>
+                <li><a href="#limitation-liability" class="toc-link">8. Limitation of Liability</a></li>
+                <li><a href="#termination" class="toc-link">9. Account Termination</a></li>
+                <li><a href="#changes" class="toc-link">10. Changes to Terms</a></li>
+                <li><a href="#governing-law" class="toc-link">11. Governing Law</a></li>
+                <li><a href="#contact" class="toc-link">12. Contact Information</a></li>
+            </ul>
+        </div>
+
+        <div class="terms-content">
+            
+            <!-- Section 1 -->
+            <div class="terms-section" id="acceptance">
+                <span class="section-number">1.</span>
+                <h2 class="section-title">Acceptance of Terms</h2>
+                <p>By accessing, registering for, or using SettleBot ("the Service"), you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, you must not use the Service.</p>
+                <p>These Terms constitute a legally binding agreement between you ("User," "you," or "your") and SettleBot ("we," "us," or "our"). Your continued use of the Service constitutes ongoing acceptance of these Terms.</p>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="terms-section" id="description">
+                <span class="section-number">2.</span>
+                <h2 class="section-title">Service Description</h2>
+                <p>SettleBot is an AI-powered settlement assistant designed specifically for international students settling in Nairobi, Kenya. Our service provides:</p>
+                <ul class="terms-list">
+                    <li>Information and guidance on accommodation options</li>
+                    <li>Administrative process assistance (student permits, bank accounts, etc.)</li>
+                    <li>Essential services information (healthcare, transportation, telecommunications)</li>
+                    <li>Budget planning and cost estimation guidance</li>
+                    <li>Cultural integration information and local customs guidance</li>
+                    <li>24/7 AI-powered conversational assistance</li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <h4>Important Notice:</h4>
+                    <p>SettleBot provides information and guidance only. We do not provide legal advice, medical advice, or financial services. All information should be verified independently, and users should consult appropriate professionals for specific legal, medical, or financial matters.</p>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="terms-section" id="user-accounts">
+                <span class="section-number">3.</span>
+                <h2 class="section-title">User Accounts and Registration</h2>
+                <p>To access certain features of SettleBot, you must create a user account. By creating an account, you agree to:</p>
+                <ul class="terms-list">
+                    <li>Provide accurate, current, and complete information during registration</li>
+                    <li>Maintain and promptly update your account information</li>
+                    <li>Keep your login credentials secure and confidential</li>
+                    <li>Accept responsibility for all activities under your account</li>
+                    <li>Notify us immediately of any unauthorized use of your account</li>
+                </ul>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Eligibility</h3>
+                    <p>Our service is intended for international students who are 18 years of age or older. If you are under 18, you may only use the Service with the involvement and consent of a parent or guardian.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Account Security</h3>
+                    <p>You are responsible for maintaining the confidentiality of your account credentials. We recommend using a strong, unique password and enabling two-factor authentication when available.</p>
+                </div>
+            </div>
+
+            <!-- Section 4 -->
+            <div class="terms-section" id="acceptable-use">
+                <span class="section-number">4.</span>
+                <h2 class="section-title">Acceptable Use</h2>
+                <p>You agree to use SettleBot only for lawful purposes and in accordance with these Terms. You agree not to:</p>
+                <ul class="terms-list">
+                    <li>Use the Service for any illegal, harmful, or unauthorized purpose</li>
+                    <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+                    <li>Transmit any harmful, threatening, abusive, or defamatory content</li>
+                    <li>Use automated systems (bots, scripts) to access or interact with the Service</li>
+                    <li>Attempt to reverse engineer, decompile, or extract our AI models or algorithms</li>
+                    <li>Use the Service to harass, intimidate, or harm others</li>
+                    <li>Share false, misleading, or inaccurate information</li>
+                    <li>Violate any applicable laws, regulations, or third-party rights</li>
+                    <li>Use the Service for commercial purposes without our explicit written consent</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <h4>Reporting Violations:</h4>
+                    <p>If you encounter any behavior that violates these terms or seems inappropriate, please report it to us at support.team@jisortublow.co.ke.</p>
+                </div>
+            </div>
+
+            <!-- Section 5 -->
+            <div class="terms-section" id="ai-limitations">
+                <span class="section-number">5.</span>
+                <h2 class="section-title">AI Assistant Limitations and Disclaimers</h2>
+                <p>SettleBot uses artificial intelligence to provide settlement guidance. You understand and acknowledge that:</p>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Information Accuracy</h3>
+                    <p>While we strive to provide accurate and up-to-date information, AI responses may contain errors, outdated information, or inaccuracies. Always verify important information independently through official sources.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Not Professional Advice</h3>
+                    <p>SettleBot does not provide legal, medical, financial, or professional advice. Our guidance is informational only and should not replace consultation with qualified professionals.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Decision Responsibility</h3>
+                    <p>You are solely responsible for your settlement decisions. We do not guarantee specific outcomes based on our guidance, and we are not liable for decisions you make based on information provided by SettleBot.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Service Availability</h3>
+                    <p>We strive to provide continuous service availability but do not guarantee uninterrupted access. The Service may be temporarily unavailable due to maintenance, updates, or technical issues.</p>
+                </div>
+            </div>
+
+            <!-- Section 6 -->
+            <div class="terms-section" id="privacy">
+                <span class="section-number">6.</span>
+                <h2 class="section-title">Privacy and Data Collection</h2>
+                <p>Your privacy is important to us. Our collection, use, and protection of your personal information is governed by our Privacy Policy, which is incorporated into these Terms by reference.</p>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Data We Collect</h3>
+                    <p>We collect information you provide during registration, your conversations with our AI assistant, and technical data about your use of the Service to improve our offerings.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Data Use</h3>
+                    <p>We use your data to provide and improve our services, personalize your experience, and communicate with you about your account and our services.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Data Security</h3>
+                    <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+                </div>
+            </div>
+
+            <!-- Section 7 -->
+            <div class="terms-section" id="intellectual-property">
+                <span class="section-number">7.</span>
+                <h2 class="section-title">Intellectual Property</h2>
+                <p>The SettleBot service, including its AI models, algorithms, software, design, content, and trademarks, is owned by us and protected by intellectual property laws.</p>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Our Rights</h3>
+                    <p>We retain all rights to our intellectual property, including but not limited to the SettleBot name, logo, AI technology, and service design.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Your Rights</h3>
+                    <p>We grant you a limited, non-exclusive, non-transferable license to use our Service for your personal, non-commercial settlement needs as an international student.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">User Content</h3>
+                    <p>You retain ownership of any content you submit to SettleBot. However, by using our Service, you grant us a license to use, process, and analyze your interactions to improve our AI and services.</p>
+                </div>
+            </div>
+
+            <!-- Section 8 -->
+            <div class="terms-section" id="limitation-liability">
+                <span class="section-number">8.</span>
+                <h2 class="section-title">Limitation of Liability</h2>
+                <p>To the fullest extent permitted by law, SettleBot and its owners, employees, and affiliates shall not be liable for:</p>
+                <ul class="terms-list">
+                    <li>Any indirect, incidental, special, consequential, or punitive damages</li>
+                    <li>Loss of profits, data, use, goodwill, or other intangible losses</li>
+                    <li>Damages resulting from reliance on information provided by our AI assistant</li>
+                    <li>Any settlement decisions or outcomes based on our guidance</li>
+                    <li>Service interruptions, errors, or technical issues</li>
+                    <li>Actions of third parties or external services referenced in our guidance</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <h4>Maximum Liability:</h4>
+                    <p>Our total liability to you for any claims related to the Service shall not exceed the amount you have paid us for the Service in the 12 months preceding the claim, or $100 USD, whichever is greater.</p>
+                </div>
+            </div>
+
+            <!-- Section 9 -->
+            <div class="terms-section" id="termination">
+                <span class="section-number">9.</span>
+                <h2 class="section-title">Account Termination</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Termination by You</h3>
+                    <p>You may terminate your account at any time through your account settings or by contacting us. Upon termination, your access to the Service will cease immediately.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Termination by Us</h3>
+                    <p>We may suspend or terminate your account if you violate these Terms, engage in harmful behavior, or for other legitimate business reasons. We will provide notice when reasonably possible.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Effect of Termination</h3>
+                    <p>Upon termination, your access to the Service ends immediately. We may delete your account data according to our data retention policies. Provisions of these Terms that should survive termination will remain in effect.</p>
+                </div>
+            </div>
+
+            <!-- Section 10 -->
+            <div class="terms-section" id="changes">
+                <span class="section-number">10.</span>
+                <h2 class="section-title">Changes to Terms</h2>
+                <p>We may modify these Terms from time to time to reflect changes in our services, legal requirements, or business practices. We will notify users of material changes through:</p>
+                <ul class="terms-list">
+                    <li>Email notification to registered users</li>
+                    <li>Prominent notice on our website</li>
+                    <li>In-app notifications when you next use the Service</li>
+                </ul>
+                <p>Your continued use of the Service after changes become effective constitutes acceptance of the new Terms. If you do not agree to changes, you must stop using the Service.</p>
+            </div>
+
+            <!-- Section 11 -->
+            <div class="terms-section" id="governing-law">
+                <span class="section-number">11.</span>
+                <h2 class="section-title">Governing Law and Disputes</h2>
+                <p>These Terms are governed by the laws of Kenya, without regard to conflict of law principles. Any disputes arising from these Terms or your use of the Service shall be resolved through:</p>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Informal Resolution</h3>
+                    <p>We encourage you to contact us first to resolve any disputes informally. Many concerns can be addressed through direct communication.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Formal Proceedings</h3>
+                    <p>If informal resolution is unsuccessful, disputes shall be subject to the exclusive jurisdiction of the courts of Kenya, and you consent to such jurisdiction and venue.</p>
+                </div>
+            </div>
+
+            <!-- Section 12 -->
+            <div class="terms-section" id="contact">
+                <span class="section-number">12.</span>
+                <h2 class="section-title">Contact Information</h2>
+                <p>If you have questions about these Terms or need to contact us for any reason related to your use of SettleBot, please reach out to us:</p>
+                <ul class="terms-list">
+                    <li><strong>Email:</strong> support.team@jisortublow.co.ke</li>
+                    <li><strong>Phone:</strong> +254 114 742 348</li>
+                    <li><strong>Location:</strong> Nairobi, Kenya</li>
+                </ul>
+                <p>We aim to respond to all inquiries within 48 hours during business days.</p>
+            </div>
+
+        </div>
+
+        <div class="contact-info">
+            <h3>Questions About These Terms?</h3>
+            <p>If you need clarification on any part of these Terms and Conditions or have concerns about your rights and responsibilities, please don't hesitate to contact us.</p>
+            <a href="mailto:support.team@jisortublow.co.ke" class="contact-link">support.team@jisortublow.co.ke</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

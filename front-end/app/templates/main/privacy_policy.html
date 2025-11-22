@@ -1,0 +1,953 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - SettleBot{% endblock %}
+
+{% block meta_description %}Learn how SettleBot protects your privacy and handles your personal information when using our AI settlement assistant for international students in Nairobi.{% endblock %}
+
+{% block extra_css %}
+<style>
+.privacy-page {
+  padding: 6rem 0 4rem 0;
+  background: white;
+}
+
+    .privacy-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .privacy-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .privacy-header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--brown-900);
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .privacy-header p {
+      font-size: 1.1rem;
+      color: var(--gray-700);
+      line-height: 1.7;
+      max-width: 700px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .last-updated {
+      background: var(--brown-50);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--brown-700);
+      font-size: 0.95rem;
+      color: var(--brown-900);
+      font-weight: 500;
+      margin-bottom: 3rem;
+    }
+
+    .privacy-content {
+      background: white;
+      border-radius: 16px;
+      padding: 3rem;
+      border: 1px solid var(--brown-200);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .privacy-section {
+      margin-bottom: 3rem;
+    }
+
+    .privacy-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--brown-700);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--brown-900);
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    .privacy-content p {
+      color: var(--gray-700);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+
+    .privacy-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .privacy-list {
+      margin: 1.5rem 0;
+      padding-left: 2rem;
+    }
+
+    .privacy-list li {
+      color: var(--gray-700);
+      line-height: 1.7;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .subsection {
+      margin-left: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .subsection-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--brown-900);
+      margin-bottom: 1rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      border: 1px solid var(--brown-200);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .data-table th {
+      background: var(--brown-100);
+      color: var(--brown-900);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--brown-200);
+    }
+
+    .data-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--brown-200);
+      color: var(--gray-700);
+      line-height: 1.6;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .highlight-box {
+      background: var(--brown-50);
+      border: 1px solid var(--brown-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .highlight-box h4 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .highlight-box p {
+      color: var(--brown-800);
+      margin: 0;
+    }
+
+    .rights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .rights-card {
+      background: var(--brown-50);
+      border: 1px solid var(--brown-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .rights-card h4 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .rights-card p {
+      color: var(--brown-800);
+      font-size: 0.95rem;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .contact-info {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid var(--gray-200);
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    .contact-info h3 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .contact-info p {
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .contact-link {
+      color: var(--brown-700);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .contact-link:hover {
+      text-decoration: underline;
+    }
+
+    .back-nav {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--brown-700);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--brown-900);
+      transform: translateX(-2px);
+    }
+
+    /* Table of Contents */
+    .toc {
+      background: var(--brown-50);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      border: 1px solid var(--brown-200);
+    }
+
+    .toc h3 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+    }
+
+    .toc-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .toc-list li {
+      margin-bottom: 0.75rem;
+    }
+
+    .toc-link {
+      color: var(--brown-700);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+      display: block;
+      padding: 0.5rem 0;
+    }
+
+    .toc-link:hover {
+      color: var(--brown-900);
+      text-decoration: underline;
+    }
+
+    .retention-timeline {
+      background: linear-gradient(135deg, var(--brown-50), #faf8f2);
+      border: 1px solid var(--brown-200);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .retention-timeline h4 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-icon {
+      background: var(--brown-700);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .timeline-content h5 {
+      color: var(--brown-900);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .timeline-content p {
+      color: var(--gray-700);
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .privacy-page {
+        padding: 4rem 0 2rem 0;
+      }
+
+      .privacy-container {
+        padding: 0 1rem;
+      }
+
+      .privacy-header h1 {
+        font-size: 2.25rem;
+      }
+
+      .privacy-content {
+        padding: 2rem;
+      }
+
+      .subsection {
+        margin-left: 1rem;
+      }
+
+      .privacy-list {
+        padding-left: 1.5rem;
+      }
+
+      .data-table {
+        font-size: 0.9rem;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 0.75rem;
+      }
+
+      .rights-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc,
+      .contact-info {
+        padding: 1.5rem;
+      }
+
+      .timeline-item {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .privacy-content {
+        padding: 1.5rem;
+        border-radius: 12px;
+      }
+
+      .section-number {
+        font-size: 1.25rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-page">
+  <div class="privacy-container">
+
+    <div class="back-nav">
+      <a href="{{ url_for('main.index') }}" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5"/>
+          <path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Home
+      </a>
+    </div>
+
+    <div class="privacy-header">
+      <h1>Privacy Policy</h1>
+      <p>Your privacy is important to us. This Privacy Policy explains how SettleBot collects, uses, protects, and shares your information when you use our AI settlement assistant service.</p>
+
+      <div class="last-updated">
+        <strong>Last Updated:</strong> November 22, 2025
+      </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h3>Table of Contents</h3>
+      <ul class="toc-list">
+        <li><a href="#introduction" class="toc-link">1. Introduction</a></li>
+        <li><a href="#information-collection" class="toc-link">2. Information We Collect</a></li>
+        <li><a href="#how-we-use" class="toc-link">3. How We Use Your Information</a></li>
+        <li><a href="#sharing" class="toc-link">4. Information Sharing and Disclosure</a></li>
+        <li><a href="#data-security" class="toc-link">5. Data Security</a></li>
+        <li><a href="#data-retention" class="toc-link">6. Data Retention</a></li>
+        <li><a href="#your-rights" class="toc-link">7. Your Rights and Choices</a></li>
+        <li><a href="#cookies" class="toc-link">8. Cookies and Tracking</a></li>
+        <li><a href="#third-party" class="toc-link">9. Third-Party Services</a></li>
+        <li><a href="#international" class="toc-link">10. International Data Transfers</a></li>
+        <li><a href="#children" class="toc-link">11. Children's Privacy</a></li>
+        <li><a href="#changes" class="toc-link">12. Changes to This Policy</a></li>
+        <li><a href="#contact" class="toc-link">13. Contact Us</a></li>
+      </ul>
+    </div>
+
+    <div class="privacy-content">
+
+      <!-- Section 1 -->
+      <div class="privacy-section" id="introduction">
+        <span class="section-number">1.</span>
+        <h2 class="section-title">Introduction</h2>
+        <p>SettleBot ("we," "us," or "our") is committed to protecting your privacy and ensuring transparency about how we handle your personal information. This Privacy Policy applies to all users of our AI-powered settlement assistant service designed for international students in Nairobi, Kenya.</p>
+        <p>By using SettleBot, you consent to the collection, use, and disclosure of your information as described in this Privacy Policy. If you do not agree with our privacy practices, please do not use our service.</p>
+
+        <div class="highlight-box">
+          <h4>Key Privacy Principles:</h4>
+          <p>We only collect information necessary to provide our service, we never sell your personal data to third parties, we use industry-standard security measures, and we give you control over your information.</p>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="privacy-section" id="information-collection">
+        <span class="section-number">2.</span>
+        <h2 class="section-title">Information We Collect</h2>
+        <p>We collect several types of information to provide and improve our settlement assistance service:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Information You Provide Directly</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data Type</th>
+                <th>Examples</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Account Information</td>
+                <td>Full name, username, email address, password</td>
+                <td>Account creation, authentication, communication</td>
+              </tr>
+              <tr>
+                <td>Profile Information</td>
+                <td>University, study program, budget preferences</td>
+                <td>Personalized settlement guidance</td>
+              </tr>
+              <tr>
+                <td>Conversations</td>
+                <td>Questions asked, AI responses, chat history</td>
+                <td>Service provision, AI improvement</td>
+              </tr>
+              <tr>
+                <td>Feedback</td>
+                <td>Service ratings, bug reports, suggestions</td>
+                <td>Service improvement, issue resolution</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Information We Collect Automatically</h3>
+          <ul class="privacy-list">
+            <li><strong>Usage Data:</strong> Pages visited, features used, time spent, click patterns</li>
+            <li><strong>Device Information:</strong> Browser type, operating system, screen resolution, device type</li>
+            <li><strong>Log Information:</strong> IP address, access times, error logs, performance data</li>
+            <li><strong>Location Data:</strong> General location information (city/country level only)</li>
+            <li><strong>Performance Data:</strong> Response times, system errors, feature usage patterns</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Information We Do NOT Collect</h3>
+          <p>We want to be clear about what we don't collect:</p>
+          <ul class="privacy-list">
+            <li>Sensitive personal information (passport numbers, financial details, medical records)</li>
+            <li>Precise location or GPS coordinates</li>
+            <li>Information from other apps or websites without your permission</li>
+            <li>Voice recordings or camera access</li>
+            <li>Contact lists or personal files from your device</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="privacy-section" id="how-we-use">
+        <span class="section-number">3.</span>
+        <h2 class="section-title">How We Use Your Information</h2>
+        <p>We use your information for the following purposes:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Primary Service Functions</h3>
+          <ul class="privacy-list">
+            <li><strong>Provide Settlement Guidance:</strong> Answer your questions about accommodation, admin processes, and services in Nairobi</li>
+            <li><strong>Personalize Responses:</strong> Tailor AI responses based on your university, budget, and preferences</li>
+            <li><strong>Account Management:</strong> Create and maintain your account, authenticate users, provide customer support</li>
+            <li><strong>Communication:</strong> Send important service updates, respond to inquiries, provide customer support</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Service Improvement</h3>
+          <ul class="privacy-list">
+            <li><strong>AI Training:</strong> Analyze conversations to improve our AI assistant's accuracy and helpfulness</li>
+            <li><strong>Feature Development:</strong> Understand user needs to develop new features and services</li>
+            <li><strong>Performance Optimization:</strong> Monitor and improve system performance, fix bugs, enhance security</li>
+            <li><strong>Research:</strong> Conduct research to better understand international student settlement challenges</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Legal and Security</h3>
+          <ul class="privacy-list">
+            <li><strong>Legal Compliance:</strong> Comply with applicable laws, regulations, and legal processes</li>
+            <li><strong>Security:</strong> Protect against fraud, abuse, and security threats</li>
+            <li><strong>Terms Enforcement:</strong> Enforce our Terms and Conditions and prevent misuse</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="privacy-section" id="sharing">
+        <span class="section-number">4.</span>
+        <h2 class="section-title">Information Sharing and Disclosure</h2>
+        <p>We do not sell, rent, or trade your personal information. We may share your information only in the following limited circumstances:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Service Providers</h3>
+          <p>We may share information with trusted third-party service providers who help us operate our service:</p>
+          <ul class="privacy-list">
+            <li>Cloud hosting providers for data storage and processing</li>
+            <li>Email service providers for account notifications</li>
+            <li>Analytics services for understanding user behavior</li>
+            <li>Security services for fraud prevention and protection</li>
+          </ul>
+          <p>All service providers are bound by confidentiality agreements and can only use your information for specified purposes.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Legal Requirements</h3>
+          <p>We may disclose your information if required by law or if we believe in good faith that disclosure is necessary to:</p>
+          <ul class="privacy-list">
+            <li>Comply with legal obligations or court orders</li>
+            <li>Protect and defend our rights or property</li>
+            <li>Prevent or investigate possible wrongdoing</li>
+            <li>Protect the personal safety of users or the public</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Business Transfers</h3>
+          <p>If SettleBot is involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will notify you before your information becomes subject to a different privacy policy.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Aggregated Information</h3>
+          <p>We may share aggregated, anonymized information that cannot identify you personally for research, analysis, or business purposes. For example, we might share general usage statistics or trends in settlement questions.</p>
+        </div>
+      </div>
+
+      <!-- Section 5 -->
+      <div class="privacy-section" id="data-security">
+        <span class="section-number">5.</span>
+        <h2 class="section-title">Data Security</h2>
+        <p>We implement comprehensive security measures to protect your information against unauthorized access, alteration, disclosure, or destruction:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Technical Safeguards</h3>
+          <ul class="privacy-list">
+            <li><strong>Encryption:</strong> All data transmitted between your device and our servers is encrypted using TLS/SSL</li>
+            <li><strong>Data Encryption:</strong> Sensitive data is encrypted at rest using industry-standard encryption</li>
+            <li><strong>Access Controls:</strong> Strict access controls limit who can access your personal information</li>
+            <li><strong>Regular Updates:</strong> We regularly update our security systems and software</li>
+            <li><strong>Monitoring:</strong> Continuous monitoring for security threats and unusual activity</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Organizational Safeguards</h3>
+          <ul class="privacy-list">
+            <li><strong>Employee Training:</strong> All team members receive privacy and security training</li>
+            <li><strong>Limited Access:</strong> Only authorized personnel have access to personal information</li>
+            <li><strong>Confidentiality Agreements:</strong> All employees and contractors sign confidentiality agreements</li>
+            <li><strong>Regular Audits:</strong> We conduct regular security audits and assessments</li>
+          </ul>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Your Role in Security:</h4>
+          <p>Help us protect your account by using a strong, unique password, not sharing your login credentials, logging out from shared devices, and reporting any suspicious activity to us immediately.</p>
+        </div>
+      </div>
+
+      <!-- Section 6 -->
+      <div class="privacy-section" id="data-retention">
+        <span class="section-number">6.</span>
+        <h2 class="section-title">Data Retention</h2>
+        <p>We retain your information only as long as necessary to provide our services and fulfill the purposes outlined in this Privacy Policy:</p>
+
+        <div class="retention-timeline">
+          <h4>Data Retention Timeline</h4>
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </div>
+            <div class="timeline-content">
+              <h5>Active Account</h5>
+              <p>While your account is active, we retain your profile information and conversation history to provide personalized service and improve our AI.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div class="timeline-content">
+              <h5>Inactive Accounts (2 Years)</h5>
+              <p>If you don't use SettleBot for 2 consecutive years, we'll send you notice before deleting your account and personal information.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+              </svg>
+            </div>
+            <div class="timeline-content">
+              <h5>Account Deletion</h5>
+              <p>When you delete your account, we remove your personal information within 30 days, except where required by law or for legitimate business purposes.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v5h5"/>
+                <path d="M3 8a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 4"/>
+                <path d="M21 21v-5h-5"/>
+                <path d="M21 16a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 20"/>
+              </svg>
+            </div>
+            <div class="timeline-content">
+              <h5>Aggregated Data</h5>
+              <p>Anonymized, aggregated data used for research and service improvement may be retained indefinitely as it cannot identify you personally.</p>
+            </div>
+          </div>
+        </div>
+        <p>Some information may be retained longer if required by law, for legal proceedings, or to resolve disputes.</p>
+      </div>
+
+      <!-- Section 7 -->
+      <div class="privacy-section" id="your-rights">
+        <span class="section-number">7.</span>
+        <h2 class="section-title">Your Rights and Choices</h2>
+        <p>You have several rights regarding your personal information. Here's what you can do:</p>
+
+        <div class="rights-grid">
+          <div class="rights-card">
+            <h4>Access Your Data</h4>
+            <p>Request a copy of the personal information we have about you, including your conversation history and profile data.</p>
+          </div>
+          <div class="rights-card">
+            <h4>Correct Information</h4>
+            <p>Update or correct any inaccurate personal information through your account settings or by contacting us.</p>
+          </div>
+          <div class="rights-card">
+            <h4>Delete Your Data</h4>
+            <p>Request deletion of your personal information, subject to certain legal and operational limitations.</p>
+          </div>
+          <div class="rights-card">
+            <h4>Data Portability</h4>
+            <p>Request a copy of your data in a commonly used format so you can transfer it to another service.</p>
+          </div>
+          <div class="rights-card">
+            <h4>Limit Processing</h4>
+            <p>Request that we limit how we process your information in certain circumstances.</p>
+          </div>
+          <div class="rights-card">
+            <h4>Withdraw Consent</h4>
+            <p>Where we rely on your consent, you can withdraw it at any time, though this may limit service functionality.</p>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">How to Exercise Your Rights</h3>
+          <p>To exercise any of these rights, you can:</p>
+          <ul class="privacy-list">
+            <li>Use the privacy controls in your account settings</li>
+            <li>Contact us at support.team@jisortublow.co.ke</li>
+            <li>Submit a request through our contact form</li>
+          </ul>
+          <p>We will respond to your requests within 30 days and may need to verify your identity to protect your privacy.</p>
+        </div>
+      </div>
+
+      <!-- Section 8 -->
+      <div class="privacy-section" id="cookies">
+        <span class="section-number">8.</span>
+        <h2 class="section-title">Cookies and Tracking Technologies</h2>
+        <p>We use cookies and similar technologies to enhance your experience and understand how you use our service:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Types of Cookies We Use</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cookie Type</th>
+                <th>Purpose</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Essential Cookies</td>
+                <td>Keep you logged in, remember preferences, enable core functionality</td>
+                <td>Session or up to 1 year</td>
+              </tr>
+              <tr>
+                <td>Performance Cookies</td>
+                <td>Understand how users interact with our service, identify errors</td>
+                <td>Up to 2 years</td>
+              </tr>
+              <tr>
+                <td>Functional Cookies</td>
+                <td>Remember your preferences, language settings, personalization</td>
+                <td>Up to 1 year</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Managing Cookies</h3>
+          <p>You can control cookies through your browser settings. However, disabling certain cookies may affect the functionality of our service. Most browsers allow you to:</p>
+          <ul class="privacy-list">
+            <li>View and delete cookies</li>
+            <li>Block cookies from specific websites</li>
+            <li>Block all cookies</li>
+            <li>Delete cookies when you close your browser</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 9 -->
+      <div class="privacy-section" id="third-party">
+        <span class="section-number">9.</span>
+        <h2 class="section-title">Third-Party Services</h2>
+        <p>Our service may contain links to or integrate with third-party services that have their own privacy policies:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">External Links</h3>
+          <p>SettleBot may provide links to university websites, government portals, service providers, and other external resources. These external sites have their own privacy policies, and we are not responsible for their privacy practices.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Integrated Services</h3>
+          <p>We may use third-party services to enhance our offering:</p>
+          <ul class="privacy-list">
+            <li><strong>Analytics Providers:</strong> Help us understand how users interact with our service</li>
+            <li><strong>Email Services:</strong> Send account notifications and communications</li>
+            <li><strong>Payment Processors:</strong> Handle any future payment transactions securely</li>
+            <li><strong>Cloud Services:</strong> Store and process data securely</li>
+          </ul>
+          <p>These services operate under their own privacy policies and security measures.</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Third-Party Data Sharing:</h4>
+          <p>We only work with third-party services that maintain strong privacy and security standards. We never share more information than necessary for them to provide their specific service to us.</p>
+        </div>
+      </div>
+
+      <!-- Section 10 -->
+      <div class="privacy-section" id="international">
+        <span class="section-number">10.</span>
+        <h2 class="section-title">International Data Transfers</h2>
+        <p>As SettleBot serves international students, we may transfer and process your information across borders:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Cross-Border Processing</h3>
+          <p>Your information may be processed in countries other than where you reside, including but not limited to Kenya, where our primary operations are based. These countries may have different data protection laws than your home country.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Safeguards</h3>
+          <p>When we transfer information internationally, we implement appropriate safeguards including:</p>
+          <ul class="privacy-list">
+            <li>Ensuring adequate data protection standards</li>
+            <li>Using contractual protections with service providers</li>
+            <li>Implementing technical and organizational security measures</li>
+            <li>Complying with applicable international data transfer regulations</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section 11 -->
+      <div class="privacy-section" id="children">
+        <span class="section-number">11.</span>
+        <h2 class="section-title">Children's Privacy</h2>
+        <p>SettleBot is primarily designed for adult international students (18+). We do not knowingly collect personal information from children under 18 without parental consent.</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Age Verification</h3>
+          <p>While we don't actively verify users' ages, we ask users to confirm they are 18 or older during registration. If you are under 18, you may only use our service with parental or guardian permission and supervision.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Parental Rights</h3>
+          <p>If we become aware that we have collected information from a child under 18 without proper consent, we will:</p>
+          <ul class="privacy-list">
+            <li>Delete the information as quickly as possible</li>
+            <li>Not use the information for any purpose</li>
+            <li>Not share the information with third parties</li>
+          </ul>
+          <p>If you believe we have information about a child under 18, please contact us immediately at support.team@jisortublow.co.ke.</p>
+        </div>
+      </div>
+
+      <!-- Section 12 -->
+      <div class="privacy-section" id="changes">
+        <span class="section-number">12.</span>
+        <h2 class="section-title">Changes to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors.</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">How We Notify You</h3>
+          <p>When we make changes to this Privacy Policy, we will:</p>
+          <ul class="privacy-list">
+            <li>Update the "Last Updated" date at the top of this policy</li>
+            <li>Send email notifications to registered users for significant changes</li>
+            <li>Display prominent notices on our website or in our app</li>
+            <li>Provide advance notice for changes that materially affect your rights</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Your Choices</h3>
+          <p>Your continued use of SettleBot after changes become effective means you accept the updated Privacy Policy. If you don't agree with changes, you can:</p>
+          <ul class="privacy-list">
+            <li>Contact us to discuss your concerns</li>
+            <li>Adjust your privacy settings</li>
+            <li>Stop using our service</li>
+            <li>Delete your account before changes take effect</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Version History</h3>
+          <p>We maintain a history of significant changes to our Privacy Policy. You can request information about previous versions by contacting us.</p>
+        </div>
+      </div>
+
+      <!-- Section 13 -->
+      <div class="privacy-section" id="contact">
+        <span class="section-number">13.</span>
+        <h2 class="section-title">Contact Us</h2>
+        <p>We're committed to addressing your privacy concerns and questions. If you have any questions about this Privacy Policy or our privacy practices, please contact us:</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Privacy Inquiries</h3>
+          <ul class="privacy-list">
+            <li><strong>Email:</strong> support.team@jisortublow.co.ke</li>
+            <li><strong>Phone:</strong> +254 114 742 348</li>
+            <li><strong>Response Time:</strong> We aim to respond within 48 hours</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">What to Include in Your Message</h3>
+          <p>To help us assist you more effectively, please include:</p>
+          <ul class="privacy-list">
+            <li>Your account email address (if applicable)</li>
+            <li>A clear description of your privacy concern or question</li>
+            <li>Any specific information or action you're requesting</li>
+            <li>Your preferred method and timeline for response</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Data Protection Officer</h3>
+          <p>For serious privacy concerns or if you're not satisfied with our initial response, you may escalate your inquiry to our Data Protection Officer by marking your email "URGENT: Privacy Concern" and including details about your issue.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="contact-info">
+      <h3>Questions About Your Privacy?</h3>
+      <p>We believe in transparency and are here to help you understand how we protect your information. If you have any questions about this Privacy Policy or want to exercise your privacy rights, please don't hesitate to reach out.</p>
+      <a href="mailto:support.team@jisortublow.co.ke" class="contact-link">support.team@jisortublow.co.ke</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

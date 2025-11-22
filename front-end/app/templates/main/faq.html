@@ -1,0 +1,1122 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions - SettleBot{% endblock %}
+
+{% block meta_description %}Find answers to common questions about SettleBot, your AI settlement assistant for international students in Nairobi. Learn about features, pricing, and how to get started.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page Header */
+    .faq-header {
+        background: white;
+        padding: 6rem 0 4rem 0;
+        text-align: center;
+    }
+
+    .header-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .faq-header h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .faq-header p {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin-bottom: 3rem;
+    }
+
+    .quick-search {
+        max-width: 500px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 1.25rem 1.5rem 1.25rem 3rem;
+        border: 2px solid var(--brown-300);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        border-color: var(--brown-700);
+        box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
+        outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--brown-700);
+    }
+
+    /* FAQ Categories */
+    .faq-categories {
+        padding: 6rem 0;
+        background: var(--brown-50);
+    }
+
+    .categories-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        border: 1px solid var(--brown-200);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        border-color: var(--brown-700);
+    }
+
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--brown-100);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--brown-700);
+    }
+
+    .category-card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1rem;
+    }
+
+    .category-card p {
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .question-count {
+        color: var(--brown-700);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* FAQ Content */
+    .faq-content {
+        padding: 6rem 0;
+        background: white;
+    }
+
+    .content-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .faq-section {
+        margin-bottom: 4rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 3rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .section-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--brown-700);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .faq-item {
+        background: white;
+        border: 1px solid var(--brown-200);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .faq-item.active {
+        border-color: var(--brown-700);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .faq-question {
+        padding: 1.5rem 2rem;
+        background: white;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .faq-question:hover {
+        background: var(--brown-50);
+    }
+
+    .faq-item.active .faq-question {
+        background: var(--brown-50);
+        border-bottom: 1px solid var(--brown-200);
+    }
+
+    .faq-chevron {
+        transition: transform 0.2s ease;
+        color: var(--brown-700);
+    }
+
+    .faq-item.active .faq-chevron {
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        padding: 0 2rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 1.5rem 2rem 2rem 2rem;
+        max-height: 500px;
+    }
+
+    .faq-answer p {
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    .faq-answer p:last-child {
+        margin-bottom: 0;
+    }
+
+    .faq-answer ul {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+        color: var(--gray-700);
+    }
+
+    .faq-answer li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    /* Contact Section */
+    .faq-contact {
+        padding: 6rem 0;
+        background: var(--brown-900);
+        text-align: center;
+        color: white;
+    }
+
+    .contact-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .faq-contact h2 {
+        font-size: 2.75rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: white;
+    }
+
+    .faq-contact p {
+        font-size: 1.2rem;
+        color: var(--brown-300);
+        margin-bottom: 3rem;
+        line-height: 1.7;
+    }
+
+    .contact-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    .contact-option {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .contact-option-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--orange-500);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+        color: white;
+    }
+
+    .contact-option h4 {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .contact-option p {
+        color: var(--brown-300);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .contact-btn {
+        background: var(--orange-500);
+        color: white;
+        padding: 1.25rem 2.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+        margin-top: 2rem;
+    }
+
+    .contact-btn:hover {
+        background: var(--orange-600);
+        transform: translateY(-1px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .faq-header h1 {
+            font-size: 2.5rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-options {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .faq-categories,
+        .faq-content,
+        .faq-contact {
+            padding: 4rem 0;
+        }
+
+        .categories-container,
+        .content-container,
+        .contact-container {
+            padding: 0 1rem;
+        }
+
+        .faq-contact h2 {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .category-card,
+        .contact-option {
+            padding: 2rem 1.5rem;
+        }
+
+        .faq-question {
+            padding: 1.25rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 1.25rem 1.5rem 1.75rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="faq-header">
+    <div class="header-container">
+        <h1>Frequently Asked Questions</h1>
+        <p>Find quick answers to common questions about SettleBot and how it can help you settle successfully in Nairobi as an international student.</p>
+        
+        <div class="quick-search">
+            <div class="search-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                </svg>
+            </div>
+            <input type="text" class="search-input" placeholder="Search for answers..." id="faqSearch">
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Categories -->
+<section class="faq-categories">
+    <div class="categories-container">
+        <div class="categories-grid">
+            <div class="category-card" onclick="scrollToSection('getting-started')">
+                <div class="category-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <h3>Getting Started</h3>
+                <p>Learn how to create your account and begin using SettleBot for your settlement journey.</p>
+                <div class="question-count">5 questions</div>
+            </div>
+            
+            <div class="category-card" onclick="scrollToSection('accommodation')">
+                <div class="category-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <path d="M9 22V12h6v10"/>
+                    </svg>
+                </div>
+                <h3>Accommodation</h3>
+                <p>Find answers about housing search, rental processes, and accommodation options in Nairobi.</p>
+                <div class="question-count">6 questions</div>
+            </div>
+            
+            <div class="category-card" onclick="scrollToSection('admin-processes')">
+                <div class="category-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M16 13H8"/>
+                        <path d="M16 17H8"/>
+                    </svg>
+                </div>
+                <h3>Admin Processes</h3>
+                <p>Get help with student permits, bank accounts, and other administrative requirements.</p>
+                <div class="question-count">7 questions</div>
+            </div>
+            
+            <div class="category-card" onclick="scrollToSection('technical')">
+                <div class="category-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </div>
+                <h3>Technical Support</h3>
+                <p>Troubleshoot issues with the platform, account problems, and technical questions.</p>
+                <div class="question-count">4 questions</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Content -->
+<section class="faq-content">
+    <div class="content-container">
+        
+        <!-- Getting Started Section -->
+        <div class="faq-section" id="getting-started">
+            <h2 class="section-title">
+                <div class="section-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                Getting Started
+            </h2>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I create a SettleBot account?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Creating your SettleBot account is simple and free:</p>
+                        <ul>
+                            <li>Click "Get Started" or "Register" on our homepage</li>
+                            <li>Fill in your full name, username, email, and create a secure password</li>
+                            <li>Agree to our terms and conditions</li>
+                            <li>Click "Create Account" and you're ready to start!</li>
+                        </ul>
+                        <p>You'll receive a welcome email confirmation and can immediately begin asking questions about settling in Nairobi.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Is SettleBot completely free to use?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes! SettleBot is completely free for international students. We believe access to settlement information shouldn't be another financial burden during your transition to studying in Nairobi.</p>
+                        <p>All core features including accommodation guidance, administrative process help, and 24/7 AI assistance are available at no cost. There are no hidden fees, premium tiers, or subscription charges.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What types of questions can I ask SettleBot?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot can help with all aspects of settling in Nairobi as an international student:</p>
+                        <ul>
+                            <li>Finding accommodation near your university</li>
+                            <li>Opening bank accounts and understanding requirements</li>
+                            <li>Getting student permits and visa-related processes</li>
+                            <li>Accessing healthcare and insurance information</li>
+                            <li>Understanding transportation options</li>
+                            <li>Finding internet and mobile service providers</li>
+                            <li>Budget planning and cost estimates</li>
+                            <li>Cultural integration and local customs</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How quickly does SettleBot respond to questions?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot provides instant responses to your questions - typically within seconds. Our AI system is available 24/7, so you can get help whenever you need it, regardless of office hours or time zones.</p>
+                        <p>The response time doesn't depend on human availability, making it perfect for urgent settlement questions or when you're planning your move to Nairobi from different time zones.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Do I need to be a current student to use SettleBot?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>No! SettleBot is designed for international students at any stage of their journey:</p>
+                        <ul>
+                            <li><strong>Prospective students:</strong> Planning your move to Nairobi</li>
+                            <li><strong>New arrivals:</strong> Just starting your settlement process</li>
+                            <li><strong>Current students:</strong> Ongoing questions about life in Nairobi</li>
+                            <li><strong>Returning students:</strong> Updates on processes or services</li>
+                        </ul>
+                        <p>Whether you're still applying to universities or have been studying in Nairobi for a while, SettleBot can provide valuable guidance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accommodation Section -->
+        <div class="faq-section" id="accommodation">
+            <h2 class="section-title">
+                <div class="section-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <path d="M9 22V12h6v10"/>
+                    </svg>
+                </div>
+                Accommodation
+            </h2>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How does SettleBot help me find accommodation?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot provides personalized accommodation guidance based on your specific needs:</p>
+                        <ul>
+                            <li>Recommends areas near your university with price ranges</li>
+                            <li>Explains the rental process and required documents</li>
+                            <li>Provides safety ratings for different neighborhoods</li>
+                            <li>Helps you understand typical costs and what's included</li>
+                            <li>Guides you through the application and inspection process</li>
+                            <li>Advises on negotiation strategies and red flags to avoid</li>
+                        </ul>
+                        <p>Just tell SettleBot your budget, preferred location, and requirements, and get tailored recommendations.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What documents do I need to rent accommodation in Nairobi?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot can guide you through the complete documentation requirements, which typically include:</p>
+                        <ul>
+                            <li>Passport copy and student visa</li>
+                            <li>Student ID and admission letter</li>
+                            <li>Bank statements or financial proof</li>
+                            <li>Guarantor information (sometimes required)</li>
+                            <li>Passport-sized photos</li>
+                            <li>Advance rent payment (usually 2-3 months)</li>
+                        </ul>
+                        <p>Requirements can vary by landlord and property type, so SettleBot provides specific guidance based on your situation and chosen accommodation type.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What's the typical cost range for student accommodation in Nairobi?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot provides current, location-specific pricing information. Generally, student accommodation ranges:</p>
+                        <ul>
+                            <li><strong>University hostels:</strong> KSh 12,000-18,000/month</li>
+                            <li><strong>Shared apartments:</strong> KSh 15,000-25,000/month</li>
+                            <li><strong>Studio apartments:</strong> KSh 20,000-35,000/month</li>
+                            <li><strong>One-bedroom apartments:</strong> KSh 25,000-45,000/month</li>
+                        </ul>
+                        <p>Costs vary significantly by area, with locations closer to universities typically being more expensive. SettleBot can provide specific price ranges based on your chosen university and preferences.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I verify if an accommodation listing is legitimate?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot teaches you how to verify legitimate accommodation options and avoid scams:</p>
+                        <ul>
+                            <li>Always visit the property in person before paying</li>
+                            <li>Verify the landlord's ownership documents</li>
+                            <li>Check if the property has proper water and electricity connections</li>
+                            <li>Ask for references from previous tenants</li>
+                            <li>Ensure rent agreements are properly documented</li>
+                            <li>Be cautious of deals that seem too good to be true</li>
+                        </ul>
+                        <p>SettleBot can guide you through red flags to watch for and provide a checklist for property viewing.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Should I choose university accommodation or private housing?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot helps you weigh the pros and cons based on your priorities:</p>
+                        <p><strong>University accommodation advantages:</strong></p>
+                        <ul>
+                            <li>Guaranteed safe and verified housing</li>
+                            <li>Easier application process for international students</li>
+                            <li>Built-in community and social opportunities</li>
+                            <li>Close proximity to campus facilities</li>
+                            <li>Usually includes utilities and internet</li>
+                        </ul>
+                        <p><strong>Private housing advantages:</strong></p>
+                        <ul>
+                            <li>More privacy and independence</li>
+                            <li>Potentially more space for the same cost</li>
+                            <li>Freedom to choose location and amenities</li>
+                            <li>Opportunity to live with friends</li>
+                        </ul>
+                        <p>SettleBot can help you evaluate your specific needs and make the best choice for your situation.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What utilities are typically included in rental costs?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Utility inclusion varies significantly between properties. SettleBot helps you understand what to expect:</p>
+                        <p><strong>Commonly included:</strong></p>
+                        <ul>
+                            <li>Water (most properties include this)</li>
+                            <li>Security services</li>
+                            <li>Garbage collection</li>
+                        </ul>
+                        <p><strong>Often separate costs:</strong></p>
+                        <ul>
+                            <li>Electricity (usually prepaid meters)</li>
+                            <li>Internet and Wi-Fi</li>
+                            <li>Gas (if cooking with gas)</li>
+                            <li>Parking fees</li>
+                        </ul>
+                        <p>Always clarify utility arrangements before signing a lease. SettleBot provides guidance on typical costs for each utility type.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Processes Section -->
+        <div class="faq-section" id="admin-processes">
+            <h2 class="section-title">
+                <div class="section-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M16 13H8"/>
+                        <path d="M16 17H8"/>
+                    </svg>
+                </div>
+                Administrative Processes
+            </h2>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I open a bank account as an international student?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot guides you through the complete bank account opening process:</p>
+                        <p><strong>Recommended banks for students:</strong> KCB, Equity Bank, Cooperative Bank, and Barclays all offer student-friendly accounts.</p>
+                        <p><strong>Required documents:</strong></p>
+                        <ul>
+                            <li>Passport with valid visa</li>
+                            <li>Student ID and admission letter</li>
+                            <li>Proof of residence (rental agreement or hostel letter)</li>
+                            <li>Passport-sized photos</li>
+                            <li>Minimum deposit (usually KSh 1,000-5,000)</li>
+                        </ul>
+                        <p>The process typically takes 1-2 business days. SettleBot can recommend which bank branches are most convenient to your location and explain the different account types available.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Do I need a student permit and how do I get one?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, international students in Kenya need a student pass (permit). SettleBot provides step-by-step guidance:</p>
+                        <p><strong>Application process:</strong></p>
+                        <ul>
+                            <li>Apply online through the eCitizen portal</li>
+                            <li>Submit required documents and pay fees</li>
+                            <li>Schedule biometric appointment</li>
+                            <li>Attend appointment at immigration offices</li>
+                            <li>Collect your permit once approved</li>
+                        </ul>
+                        <p><strong>Required documents:</strong></p>
+                        <ul>
+                            <li>Completed application form</li>
+                            <li>Passport-sized photos</li>
+                            <li>Admission letter from recognized institution</li>
+                            <li>Medical certificate</li>
+                            <li>Financial proof (bank statements)</li>
+                            <li>Police clearance from home country</li>
+                        </ul>
+                        <p>Processing typically takes 2-4 weeks. SettleBot helps you prepare all documents correctly to avoid delays.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I get a Kenyan mobile phone number and SIM card?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Getting a Kenyan mobile number is straightforward, and SettleBot guides you through the options:</p>
+                        <p><strong>Major networks:</strong> Safaricom, Airtel Kenya, and Telkom Kenya all serve international students.</p>
+                        <p><strong>Registration requirements:</strong></p>
+                        <ul>
+                            <li>Valid passport</li>
+                            <li>Passport-sized photo</li>
+                            <li>Proof of residence (rental agreement or hostel letter)</li>
+                        </ul>
+                        <p><strong>Process:</strong></p>
+                        <ul>
+                            <li>Visit any authorized dealer or network shop</li>
+                            <li>Choose your preferred package (prepaid recommended for students)</li>
+                            <li>Complete registration form</li>
+                            <li>SIM activation usually takes 24-48 hours</li>
+                        </ul>
+                        <p>SettleBot can help you compare data packages and calling rates to choose the best option for your needs.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What healthcare insurance options are available?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot explains the various healthcare options for international students:</p>
+                        <p><strong>University health insurance:</strong> Many universities offer group health insurance policies for international students. Check with your institution first.</p>
+                        <p><strong>Private insurance options:</strong></p>
+                        <ul>
+                            <li>AAR Healthcare (comprehensive coverage)</li>
+                            <li>Resolution Health (student-friendly packages)</li>
+                            <li>Britam Health (affordable basic coverage)</li>
+                            <li>Madison Health (good emergency coverage)</li>
+                        </ul>
+                        <p><strong>National Hospital Insurance Fund (NHIF):</strong> You may be eligible to join NHIF for basic coverage once you have a student permit.</p>
+                        <p>SettleBot helps you understand coverage options, costs, and application processes for each insurance type.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I transfer money from my home country to Kenya?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot explains various money transfer options with their pros and cons:</p>
+                        <p><strong>International services:</strong></p>
+                        <ul>
+                            <li>Western Union (widely available, higher fees)</li>
+                            <li>MoneyGram (good coverage, moderate fees)</li>
+                            <li>Wise (formerly TransferWise) - competitive exchange rates</li>
+                            <li>Remitly (online transfers, good rates)</li>
+                        </ul>
+                        <p><strong>Bank transfers:</strong></p>
+                        <ul>
+                            <li>SWIFT transfers (secure but expensive)</li>
+                            <li>Correspondent bank relationships</li>
+                            <li>Online banking international transfers</li>
+                        </ul>
+                        <p><strong>Digital options:</strong></p>
+                        <ul>
+                            <li>M-Pesa international (from select countries)</li>
+                            <li>PayPal (limited but growing in Kenya)</li>
+                        </ul>
+                        <p>SettleBot helps you compare fees, exchange rates, and transfer times to choose the best option for your needs.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What transportation options are available in Nairobi?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>SettleBot provides comprehensive transportation guidance for getting around Nairobi:</p>
+                        <p><strong>Public transportation:</strong></p>
+                        <ul>
+                            <li><strong>Matatus:</strong> Shared minibuses (KSh 20-100 per ride, most common)</li>
+                            <li><strong>Buses:</strong> City Hoppa, Double M (KSh 30-80, more comfortable)</li>
+                            <li><strong>Train:</strong> Nairobi Commuter Rail (limited routes, KSh 20-50)</li>
+                        </ul>
+                        <p><strong>Ride-hailing services:</strong></p>
+                        <ul>
+                            <li>Uber (widely available, cashless)</li>
+                            <li>Bolt (competitive pricing)</li>
+                            <li>Little Cab (local alternative)</li>
+                        </ul>
+                        <p><strong>Other options:</strong></p>
+                        <ul>
+                            <li>Bodabodas (motorcycle taxis) for short distances</li>
+                            <li>Walking (many university areas are walkable)</li>
+                            <li>Bicycle (growing infrastructure in some areas)</li>
+                        </ul>
+                        <p>SettleBot helps you plan routes and understand safety considerations for each transportation type.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I register with my university as an international student?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>University registration processes vary, but SettleBot guides you through common requirements:</p>
+                        <p><strong>Pre-arrival:</strong></p>
+                        <ul>
+                            <li>Complete online pre-registration if available</li>
+                            <li>Submit all required academic documents</li>
+                            <li>Pay initial fees or deposits</li>
+                            <li>Apply for accommodation if needed</li>
+                        </ul>
+                        <p><strong>Upon arrival:</strong></p>
+                        <ul>
+                            <li>Visit the International Students Office first</li>
+                            <li>Complete physical registration</li>
+                            <li>Submit original documents for verification</li>
+                            <li>Collect student ID and other materials</li>
+                            <li>Attend orientation sessions</li>
+                        </ul>
+                        <p><strong>Common documents needed:</strong></p>
+                        <ul>
+                            <li>Original academic transcripts and certificates</li>
+                            <li>Passport and student visa</li>
+                            <li>Medical examination results</li>
+                            <li>Proof of fee payment</li>
+                            <li>Passport-sized photographs</li>
+                        </ul>
+                        <p>SettleBot provides university-specific guidance based on where you'll be studying.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Support Section -->
+        <div class="faq-section" id="technical">
+            <h2 class="section-title">
+                <div class="section-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </div>
+                Technical Support
+            </h2>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What should I do if SettleBot isn't responding to my questions?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>If SettleBot isn't responding as expected, try these troubleshooting steps:</p>
+                        <ul>
+                            <li>Check your internet connection</li>
+                            <li>Refresh the page and try again</li>
+                            <li>Clear your browser cache and cookies</li>
+                            <li>Try asking your question in different words</li>
+                            <li>Ensure you're logged into your account</li>
+                        </ul>
+                        <p>If problems persist, contact our support team at support.team@jisortublow.co.ke with details about your issue. Include your username, the question you asked, and what error (if any) you received.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I reset my password if I forgot it?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Resetting your password is simple:</p>
+                        <ul>
+                            <li>Go to the login page</li>
+                            <li>Click "Forgot Password?"</li>
+                            <li>Enter your email address</li>
+                            <li>Check your email for a reset link</li>
+                            <li>Click the link and create a new password</li>
+                        </ul>
+                        <p>The reset link expires after 1 hour for security. If you don't receive the email within a few minutes, check your spam folder or contact support.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Can I use SettleBot on my mobile phone?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes! SettleBot is fully optimized for mobile devices. You can access all features through your mobile browser:</p>
+                        <ul>
+                            <li>Works on iOS and Android devices</li>
+                            <li>Responsive design adapts to your screen size</li>
+                            <li>All features available on mobile and desktop</li>
+                            <li>Fast loading and easy navigation</li>
+                        </ul>
+                        <p>Simply visit our website on your mobile browser and log in to your account. The interface automatically adjusts for the best mobile experience.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I delete my account if I no longer need SettleBot?
+                        <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>While we're sad to see you go, you can delete your account anytime:</p>
+                        <ul>
+                            <li>Log into your account</li>
+                            <li>Go to your Profile settings</li>
+                            <li>Scroll down to find "Delete Account"</li>
+                            <li>Confirm your decision</li>
+                        </ul>
+                        <p><strong>Important:</strong> Account deletion is permanent and cannot be undone. All your conversation history and data will be permanently removed. If you're just taking a break from studies, you might prefer to simply stop using the service and return later if needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="faq-contact">
+    <div class="contact-container">
+        <h2>Still Have Questions?</h2>
+        <p>Can't find the answer you're looking for? Our support team is here to help you get the most out of SettleBot and ensure your settlement journey goes smoothly.</p>
+
+        <div class="contact-options">
+            <div class="contact-option">
+                <div class="contact-option-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <path d="M22 6l-10 7L2 6"/>
+                    </svg>
+                </div>
+                <h4>Email Support</h4>
+                <p>Get detailed help via email. We typically respond within 24 hours.</p>
+            </div>
+
+            <div class="contact-option">
+                <div class="contact-option-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <h4>Live Chat</h4>
+                <p>Start a conversation with SettleBot and ask about any technical issues or features.</p>
+            </div>
+        </div>
+
+        <a href="mailto:support.team@jisortublow.co.ke" class="contact-btn">
+            Contact Support Team
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17l9.2-9.2M17 17V7H7"/>
+            </svg>
+        </a>
+    </div>
+</section>
+
+<script>
+    // FAQ Toggle Functionality
+    function toggleFaq(button) {
+        const faqItem = button.parentElement;
+        const isActive = faqItem.classList.contains('active');
+
+        // Close all other FAQ items
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Toggle current item
+        if (!isActive) {
+            faqItem.classList.add('active');
+        }
+    }
+
+    // Category Click Functionality
+    function scrollToSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const headerHeight = document.querySelector('.header').offsetHeight;
+        const targetPosition = section.offsetTop - headerHeight - 20;
+
+        window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+        });
+    }
+
+    // Search Functionality
+    document.getElementById('faqSearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question').textContent.toLowerCase();
+            const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+
+            if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = searchTerm === '' ? 'block' : 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}
