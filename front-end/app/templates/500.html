@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - StrathQuery{% endblock %}
+
+{% block extra_css %}
+<link href="/static/css/500.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="error-container">
+        <h1 class="error-code fadeIn">500</h1>
+        <h2 class="error-title fadeIn">Internal Server Error</h2>
+        <p class="error-description fadeIn">Oops! Something went wrong on our server. We're aware of the issue and are working to fix it as quickly as possible.</p>
+        
+        <div class="error-buttons fadeIn">
+            <a href="{{ url_for('main.index') }}" class="btn-error">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Return to Homepage
+            </a>
+            <button onclick="window.location.reload()" class="btn-error-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                Try Again
+            </button>
+        </div>
+        
+        <div class="error-info fadeIn">
+            <h3 class="error-info-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                What happened?
+            </h3>
+            <p class="error-info-text">There was a problem with our server while processing your request. This is our fault, not yours. Our technical team has been automatically notified, and we're working to fix the issue.</p>
+            
+            <div class="error-actions">
+                <h4 class="error-actions-title">What you can do:</h4>
+                <div class="action-list">
+                    <div class="action-item">
+                        <div class="action-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
+                        <h5 class="action-title">Refresh the Page</h5>
+                        <p class="action-description">Try refreshing the page or clicking the "Try Again" button.</p>
+                    </div>
+                    
+                    <div class="action-item">
+                        <div class="action-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <h5 class="action-title">Wait a Moment</h5>
+                        <p class="action-description">The issue might be temporary. Try again in a few minutes.</p>
+                    </div>
+                    
+                    <div class="action-item">
+                        <div class="action-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                        </div>
+                        <h5 class="action-title">Contact Support</h5>
+                        <p class="action-description">Email us at benjamintait15@gmail.com if the problem persists.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if error_info %}
+        <div class="error-details fadeIn">
+            <div class="error-details-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                Error Details (for technical support)
+            </div>
+            <div class="error-details-text">{{ error_info }}</div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
