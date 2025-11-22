@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In to SettleBot - Your AI Settlement Assistant{% endblock %}
+
+{% block meta_description %}Sign in to your SettleBot account to continue getting personalized AI guidance for settling in Nairobi as an international student.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-page {
+        min-height: calc(100vh - 72px);
+        background: white;
+        padding: 4rem 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .login-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 8rem;
+        align-items: center;
+    }
+
+    .login-hero {
+        padding: 2rem 0;
+    }
+
+    .login-hero h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 2rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .login-hero-highlight {
+        color: var(--orange-500);
+    }
+
+    .login-hero p {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin-bottom: 3rem;
+        max-width: 500px;
+    }
+
+    .quick-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: var(--brown-50);
+        padding: 2rem;
+        border-radius: 12px;
+        border-left: 4px solid var(--brown-700);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--brown-700);
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--gray-700);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .login-form-wrapper {
+        background: white;
+        border: 1px solid var(--brown-200);
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    .login-form-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--brown-700), var(--orange-500));
+        border-radius: 20px 20px 0 0;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.75rem;
+    }
+
+    .form-header p {
+        color: var(--gray-600);
+        font-size: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1.25rem 1.5rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 12px;
+        font-size: 1rem;
+        color: var(--gray-900);
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+        border-color: var(--brown-700);
+        box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
+        outline: none;
+    }
+
+    .form-input.error {
+        border-color: var(--error);
+        background: #fef2f2;
+    }
+
+    .form-input.error:focus {
+        border-color: var(--error);
+        box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+    }
+
+    .error-message {
+        color: var(--error);
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .remember-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--gray-300);
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+    }
+
+    .remember-checkbox:checked {
+        background: var(--brown-700);
+        border-color: var(--brown-700);
+    }
+
+    .remember-label {
+        font-size: 0.95rem;
+        color: var(--gray-700);
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .forgot-link {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .login-btn {
+        width: 100%;
+        background: var(--brown-700);
+        color: white;
+        border: none;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 2rem;
+    }
+
+    .login-btn:hover {
+        background: var(--brown-900);
+        transform: translateY(-1px);
+    }
+
+    .login-btn:disabled {
+        background: var(--gray-400);
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .form-divider {
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+        color: var(--gray-500);
+        font-size: 0.9rem;
+    }
+
+    .form-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--gray-300);
+        z-index: 1;
+    }
+
+    .form-divider span {
+        background: white;
+        padding: 0 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .signup-link {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--brown-50);
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .signup-link p {
+        color: var(--gray-700);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .signup-link a {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .login-container {
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            max-width: 500px;
+        }
+
+        .login-hero {
+            text-align: center;
+            order: 2;
+        }
+
+        .login-form-wrapper {
+            order: 1;
+        }
+
+        .quick-stats {
+            justify-content: center;
+            max-width: 400px;
+            margin: 2rem auto 0 auto;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .login-page {
+            padding: 2rem 0;
+        }
+
+        .login-container {
+            padding: 0 1rem;
+        }
+
+        .login-form-wrapper {
+            padding: 2rem;
+        }
+
+        .login-hero h1 {
+            font-size: 2.5rem;
+        }
+
+        .login-hero p {
+            font-size: 1.1rem;
+        }
+
+        .form-options {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .login-form-wrapper {
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .login-hero h1 {
+            font-size: 2rem;
+        }
+
+        .form-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-hero">
+            <h1>Welcome <span class="login-hero-highlight">Back</span></h1>
+            <p>Continue your settlement journey in Nairobi with personalized AI guidance tailored to international students.</p>
+            
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Students Helped</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">AI Availability</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-form-wrapper">
+            <div class="form-header">
+                <h2>Sign In</h2>
+                <p>Access your personalized settlement assistant</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('authentication.user_login') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <label for="{{ form.emailAddress.id }}" class="form-label">{{ form.emailAddress.label.text }}</label>
+                    {{ form.emailAddress(class="form-input" + (" error" if form.emailAddress.errors else ""), placeholder="Enter your email address") }}
+                    {% if form.emailAddress.errors %}
+                        {% for error in form.emailAddress.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id }}" class="form-label">{{ form.password.label.text }}</label>
+                    {{ form.password(class="form-input" + (" error" if form.password.errors else ""), placeholder="Enter your password") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-options">
+                    <div class="remember-me">
+                        {{ form.remember_me(class="remember-checkbox") }}
+                        <label for="{{ form.remember_me.id }}" class="remember-label">{{ form.remember_me.label.text }}</label>
+                    </div>
+                    <a href="{{ url_for('authentication.password_reset_request') }}" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                {{ form.submit(class="login-btn") }}
+            </form>
+
+            <div class="form-divider">
+                <span>New to SettleBot?</span>
+            </div>
+
+            <div class="signup-link">
+                <p>Don't have an account? <a href="{{ url_for('authentication.user_registration') }}">Create one free</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

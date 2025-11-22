@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Create Your Account - SettleBot{% endblock %}
+
+{% block meta_description %}Join SettleBot and get personalized AI guidance for settling in Nairobi as an international student. Free registration for accommodation, admin, and settlement support.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-page {
+        min-height: calc(100vh - 72px);
+        background: linear-gradient(135deg, var(--brown-50) 0%, white 100%);
+        padding: 4rem 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .register-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6rem;
+        align-items: center;
+    }
+
+    .register-info {
+        padding: 2rem 0;
+    }
+
+    .register-info h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .register-info p {
+        font-size: 1.2rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+
+    .benefits-list {
+        list-style: none;
+        margin-bottom: 2rem;
+    }
+
+    .benefits-list li {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        color: var(--gray-700);
+    }
+
+    .benefit-check {
+        background: var(--brown-700);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .register-form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--brown-200);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-header h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+        color: var(--gray-600);
+        font-size: 0.95rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 10px;
+        font-size: 1rem;
+        color: var(--gray-900);
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+        border-color: var(--brown-700);
+        box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
+        outline: none;
+    }
+
+    .form-input.error {
+        border-color: var(--error);
+        background: #fef2f2;
+    }
+
+    .form-input.error:focus {
+        border-color: var(--error);
+        box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+    }
+
+    .error-message {
+        color: var(--error);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .checkbox-input {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--gray-300);
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .checkbox-input:checked {
+        background: var(--brown-700);
+        border-color: var(--brown-700);
+    }
+
+    .checkbox-label {
+        font-size: 0.9rem;
+        color: var(--gray-700);
+        line-height: 1.5;
+        cursor: pointer;
+    }
+
+    .checkbox-label a {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .checkbox-label a:hover {
+        text-decoration: underline;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: var(--brown-700);
+        color: white;
+        border: none;
+        padding: 1.25rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .submit-btn:hover {
+        background: var(--brown-900);
+        transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled {
+        background: var(--gray-400);
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .form-footer {
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .form-footer p {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .form-footer a {
+        color: var(--brown-700);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .password-requirements {
+        background: var(--gray-50);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--gray-600);
+    }
+
+    .password-requirements ul {
+        margin: 0.5rem 0 0 1rem;
+        color: var(--gray-600);
+    }
+
+    .password-requirements li {
+        margin-bottom: 0.25rem;
+    }
+
+    /* Flash Messages */
+    .flash-messages {
+        margin-bottom: 2rem;
+    }
+
+    .flash-message {
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .flash-message.error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .flash-message.success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .flash-message.warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fed7aa;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .register-container {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            max-width: 600px;
+        }
+
+        .register-info {
+            text-align: center;
+            order: 2;
+        }
+
+        .register-form-container {
+            order: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .register-page {
+            padding: 2rem 0;
+        }
+
+        .register-container {
+            padding: 0 1rem;
+        }
+
+        .register-form-container {
+            padding: 2rem;
+        }
+
+        .register-info h1 {
+            font-size: 2.25rem;
+        }
+
+        .register-info p {
+            font-size: 1.1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .register-form-container {
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .register-info h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+    <div class="register-container">
+        <div class="register-info">
+            <h1>Join SettleBot</h1>
+            <p>Get personalized AI guidance for settling in Nairobi as an international student. Join thousands of students who have successfully navigated their settlement journey with our help.</p>
+            
+            <ul class="benefits-list">
+                <li>
+                    <div class="benefit-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    Instant answers to accommodation questions
+                </li>
+                <li>
+                    <div class="benefit-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    Step-by-step admin process guidance
+                </li>
+                <li>
+                    <div class="benefit-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    24/7 AI assistant availability
+                </li>
+                <li>
+                    <div class="benefit-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    Verified local information and costs
+                </li>
+                <li>
+                    <div class="benefit-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    </div>
+                    Free forever - no hidden fees
+                </li>
+            </ul>
+        </div>
+        
+        <div class="register-form-container">
+            <div class="form-header">
+                <h2>Create Your Account</h2>
+                <p>Start your settlement journey today</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('authentication.user_registration') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <label for="{{ form.fullName.id }}" class="form-label">{{ form.fullName.label.text }}</label>
+                    {{ form.fullName(class="form-input" + (" error" if form.fullName.errors else ""), placeholder="Enter your full name") }}
+                    {% if form.fullName.errors %}
+                        {% for error in form.fullName.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.username.id }}" class="form-label">{{ form.username.label.text }}</label>
+                    {{ form.username(class="form-input" + (" error" if form.username.errors else ""), placeholder="Choose a username") }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.emailAddress.id }}" class="form-label">{{ form.emailAddress.label.text }}</label>
+                    {{ form.emailAddress(class="form-input" + (" error" if form.emailAddress.errors else ""), placeholder="Enter your email address") }}
+                    {% if form.emailAddress.errors %}
+                        {% for error in form.emailAddress.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id }}" class="form-label">{{ form.password.label.text }}</label>
+                    {{ form.password(class="form-input" + (" error" if form.password.errors else ""), placeholder="Create a secure password") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="password-requirements">
+                        <strong>Password should contain:</strong>
+                        <ul>
+                            <li>At least 8 characters</li>
+                            <li>Mix of letters and numbers</li>
+                            <li>At least one special character</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.confirmPassword.id }}" class="form-label">{{ form.confirmPassword.label.text }}</label>
+                    {{ form.confirmPassword(class="form-input" + (" error" if form.confirmPassword.errors else ""), placeholder="Confirm your password") }}
+                    {% if form.confirmPassword.errors %}
+                        {% for error in form.confirmPassword.errors %}
+                        <div class="error-message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="checkbox-group">
+                    {{ form.consent(class="checkbox-input" + (" error" if form.consent.errors else "")) }}
+                    <label for="{{ form.consent.id }}" class="checkbox-label">
+                        I agree to SettleBot's <a href="{{ url_for('main.terms_and_conditions') }}" target="_blank">Terms and Conditions</a> and <a href="{{ url_for('main.privacy_policy') }}" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+                {% if form.consent.errors %}
+                    {% for error in form.consent.errors %}
+                    <div class="error-message" style="margin-top: -1rem; margin-bottom: 1.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                {{ form.submit(class="submit-btn") }}
+            </form>
+
+            <div class="form-footer">
+                <p>Already have an account? <a href="{{ url_for('authentication.user_login') }}">Sign in here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
