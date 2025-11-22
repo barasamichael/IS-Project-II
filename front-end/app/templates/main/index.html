@@ -1,0 +1,695 @@
+{% extends "base.html" %}
+
+{% block title %}SettleBot - Your AI Settlement Assistant for International Students in Nairobi{% endblock %}
+
+{% block meta_description %}Get personalized settlement guidance for international students in Nairobi. Navigate administrative processes, find accommodation, access essential services, and settle successfully in Kenya's capital with AI-powered assistance.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section - Completely Different Approach */
+    .hero {
+        padding: 3rem 0 0 0;
+        background: var(--white);
+        overflow: hidden;
+    }
+
+    .hero-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .hero-top {
+        text-align: center;
+        padding: 4rem 0 3rem 0;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        background: var(--brown-100);
+        color: var(--brown-700);
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        gap: 0.5rem;
+    }
+
+    .hero-title {
+        font-size: 3.75rem;
+        font-weight: 800;
+        line-height: 1.15;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        letter-spacing: -0.025em;
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin-bottom: 3rem;
+        max-width: 580px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 4rem;
+    }
+
+    .action-btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 160px;
+        justify-content: center;
+    }
+
+    .action-primary {
+        background: var(--brown-700);
+        color: white;
+    }
+
+    .action-primary:hover {
+        background: var(--brown-900);
+    }
+
+    .action-secondary {
+        background: white;
+        color: var(--brown-700);
+        border: 1px solid var(--brown-300);
+    }
+
+    .action-secondary:hover {
+        background: var(--brown-50);
+    }
+
+    .hero-demo {
+        background: linear-gradient(180deg, #f8f6f3 0%, white 100%);
+        border-radius: 16px 16px 0 0;
+        padding: 2rem;
+        margin: 0 -1.5rem;
+        position: relative;
+    }
+
+    .demo-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+    }
+
+    .demo-header {
+        background: var(--brown-700);
+        padding: 1rem 1.5rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .demo-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .demo-dots {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .demo-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .demo-content {
+        padding: 0;
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .conversation {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        background: #fafafa;
+    }
+
+    .message-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .message-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-left: 3px solid var(--brown-300);
+        max-width: 85%;
+    }
+
+    .message-item.question {
+        background: var(--brown-700);
+        color: white;
+        border-left: 3px solid var(--orange-500);
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .message-meta {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .question .message-meta {
+        color: var(--brown-300);
+    }
+
+    .demo-input {
+        border-top: 1px solid var(--gray-200);
+        padding: 1rem 1.5rem;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .input-field {
+        flex: 1;
+        background: var(--gray-50);
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+    }
+
+    .input-btn {
+        background: var(--brown-700);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    /* Benefits Section */
+    .benefits {
+        padding: 6rem 0;
+        background: white;
+    }
+
+    .benefits-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        text-align: center;
+    }
+
+    .benefits-header {
+        margin-bottom: 4rem;
+    }
+
+    .benefits-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1rem;
+    }
+
+    .benefits-header p {
+        font-size: 1.1rem;
+        color: var(--gray-700);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .benefits-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    .benefit-item {
+        text-align: left;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+    }
+
+    .benefit-item:hover {
+        border-color: var(--brown-300);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .benefit-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--brown-100);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: var(--brown-700);
+    }
+
+    .benefit-item h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .benefit-item p {
+        color: var(--gray-700);
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    /* Steps Section */
+    .steps {
+        padding: 6rem 0;
+        background: var(--brown-50);
+    }
+
+    .steps-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .steps-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .steps-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1rem;
+    }
+
+    .steps-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .step-number {
+        background: var(--brown-700);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .step-content h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .step-content p {
+        color: var(--gray-700);
+        line-height: 1.6;
+    }
+
+    /* Final CTA */
+    .final-cta {
+        padding: 6rem 0;
+        background: var(--brown-900);
+        text-align: center;
+        color: white;
+    }
+
+    .final-cta-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .final-cta h2 {
+        font-size: 2.75rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .final-cta p {
+        font-size: 1.2rem;
+        color: var(--brown-300);
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .final-cta-btn {
+        background: var(--orange-500);
+        color: white;
+        padding: 1.25rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .final-cta-btn:hover {
+        background: var(--orange-600);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .demo-content {
+            height: 350px;
+        }
+
+        .step-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .benefits-header h2,
+        .steps-header h2,
+        .final-cta h2 {
+            font-size: 2rem;
+        }
+
+        .benefits,
+        .steps,
+        .final-cta {
+            padding: 4rem 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-demo {
+            margin: 0 -1rem;
+            padding: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-wrapper">
+        <div class="hero-top">
+            <div class="hero-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Trusted by 500+ International Students
+            </div>
+            
+            <h1 class="hero-title">Settlement Made Simple for International Students in Nairobi</h1>
+            
+            <p class="hero-subtitle">Skip the confusion. Get instant, accurate guidance on accommodation, admin processes, and everything you need to settle successfully in Kenya's capital.</p>
+            
+            <div class="hero-actions">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('accounts.user_conversations') }}" class="action-btn action-primary">
+                    Ask Your First Question
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                {% else %}
+                <a href="{{ url_for('authentication.user_registration') }}" class="action-btn action-primary">
+                    Start for Free
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('main.about') }}" class="action-btn action-secondary">
+                    See How It Works
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-demo">
+            <div class="demo-container">
+                <div class="demo-header">
+                    <span class="demo-title">SettleBot Assistant</span>
+                    <div class="demo-dots">
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                    </div>
+                </div>
+                <div class="demo-content">
+                    <div class="conversation">
+                        <div class="message-group">
+                            <div class="message-item question">
+                                <div class="message-meta">You</div>
+                                I'm starting at University of Nairobi next month. Where should I look for accommodation?
+                            </div>
+                        </div>
+                        
+                        <div class="message-group">
+                            <div class="message-item">
+                                <div class="message-meta">SettleBot</div>
+                                Great choice! For UoN, I recommend these areas: Kikuyu (15-20k/month, 30min commute), South C (25-35k/month, closer), or university hostels (12-18k/month, on campus). What's your budget range?
+                            </div>
+                        </div>
+                        
+                        <div class="message-group">
+                            <div class="message-item question">
+                                <div class="message-meta">You</div>
+                                Around 20k per month. What documents will I need?
+                            </div>
+                        </div>
+                        
+                        <div class="message-group">
+                            <div class="message-item">
+                                <div class="message-meta">SettleBot</div>
+                                Perfect! For 20k budget, I recommend Kikuyu area. You'll need: passport copy, student ID, 2-3 months advance rent, and a guarantor letter. I can guide you through finding verified landlords and the entire application process.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-input">
+                        <input type="text" class="input-field" placeholder="What about internet and utilities..." readonly>
+                        <button class="input-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="benefits">
+    <div class="benefits-container">
+        <div class="benefits-header">
+            <h2>Why International Students Choose SettleBot</h2>
+            <p>Get the local knowledge you need without the guesswork. Our AI assistant understands the unique challenges international students face in Nairobi.</p>
+        </div>
+        
+        <div class="benefits-list">
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/>
+                        <path d="M9 11V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5"/>
+                    </svg>
+                </div>
+                <h3>Verified Local Information</h3>
+                <p>All our data comes from verified sources including universities, government agencies, and trusted local partners. No more outdated or unreliable information.</p>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <h3>Instant Responses</h3>
+                <p>Get immediate answers to your questions, day or night. No waiting for office hours or email responses when you need help urgently.</p>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    </svg>
+                </div>
+                <h3>Step-by-Step Guidance</h3>
+                <p>Complex processes like getting student permits or opening bank accounts broken down into simple, manageable steps you can follow.</p>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                    </svg>
+                </div>
+                <h3>Student-Focused</h3>
+                <p>Built specifically for international students in Nairobi. We understand your budget constraints, timeline pressures, and unique needs.</p>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                        <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2.5-2.5 2.5-2.5 5"/>
+                        <circle cx="12" cy="17" r=".5"/>
+                    </svg>
+                </div>
+                <h3>Always Learning</h3>
+                <p>Our AI continuously learns from student interactions and updates to provide increasingly accurate and helpful responses.</p>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1v22"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+                <h3>Free to Use</h3>
+                <p>All core features are completely free for students. We believe access to settlement information shouldn't be another financial burden.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Steps Section -->
+<section class="steps">
+    <div class="steps-container">
+        <div class="steps-header">
+            <h2>Three Simple Steps to Settlement Success</h2>
+        </div>
+        
+        <div class="steps-list">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Ask Your Question</h3>
+                    <p>Whether you need help finding accommodation, understanding visa requirements, or navigating university admin - just ask in plain English. No need to learn complex systems or wait for appointments.</p>
+                </div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Get Personalized Guidance</h3>
+                    <p>Receive detailed, step-by-step instructions tailored to your specific situation, university, and budget. Our responses include current costs, required documents, and local insights.</p>
+                </div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Take Action with Confidence</h3>
+                    <p>Follow the clear guidance to complete your settlement tasks successfully. Track your progress and ask follow-up questions as you go through each step.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+    <div class="final-cta-container">
+        <h2>Ready to Start Your Settlement Journey?</h2>
+        <p>Join hundreds of international students who have successfully settled in Nairobi with SettleBot's help. Get started today and make your transition smooth and stress-free.</p>
+        
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('accounts.user_conversations') }}" class="final-cta-btn">
+            Start Chatting Now
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </a>
+        {% else %}
+        <a href="{{ url_for('authentication.user_registration') }}" class="final-cta-btn">
+            Create Your Free Account
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <path d="M20 8v6M23 11h-6"/>
+            </svg>
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

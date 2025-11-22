@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block title %}About SettleBot - AI Settlement Assistant for International Students{% endblock %}
+
+{% block meta_description %}Learn how SettleBot helps international students settle successfully in Nairobi through AI-powered guidance on accommodation, admin processes, and essential services.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .about-hero {
+        padding: 8rem 0 6rem 0;
+        background: white;
+        text-align: center;
+    }
+
+    .about-hero-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .about-hero h1 {
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 2rem;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .about-hero p {
+        font-size: 1.4rem;
+        color: var(--gray-700);
+        line-height: 1.6;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Mission Section */
+    .mission {
+        padding: 8rem 0;
+        background: var(--brown-50);
+    }
+
+    .mission-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 3rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6rem;
+        align-items: center;
+    }
+
+    .mission-content h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 2.5rem;
+        line-height: 1.2;
+    }
+
+    .mission-content p {
+        font-size: 1.2rem;
+        color: var(--gray-700);
+        line-height: 1.8;
+        margin-bottom: 2rem;
+    }
+
+    .mission-stats {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        border: 1px solid var(--brown-200);
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+
+    .stat-item h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--brown-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-item p {
+        color: var(--gray-600);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* Problem Section */
+    .problem {
+        padding: 10rem 0;
+        background: white;
+    }
+
+    .problem-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 3rem;
+        text-align: center;
+    }
+
+    .problem h2 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 3rem;
+        line-height: 1.1;
+    }
+
+    .problem-intro {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 6rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .challenges-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .challenge {
+        text-align: left;
+        background: var(--gray-50);
+        padding: 3rem;
+        border-radius: 16px;
+        border-left: 6px solid var(--orange-500);
+    }
+
+    .challenge h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+    }
+
+    .challenge p {
+        font-size: 1.1rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+    }
+
+    /* Solution Section */
+    .solution {
+        padding: 10rem 0;
+        background: var(--brown-900);
+        color: white;
+    }
+
+    .solution-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 3rem;
+    }
+
+    .solution-header {
+        text-align: center;
+        margin-bottom: 8rem;
+    }
+
+    .solution-header h2 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 2rem;
+        line-height: 1.1;
+    }
+
+    .solution-header p {
+        font-size: 1.3rem;
+        color: var(--brown-300);
+        line-height: 1.7;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .features-showcase {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4rem;
+    }
+
+    .feature-showcase {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .feature-showcase-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--orange-500);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem auto;
+        color: white;
+    }
+
+    .feature-showcase h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-showcase p {
+        color: var(--brown-300);
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+
+    /* Values Section */
+    .values {
+        padding: 10rem 0;
+        background: white;
+    }
+
+    .values-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 3rem;
+        text-align: center;
+    }
+
+    .values h2 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 3rem;
+        line-height: 1.1;
+    }
+
+    .values-intro {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 6rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .values-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .value-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 3rem;
+        padding: 3rem;
+        background: var(--brown-50);
+        border-radius: 16px;
+        text-align: left;
+    }
+
+    .value-icon {
+        background: var(--brown-700);
+        color: white;
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .value-content h3 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1rem;
+    }
+
+    .value-content p {
+        font-size: 1.1rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+    }
+
+    /* CTA Section */
+    .about-cta {
+        padding: 8rem 0;
+        background: var(--brown-50);
+        text-align: center;
+    }
+
+    .about-cta-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 3rem;
+    }
+
+    .about-cta h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 2rem;
+        line-height: 1.2;
+    }
+
+    .about-cta p {
+        font-size: 1.3rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 3rem;
+    }
+
+    .about-cta-btn {
+        background: var(--brown-700);
+        color: white;
+        padding: 1.5rem 3rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .about-cta-btn:hover {
+        background: var(--brown-900);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .mission-container {
+            padding: 0 2rem;
+            gap: 4rem;
+        }
+
+        .features-showcase {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+    }
+
+    @media (max-width: 968px) {
+        .mission-container {
+            grid-template-columns: 1fr;
+            gap: 4rem;
+        }
+
+        .challenges-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .value-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 2rem;
+        }
+
+        .about-hero h1 {
+            font-size: 3rem;
+        }
+
+        .problem h2,
+        .solution-header h2,
+        .values h2,
+        .about-cta h2 {
+            font-size: 2.5rem;
+        }
+
+        .mission-content h2 {
+            font-size: 2.25rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .about-hero,
+        .mission,
+        .problem,
+        .solution,
+        .values,
+        .about-cta {
+            padding: 5rem 0;
+        }
+
+        .about-hero-container,
+        .problem-container,
+        .solution-container,
+        .values-container,
+        .about-cta-container {
+            padding: 0 1.5rem;
+        }
+
+        .mission-container {
+            padding: 0 1.5rem;
+        }
+
+        .about-hero h1 {
+            font-size: 2.25rem;
+        }
+
+        .problem h2,
+        .solution-header h2,
+        .values h2,
+        .about-cta h2 {
+            font-size: 2rem;
+        }
+
+        .challenge,
+        .feature-showcase,
+        .value-item {
+            padding: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="about-hero-container">
+        <h1>Simplifying Settlement for International Students</h1>
+        <p>We built SettleBot because every international student deserves a smooth, successful start to their academic journey in Nairobi.</p>
+    </div>
+</section>
+
+<!-- Mission Section -->
+<section class="mission">
+    <div class="mission-container">
+        <div class="mission-content">
+            <h2>Our Mission</h2>
+            <p>Thousands of international students arrive in Nairobi each year, excited to begin their education in Kenya. But too many spend their first weeks struggling with basic settlement tasks instead of focusing on their studies.</p>
+            <p>We created SettleBot to eliminate this struggle. Our AI assistant provides instant, accurate guidance on accommodation, administrative processes, and essential services - everything international students need to settle successfully in Kenya's capital.</p>
+        </div>
+        <div class="mission-stats">
+            <div class="stat-row">
+                <div class="stat-item">
+                    <h3>6,000+</h3>
+                    <p>International students in Nairobi universities</p>
+                </div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-item">
+                    <h3>87%</h3>
+                    <p>Visit multiple offices for settlement info</p>
+                </div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-item">
+                    <h3>65%</h3>
+                    <p>Receive conflicting or outdated guidance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Problem Section -->
+<section class="problem">
+    <div class="problem-container">
+        <h2>The Settlement Challenge</h2>
+        <p class="problem-intro">International students face unique obstacles when settling in Nairobi. These challenges create unnecessary stress and can impact academic performance and personal wellbeing.</p>
+        
+        <div class="challenges-grid">
+            <div class="challenge">
+                <h3>Fragmented Information</h3>
+                <p>Students waste valuable time visiting multiple offices, checking outdated websites, and relying on inconsistent peer advice to gather basic settlement information.</p>
+            </div>
+            
+            <div class="challenge">
+                <h3>Cultural Navigation</h3>
+                <p>Understanding local systems, terminology, and processes becomes challenging without proper guidance, leading to confusion and delays.</p>
+            </div>
+            
+            <div class="challenge">
+                <h3>Time Pressures</h3>
+                <p>Critical decisions about accommodation and documentation must be made quickly, but students lack access to timely, reliable guidance when they need it most.</p>
+            </div>
+            
+            <div class="challenge">
+                <h3>Financial Risks</h3>
+                <p>Incomplete information leads to costly mistakes - from unfavorable rental agreements to missed deadlines that result in additional fees.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Solution Section -->
+<section class="solution">
+    <div class="solution-container">
+        <div class="solution-header">
+            <h2>Our AI-Powered Solution</h2>
+            <p>SettleBot combines advanced AI technology with verified local knowledge to deliver personalized settlement guidance that's accurate, comprehensive, and available whenever you need it.</p>
+        </div>
+        
+        <div class="features-showcase">
+            <div class="feature-showcase">
+                <div class="feature-showcase-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <h3>Verified Sources</h3>
+                <p>All information comes from official university records, government databases, and verified local partners - ensuring accuracy and reliability.</p>
+            </div>
+            
+            <div class="feature-showcase">
+                <div class="feature-showcase-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    </svg>
+                </div>
+                <h3>Personalized Guidance</h3>
+                <p>Every response is tailored to your specific university, budget, timeline, and individual circumstances for maximum relevance.</p>
+            </div>
+            
+            <div class="feature-showcase">
+                <div class="feature-showcase-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <h3>Always Available</h3>
+                <p>Get instant answers anytime, anywhere - no more waiting for office hours or struggling with urgent settlement questions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="values">
+    <div class="values-container">
+        <h2>Our Commitment</h2>
+        <p class="values-intro">We're dedicated to continuously improving SettleBot to better serve international students, incorporating real feedback to address evolving settlement challenges in Nairobi.</p>
+        
+        <div class="values-list">
+            <div class="value-item">
+                <div class="value-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/>
+                        <path d="M9 11V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5"/>
+                    </svg>
+                </div>
+                <div class="value-content">
+                    <h3>Accuracy First</h3>
+                    <p>We maintain rigorous verification processes for all information sources, ensuring you receive reliable, current guidance you can trust for important settlement decisions.</p>
+                </div>
+            </div>
+            
+            <div class="value-item">
+                <div class="value-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="value-content">
+                    <h3>Student-Centered Design</h3>
+                    <p>Every feature is built with international students' unique needs in mind - from budget constraints to cultural navigation challenges and time-sensitive requirements.</p>
+                </div>
+            </div>
+            
+            <div class="value-item">
+                <div class="value-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                        <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2.5-2.5 2.5-2.5 5"/>
+                        <circle cx="12" cy="17" r=".5"/>
+                    </svg>
+                </div>
+                <div class="value-content">
+                    <h3>Continuous Improvement</h3>
+                    <p>We actively gather feedback from students and monitor changing settlement requirements to keep SettleBot current, relevant, and increasingly helpful.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="about-cta">
+    <div class="about-cta-container">
+        <h2>Experience the Difference</h2>
+        <p>Join the growing community of international students who are settling in Nairobi with confidence, backed by reliable AI-powered guidance.</p>
+        
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('accounts.user_conversations') }}" class="about-cta-btn">
+            Start Your First Conversation
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </a>
+        {% else %}
+        <a href="{{ url_for('authentication.user_registration') }}" class="about-cta-btn">
+            Get Started Today
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <path d="M20 8v6M23 11h-6"/>
+            </svg>
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
