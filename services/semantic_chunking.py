@@ -540,7 +540,7 @@ Only return the JSON, no explanations.
 
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=300,
@@ -599,7 +599,7 @@ Only return the JSON array, no explanations.
 
             try:
                 response = self.client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4.1-nano",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.1,
                     max_tokens=200,
@@ -663,7 +663,7 @@ Only return the JSON, no explanations.
 
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=150,
@@ -736,8 +736,8 @@ Only return the JSON, no explanations.
 
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
+                model="gpt-4.1-nano",
+               messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=100,
             )

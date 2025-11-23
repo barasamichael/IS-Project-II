@@ -3,6 +3,7 @@ data/
 config/config.yaml
 database/
 start.sh
+.embeddings_cache
 # Python
 __pycache__/
 *.py[cod]

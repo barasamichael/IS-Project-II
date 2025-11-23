@@ -153,7 +153,7 @@ Respond with JSON only:
 
         try:
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 messages=[
                     {
                         "role": "system",
@@ -251,7 +251,7 @@ CRITICAL TRANSLATION RULES:
 Translate to {language_name}:"""
 
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-mini",
                 messages=[
                     {
                         "role": "system",

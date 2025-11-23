@@ -16,7 +16,7 @@ from config.settings import ROOT_DIR
 
 from services.intent_recognizer import IntentRecognizer
 from services.response_generator import ResponseGenerator
-from services.vector_db import InternationalStudentVectorDB
+from services.vector_db import VectorDBService
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -28,12 +28,12 @@ class InternationalStudentRAGEvaluator:
 
     def __init__(
         self,
-        vector_db_service: Optional[InternationalStudentVectorDB] = None,
+        vector_db_service: Optional[VectorDBService] = None,
         intent_recognizer: Optional[IntentRecognizer] = None,
         response_generator: Optional[ResponseGenerator] = None,
     ):
         self.vector_db_service = (
-            vector_db_service or InternationalStudentVectorDB()
+            vector_db_service or VectorDBService()
         )
         self.intent_recognizer = intent_recognizer or IntentRecognizer()
         self.response_generator = response_generator or ResponseGenerator()

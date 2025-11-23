@@ -21,11 +21,11 @@ logger = logging.getLogger("response_generator")
 class ResponseGenerator:
     """
     Optimized response generator for 100/100 performance with speed improvements.
-    Uses gpt-4o-mini throughout and Tavily search for current information.
+    Uses gpt-4.1-mini throughout and Tavily search for current information.
     """
 
     def __init__(self):
-        self.model = "gpt-4o-mini"  # Fast, cost-efficient model
+        self.model = "gpt-4.1-mini"  # Fast, cost-efficient model
         self.temperature = settings.llm.temperature
         self.max_tokens = settings.llm.max_tokens
 
@@ -649,7 +649,7 @@ I'm here to assist you with questions about:
     ) -> Dict[str, Any]:
         """
         Generate comprehensive, optimized responses with speed improvements.
-        Uses parallel processing where possible and gpt-4o-mini throughout.
+        Uses parallel processing where possible and gpt-4.1-mini throughout.
         """
         try:
             # Process language detection and translation
@@ -1030,7 +1030,7 @@ I'm here to assist you with questions about:
         current_time: str,
         context_evaluation: Dict[str, Any],
     ) -> str:
-        """Generate comprehensive response using gpt-4o-mini."""
+        """Generate comprehensive response using gpt-4.1-mini."""
 
         # Build empathy component
         empathy_component = ""
@@ -1092,7 +1092,7 @@ CRITICAL REQUIREMENTS:
 
         try:
             response = self.client.chat.completions.create(
-                model=self.model,  # gpt-4o-mini for speed and cost
+                model=self.model,  # gpt-4.1-mini for speed and cost
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -1733,7 +1733,7 @@ I apologize for this interruption and am designed to provide comprehensive settl
             "optimizations_applied": [
                 "Parallel emotion detection and web search",
                 "Fast emotion detection (keyword-based)",
-                "gpt-4o-mini for all operations",
+                "gpt-4.1-mini for all operations",
                 "Tavily search with basic depth",
                 "Optimized token usage",
             ],
