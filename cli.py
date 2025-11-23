@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 import logging
 from pathlib import Path
 from typing import Any
@@ -223,8 +224,7 @@ def process_folder(
         ]
 
         if not files:
-            console.print(
-                "[bold yellow]No supported files found[/bold yellow]")
+            console.print("[bold yellow]No supported files found[/bold yellow]")
             return
 
         console.print(f"Found {len(files)} supported files")
@@ -537,8 +537,7 @@ def rebuild_index():
 
         # Index documents
         for i, doc in enumerate(documents, 1):
-            console.print(
-                f"Indexing {doc['file_name']} ({i}/{len(documents)})")
+            console.print(f"Indexing {doc['file_name']} ({i}/{len(documents)})")
             vector_db_service.index_chunks(doc["chunks_path"])
 
         # Final stats
@@ -762,19 +761,17 @@ def process_sitemap(
 @app.command()
 def validate_intent():
     """Validate intent recognizer patterns and embeddings."""
-    console.print(
-        "[bold blue]Validating Intent Recognition System[/bold blue]")
+    console.print("[bold blue]Validating Intent Recognition System[/bold blue]")
 
     try:
         # Get validation results
         validation_results = intent_recognizer.validate_patterns()
 
+        console.print(f"Valid patterns: {validation_results['valid_patterns']}")
         console.print(
-            f"Valid patterns: {validation_results['valid_patterns']}")
-        console.print(
-            f"Invalid patterns: {validation_results['invalid_patterns']}")
-        console.print(
-            f"Overall health: {validation_results['overall_health']}")
+            f"Invalid patterns: {validation_results['invalid_patterns']}"
+        )
+        console.print(f"Overall health: {validation_results['overall_health']}")
 
         # Show pattern details table
         details_table = Table(title="Pattern Validation Details")
@@ -782,14 +779,16 @@ def validate_intent():
         details_table.add_column("Status", style="green")
         details_table.add_column("Examples", style="yellow")
 
-        for intent_type, details in validation_results['pattern_details'].items():
-            status_color = "green" if details['status'] == 'valid' else "red"
-            example_count = details.get('example_count', 0)
+        for intent_type, details in validation_results[
+            "pattern_details"
+        ].items():
+            status_color = "green" if details["status"] == "valid" else "red"
+            example_count = details.get("example_count", 0)
 
             details_table.add_row(
                 intent_type,
                 f"[{status_color}]{details['status']}[/{status_color}]",
-                str(example_count)
+                str(example_count),
             )
 
         console.print(details_table)
@@ -798,22 +797,26 @@ def validate_intent():
         stats = intent_recognizer.get_stats()
         console.print(f"\nTotal intents: {stats['total_intents']}")
         console.print(
-            f"Classification method: {stats['classification_method']}")
+            f"Classification method: {stats['classification_method']}"
+        )
         console.print(f"Cache enabled: {stats['cache_enabled']}")
 
     except Exception as e:
         console.print(
-            f"[bold red]Error validating intent recognizer:[/bold red] {str(e)}")
+            f"[bold red]Error validating intent recognizer:[/bold red] {str(e)}"
+        )
 
 
 @app.command()
 def test_intent(
-    test_query: str = typer.Argument(...,
-                                     help="Query to test intent recognition")
+    test_query: str = typer.Argument(
+        ..., help="Query to test intent recognition"
+    )
 ):
     """Test intent recognition for a specific query."""
     console.print(
-        f"Testing intent recognition for: [bold blue]{test_query}[/bold blue]")
+        f"Testing intent recognition for: [bold blue]{test_query}[/bold blue]"
+    )
 
     try:
         # Get intent classification
@@ -824,34 +827,38 @@ def test_intent(
         results_table.add_column("Property", style="cyan")
         results_table.add_column("Value", style="green")
 
-        results_table.add_row("Intent Type", intent_info['intent_type'].value)
-        results_table.add_row("Topic", intent_info['topic'].value)
+        results_table.add_row("Intent Type", intent_info["intent_type"].value)
+        results_table.add_row("Topic", intent_info["topic"].value)
         results_table.add_row("Confidence", f"{intent_info['confidence']:.3f}")
-        results_table.add_row("Settlement Relevance",
-                              f"{intent_info['settlement_relevance']:.3f}")
-        results_table.add_row("Classification Method",
-                              intent_info['classification_method'])
-        results_table.add_row("Off Topic", str(intent_info['is_off_topic']))
+        results_table.add_row(
+            "Settlement Relevance", f"{intent_info['settlement_relevance']:.3f}"
+        )
+        results_table.add_row(
+            "Classification Method", intent_info["classification_method"]
+        )
+        results_table.add_row("Off Topic", str(intent_info["is_off_topic"]))
 
         console.print(results_table)
 
         # Show semantic scores if available
-        if intent_info.get('semantic_scores'):
+        if intent_info.get("semantic_scores"):
             console.print(
-                "\n[bold yellow]Semantic Scores by Intent:[/bold yellow]")
-            semantic_scores = intent_info['semantic_scores']
+                "\n[bold yellow]Semantic Scores by Intent:[/bold yellow]"
+            )
+            semantic_scores = intent_info["semantic_scores"]
 
             # Sort by score for better display
             sorted_scores = sorted(
-                semantic_scores.items(), key=lambda x: x[1], reverse=True)
+                semantic_scores.items(), key=lambda x: x[1], reverse=True
+            )
 
             for intent_type, score in sorted_scores[:5]:  # Show top 5
                 console.print(f"  {intent_type.value}: {score:.3f}")
 
         # Show off-topic indicators if any
-        if intent_info.get('off_topic_indicators'):
+        if intent_info.get("off_topic_indicators"):
             console.print("\n[bold red]Off-topic indicators:[/bold red]")
-            for indicator in intent_info['off_topic_indicators']:
+            for indicator in intent_info["off_topic_indicators"]:
                 console.print(f"  - {indicator}")
 
     except Exception as e:
@@ -864,7 +871,8 @@ def clear_intent_cache():
     try:
         intent_recognizer.clear_cache()
         console.print(
-            "[bold green]Intent recognizer cache cleared successfully![/bold green]")
+            "[bold green]Intent recognizer cache cleared successfully![/bold green]"
+        )
     except Exception as e:
         console.print(f"[bold red]Error clearing cache:[/bold red] {str(e)}")
 
@@ -875,7 +883,8 @@ def rebuild_intent_cache():
     try:
         intent_recognizer.rebuild_cache()
         console.print(
-            "[bold green]Intent recognizer cache rebuilt successfully![/bold green]")
+            "[bold green]Intent recognizer cache rebuilt successfully![/bold green]"
+        )
     except Exception as e:
         console.print(f"[bold red]Error rebuilding cache:[/bold red] {str(e)}")
 
@@ -1034,8 +1043,7 @@ def validate_url(
         )
 
         if keyword_matches:
-            validation_table.add_row(
-                "Keywords", ", ".join(keyword_matches[:5]))
+            validation_table.add_row("Keywords", ", ".join(keyword_matches[:5]))
 
         console.print(validation_table)
 
@@ -1162,8 +1170,7 @@ def update_document(
             return
 
         # Show current document info
-        console.print(
-            f"Current document: [cyan]{doc_info['file_name']}[/cyan]")
+        console.print(f"Current document: [cyan]{doc_info['file_name']}[/cyan]")
         console.print(f"New document: [cyan]{new_file_path.name}[/cyan]")
 
         # Confirm update
@@ -1191,8 +1198,7 @@ def update_document(
         metadata = document_processor.process_document(new_file_path)
 
         if not metadata:
-            console.print(
-                "[bold red]Failed to process new document[/bold red]")
+            console.print("[bold red]Failed to process new document[/bold red]")
             return
 
         new_doc_id = metadata["doc_id"]
@@ -1206,8 +1212,7 @@ def update_document(
         vector_db_service.index_chunks(metadata["chunks_path"])
 
         # Success summary
-        console.print(
-            "[bold green]Document updated successfully![/bold green]")
+        console.print("[bold green]Document updated successfully![/bold green]")
 
         update_table = Table(title="Update Results")
         update_table.add_column("Metric", style="cyan")
@@ -1246,8 +1251,7 @@ def update_document(
 
 @app.command()
 def get_document_info(
-    doc_id: str = typer.Argument(...,
-                                 help="Document ID to get information for")
+    doc_id: str = typer.Argument(..., help="Document ID to get information for")
 ):
     """Get detailed information about a document."""
     console.print(f"Document Information: [bold blue]{doc_id}[/bold blue]")
@@ -1467,8 +1471,7 @@ def find_document(
         results_table.add_column(
             "Settlement Score", style="red", justify="right"
         )
-        results_table.add_column(
-            "Match Score", style="yellow", justify="right")
+        results_table.add_column("Match Score", style="yellow", justify="right")
 
         for doc, match_score in matches:
             settlement_score = doc.get("avg_settlement_score", 0)
@@ -1508,56 +1511,69 @@ def check_health():
         health_table.add_column("Details", style="dim")
 
         # Vector DB health
-        db_status = "✓ Healthy" if health_results["overall_health"] else "✗ Unhealthy"
+        db_status = (
+            "✓ Healthy" if health_results["overall_health"] else "✗ Unhealthy"
+        )
         status_style = "green" if health_results["overall_health"] else "red"
 
         health_table.add_row(
             "Vector Database",
             f"[{status_style}]{db_status}[/{status_style}]",
-            f"Vectors: {health_results.get('vector_count', 0)}"
+            f"Vectors: {health_results.get('vector_count', 0)}",
         )
 
         # Embedding service health
-        embedding_status = "✓ Available" if health_results[
-            "embedding_service_available"] else "✗ Unavailable"
-        embedding_style = "green" if health_results["embedding_service_available"] else "red"
+        embedding_status = (
+            "✓ Available"
+            if health_results["embedding_service_available"]
+            else "✗ Unavailable"
+        )
+        embedding_style = (
+            "green" if health_results["embedding_service_available"] else "red"
+        )
 
         health_table.add_row(
             "Embedding Service",
             f"[{embedding_style}]{embedding_status}[/{embedding_style}]",
-            f"Model: {embedding_service.model_name}"
+            f"Model: {embedding_service.model_name}",
         )
 
         # Search functionality
-        search_status = "✓ Working" if health_results["search_functional"] else "✗ Failed"
+        search_status = (
+            "✓ Working" if health_results["search_functional"] else "✗ Failed"
+        )
         search_style = "green" if health_results["search_functional"] else "red"
 
         health_table.add_row(
             "Search Function",
             f"[{search_style}]{search_status}[/{search_style}]",
-            "Semantic search capability"
+            "Semantic search capability",
         )
 
         # Intent recognition health
         intent_validation = intent_recognizer.validate_patterns()
-        intent_status = "✓ Working" if intent_validation["overall_health"] else "✗ Issues"
+        intent_status = (
+            "✓ Working" if intent_validation["overall_health"] else "✗ Issues"
+        )
         intent_style = "green" if intent_validation["overall_health"] else "red"
 
         health_table.add_row(
             "Intent Recognition",
             f"[{intent_style}]{intent_status}[/{intent_style}]",
-            f"Valid patterns: {intent_validation['valid_patterns']}"
+            f"Valid patterns: {intent_validation['valid_patterns']}",
         )
 
         # Language processing health
         lang_stats = language_processor.get_language_stats()
-        lang_status = "✓ Ready" if lang_stats["detection_enabled"] else "⚠ Disabled"
+        lang_status = (
+            "✓ Ready" if lang_stats["detection_enabled"] else "⚠ Disabled"
+        )
         lang_style = "green" if lang_stats["detection_enabled"] else "yellow"
 
         health_table.add_row(
             "Language Processing",
             f"[{lang_style}]{lang_status}[/{lang_style}]",
-            f"Languages: {lang_stats['total_languages']}"
+            f"Languages: {lang_stats['total_languages']}",
         )
 
         # Response generation health
@@ -1568,14 +1584,19 @@ def check_health():
         health_table.add_row(
             "Response Generator",
             f"[{resp_style}]{resp_status}[/{resp_style}]",
-            f"Model: {response_stats['model']}"
+            f"Model: {response_stats['model']}",
         )
 
         console.print(health_table)
 
         # Overall system status
-        overall_healthy = health_results["overall_health"] and intent_validation["overall_health"]
-        overall_status = "System Healthy" if overall_healthy else "System Issues Detected"
+        overall_healthy = (
+            health_results["overall_health"]
+            and intent_validation["overall_health"]
+        )
+        overall_status = (
+            "System Healthy" if overall_healthy else "System Issues Detected"
+        )
         overall_style = "bold green" if overall_healthy else "bold red"
 
         console.print(f"\n[{overall_style}]{overall_status}[/{overall_style}]")
@@ -1584,12 +1605,509 @@ def check_health():
             console.print("\n[bold yellow]Recommended Actions:[/bold yellow]")
             if not health_results["overall_health"]:
                 console.print(
-                    "  - Check vector database connection and rebuild index if needed")
+                    "  - Check vector database connection and rebuild index if needed"
+                )
             if not intent_validation["overall_health"]:
                 console.print("  - Rebuild intent recognition cache")
 
     except Exception as e:
         console.print(f"[bold red]Health check failed:[/bold red] {str(e)}")
+
+
+@app.command()
+def process_urls_file(
+    file_path: str = typer.Argument(
+        ..., help="Path to text file containing URLs (one per line)"
+    ),
+    max_urls: int = typer.Option(
+        100, "--max-urls", "-m", help="Maximum number of URLs to process"
+    ),
+    skip_validation: bool = typer.Option(
+        False, "--skip-validation", help="Skip URL validation before processing"
+    ),
+    settlement_only: bool = typer.Option(
+        True,
+        "--settlement-only",
+        help="Only process URLs with settlement-relevant content",
+    ),
+    batch_size: int = typer.Option(
+        10, "--batch-size", "-b", help="Number of URLs to process in each batch"
+    ),
+    continue_on_error: bool = typer.Option(
+        True,
+        "--continue-on-error",
+        help="Continue processing if individual URLs fail",
+    ),
+):
+    """Process multiple URLs from a text file with deduplication and robust error handling."""
+    console.print(
+        f"Processing URLs from file: [bold blue]{file_path}[/bold blue]"
+    )
+
+    try:
+        file_path = Path(file_path)
+        if not file_path.exists():
+            console.print(f"[bold red]File not found:[/bold red] {file_path}")
+            return
+
+        # Read URLs from file
+        console.print("Reading URLs from file...")
+        urls = []
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                url = line.strip()
+                # Skip empty lines and comments
+                if url and not url.startswith("#"):
+                    # Basic URL validation and normalization
+                    if not url.startswith(("http://", "https://")):
+                        url = f"https://{url}"
+                    urls.append((line_num, url))
+
+        if not urls:
+            console.print("[yellow]No valid URLs found in file.[/yellow]")
+            return
+
+        console.print(f"Found {len(urls)} URLs in file")
+
+        # Limit URLs if needed
+        if len(urls) > max_urls:
+            console.print(
+                f"[yellow]Limiting to {max_urls} URLs (use --max-urls to change)[/yellow]"
+            )
+            urls = urls[:max_urls]
+
+        # Check for already processed URLs (deduplication)
+        console.print("Checking for already processed URLs...")
+        processed_urls = set()
+        new_urls = []
+        skipped_existing = 0
+
+        for line_num, url in urls:
+            # Generate URL hash for checking
+            url_hash = hashlib.md5(url.encode()).hexdigest()
+
+            # Check if already processed by looking in document index
+            already_processed = False
+            for doc_id, doc_info in document_processor.document_index.items():
+                if (
+                    doc_info.get("file_path") == url
+                    or doc_info.get("doc_id") == url_hash
+                ):
+                    already_processed = True
+                    processed_urls.add(url)
+                    break
+
+            if already_processed:
+                skipped_existing += 1
+                console.print(f"  [dim]Skipping already processed: {url}[/dim]")
+            elif url in [
+                u[1] for u in new_urls
+            ]:  # Check for duplicates in current file
+                skipped_existing += 1
+                console.print(f"  [dim]Skipping duplicate in file: {url}[/dim]")
+            else:
+                new_urls.append((line_num, url))
+
+        if skipped_existing > 0:
+            console.print(
+                f"[yellow]Skipped {skipped_existing} already processed/duplicate URLs[/yellow]"
+            )
+
+        if not new_urls:
+            console.print(
+                "[green]All URLs have already been processed![/green]"
+            )
+            return
+
+        console.print(f"Processing {len(new_urls)} new URLs...")
+
+        # Validate URLs if not skipped
+        valid_urls = []
+        if not skip_validation:
+            console.print("Validating URLs for settlement content...")
+
+            for line_num, url in new_urls:
+                try:
+                    # Quick validation without full processing
+                    if settlement_only:
+                        # Use document processor's validation method
+                        from langchain_community.document_loaders import (
+                            WebBaseLoader,
+                        )
+
+                        loader = WebBaseLoader(url)
+                        documents = loader.load()
+
+                        if documents and documents[0].page_content:
+                            text = documents[0].page_content
+                            if document_processor._is_settlement_relevant(text):
+                                valid_urls.append((line_num, url))
+                                console.print(f"  Valid: {url}")
+                            else:
+                                console.print(
+                                    f"  Not settlement relevant: {url}"
+                                )
+                        else:
+                            console.print(f"  No content: {url}")
+                    else:
+                        # Just check if URL is accessible
+                        import requests
+
+                        response = requests.head(
+                            url, timeout=10, allow_redirects=True
+                        )
+                        if response.status_code < 400:
+                            valid_urls.append((line_num, url))
+                            console.print(f"  Accessible: {url}")
+                        else:
+                            console.print(
+                                f"  Inaccessible ({response.status_code}): {url}"
+                            )
+
+                except Exception as e:
+                    console.print(f"  Validation failed: {url} - {str(e)}")
+                    if continue_on_error:
+                        continue
+                    else:
+                        raise
+        else:
+            valid_urls = new_urls
+
+        if not valid_urls:
+            console.print("[yellow]No valid URLs to process.[/yellow]")
+            return
+
+        console.print(
+            f"Processing {len(valid_urls)} validated URLs in batches of {batch_size}"
+        )
+
+        # Process URLs in batches
+        successful = 0
+        failed = 0
+        results = []
+
+        for i in range(0, len(valid_urls), batch_size):
+            batch = valid_urls[i : i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (len(valid_urls) + batch_size - 1) // batch_size
+
+            console.print(
+                f"\n[bold blue]Batch {batch_num}/{total_batches}[/bold blue] ({len(batch)} URLs)"
+            )
+
+            for line_num, url in batch:
+                try:
+                    console.print(f"Processing: {url}")
+
+                    # Generate custom name from URL
+                    from urllib.parse import urlparse
+
+                    parsed = urlparse(url)
+                    custom_name = f"line{line_num}_{parsed.netloc}_{parsed.path.replace('/', '_')}"
+
+                    # Process the URL
+                    metadata = document_processor.process_url(url, custom_name)
+
+                    if metadata:
+                        # Generate embeddings
+                        console.print("  Generating embeddings...")
+                        embedding_service.embed_chunks(metadata["chunks_path"])
+
+                        # Index in vector database
+                        console.print("  Indexing in vector database...")
+                        vector_db_service.index_chunks(metadata["chunks_path"])
+
+                        successful += 1
+                        results.append(metadata)
+
+                        settlement_score = metadata.get(
+                            "avg_settlement_score", 0
+                        )
+                        console.print(
+                            f"  Success: {metadata['num_chunks']} chunks, settlement score: {settlement_score:.3f}"
+                        )
+                    else:
+                        failed += 1
+                        console.print("  Failed: No content processed")
+
+                except Exception as e:
+                    failed += 1
+                    error_msg = str(e)
+                    console.print(f"  Error: {error_msg}")
+
+                    if not continue_on_error:
+                        console.print(
+                            "[bold red]Stopping due to error (use --continue-on-error to continue)[/bold red]"
+                        )
+                        break
+                    else:
+                        console.print("  Continuing with next URL...")
+
+            # Small delay between batches to be respectful
+            if i + batch_size < len(valid_urls):
+                console.print("  [dim]Brief pause between batches...[/dim]")
+                import time
+
+                time.sleep(2)
+
+        # Generate comprehensive summary
+        console.print("\n[bold green]URL Processing Complete![/bold green]")
+
+        summary_table = Table(title="Processing Summary")
+        summary_table.add_column("Metric", style="cyan")
+        summary_table.add_column("Count", style="green")
+
+        summary_table.add_row("Total URLs in file", str(len(urls)))
+        summary_table.add_row(
+            "Already processed/duplicates", str(skipped_existing)
+        )
+        summary_table.add_row("New URLs validated", str(len(valid_urls)))
+        summary_table.add_row("Successfully processed", str(successful))
+        summary_table.add_row("Failed", str(failed))
+
+        if results:
+            total_chunks = sum(result["num_chunks"] for result in results)
+            avg_settlement_score = sum(
+                result.get("avg_settlement_score", 0) for result in results
+            ) / len(results)
+            summary_table.add_row("Total chunks created", str(total_chunks))
+            summary_table.add_row(
+                "Average settlement score", f"{avg_settlement_score:.3f}"
+            )
+
+        console.print(summary_table)
+
+        # Show top settlement-relevant URLs
+        if results:
+            console.print(
+                "\n[bold yellow]Top Settlement-Relevant URLs:[/bold yellow]"
+            )
+            sorted_results = sorted(
+                results,
+                key=lambda x: x.get("avg_settlement_score", 0),
+                reverse=True,
+            )
+
+            for i, result in enumerate(sorted_results[:5], 1):
+                score = result.get("avg_settlement_score", 0)
+                chunks = result["num_chunks"]
+                url = result["file_path"]
+
+                console.print(f"  {i}. {url}")
+                console.print(
+                    f"     Settlement Score: {score:.3f} | Chunks: {chunks}"
+                )
+
+        # Generate processing log
+        log_file = (
+            Path(file_path).parent
+            / f"{Path(file_path).stem}_processing_log.txt"
+        )
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write(
+                f"URL Processing Log - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
+            f.write(f"Source file: {file_path}\n")
+            f.write(f"Total URLs: {len(urls)}\n")
+            f.write(f"Successful: {successful}\n")
+            f.write(f"Failed: {failed}\n\n")
+
+            f.write("Successfully processed URLs:\n")
+            for result in results:
+                f.write(
+                    f"- {result['file_path']} (score: {result.get('avg_settlement_score', 0):.3f})\n"
+                )
+
+            f.write("\nAlready processed URLs:\n")
+            for url in processed_urls:
+                f.write(f"- {url}\n")
+
+        console.print(f"\n[dim]Processing log saved to: {log_file}[/dim]")
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+        raise
+
+
+@app.command()
+def validate_urls_file(
+    file_path: str = typer.Argument(
+        ..., help="Path to text file containing URLs"
+    ),
+    max_check: int = typer.Option(
+        50, "--max-check", "-m", help="Maximum number of URLs to check"
+    ),
+    settlement_only: bool = typer.Option(
+        True, "--settlement-only", help="Only validate settlement relevance"
+    ),
+):
+    """Validate URLs in a file without processing them."""
+    console.print(
+        f"Validating URLs from file: [bold blue]{file_path}[/bold blue]"
+    )
+
+    try:
+        file_path = Path(file_path)
+        if not file_path.exists():
+            console.print(f"[bold red]File not found:[/bold red] {file_path}")
+            return
+
+        # Read URLs
+        urls = []
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                url = line.strip()
+                if url and not url.startswith("#"):
+                    if not url.startswith(("http://", "https://")):
+                        url = f"https://{url}"
+                    urls.append((line_num, url))
+
+        if not urls:
+            console.print("[yellow]No valid URLs found in file.[/yellow]")
+            return
+
+        console.print(f"Validating {min(len(urls), max_check)} URLs...")
+
+        valid_count = 0
+        accessible_count = 0
+        settlement_relevant = 0
+        already_processed = 0
+
+        validation_table = Table(title="URL Validation Results")
+        validation_table.add_column("Line", style="cyan", width=5)
+        validation_table.add_column("Status", style="green", width=15)
+        validation_table.add_column("URL", style="blue")
+        validation_table.add_column("Notes", style="yellow")
+
+        for line_num, url in urls[:max_check]:
+            status = ""
+            notes = ""
+
+            try:
+                # Check if already processed
+                url_hash = hashlib.md5(url.encode()).hexdigest()
+                is_processed = any(
+                    doc_info.get("file_path") == url
+                    or doc_info.get("doc_id") == url_hash
+                    for doc_info in document_processor.document_index.values()
+                )
+
+                if is_processed:
+                    status = "PROCESSED"
+                    notes = "Already in database"
+                    already_processed += 1
+                else:
+                    # Check accessibility
+                    import requests
+
+                    response = requests.head(
+                        url, timeout=10, allow_redirects=True
+                    )
+
+                    if response.status_code < 400:
+                        accessible_count += 1
+
+                        if settlement_only:
+                            # Check settlement relevance
+                            from langchain_community.document_loaders import (
+                                WebBaseLoader,
+                            )
+
+                            loader = WebBaseLoader(url)
+                            documents = loader.load()
+
+                            if documents and documents[0].page_content:
+                                if document_processor._is_settlement_relevant(
+                                    documents[0].page_content
+                                ):
+                                    status = "VALID"
+                                    notes = "Settlement relevant"
+                                    settlement_relevant += 1
+                                    valid_count += 1
+                                else:
+                                    status = "LOW RELEVANCE"
+                                    notes = "Not settlement relevant"
+                            else:
+                                status = "NO CONTENT"
+                                notes = "Empty page"
+                        else:
+                            status = "ACCESSIBLE"
+                            notes = "URL accessible"
+                            valid_count += 1
+                    else:
+                        status = "INACCESSIBLE"
+                        notes = f"HTTP {response.status_code}"
+
+            except Exception as e:
+                status = "ERROR"
+                notes = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
+
+            validation_table.add_row(
+                str(line_num),
+                status,
+                url[:60] + "..." if len(url) > 60 else url,
+                notes[:30] + "..." if len(notes) > 30 else notes,
+            )
+
+        console.print(validation_table)
+
+        # Summary
+        summary_table = Table(title="Validation Summary")
+        summary_table.add_column("Metric", style="cyan")
+        summary_table.add_column("Count", style="green")
+        summary_table.add_column("Percentage", style="yellow")
+
+        total_checked = min(len(urls), max_check)
+
+        summary_table.add_row("Total URLs in file", str(len(urls)), "100%")
+        summary_table.add_row(
+            "URLs checked",
+            str(total_checked),
+            f"{(total_checked/len(urls)*100):.1f}%",
+        )
+        summary_table.add_row(
+            "Already processed",
+            str(already_processed),
+            f"{(already_processed/total_checked*100):.1f}%",
+        )
+        summary_table.add_row(
+            "Accessible",
+            str(accessible_count),
+            f"{(accessible_count/total_checked*100):.1f}%",
+        )
+
+        if settlement_only:
+            summary_table.add_row(
+                "Settlement relevant",
+                str(settlement_relevant),
+                f"{(settlement_relevant/total_checked*100):.1f}%",
+            )
+            summary_table.add_row(
+                "Recommended for processing",
+                str(settlement_relevant),
+                f"{(settlement_relevant/total_checked*100):.1f}%",
+            )
+        else:
+            summary_table.add_row(
+                "Valid for processing",
+                str(valid_count),
+                f"{(valid_count/total_checked*100):.1f}%",
+            )
+
+        console.print(summary_table)
+
+        if settlement_relevant > 0 or valid_count > 0:
+            console.print(
+                f"\n[green]Found {settlement_relevant if settlement_only else valid_count} URLs suitable for processing[/green]"
+            )
+            console.print("Use 'process-urls-file' command to process them.")
+        else:
+            console.print(
+                "\n[yellow]No suitable URLs found for processing[/yellow]"
+            )
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
 
 
 if __name__ == "__main__":
