@@ -511,6 +511,7 @@ async def process_query(request: QueryRequest, api_key: str = Depends(get_api_ke
         logger.info(f"Processing query: {request.query[:100]}...")
         start_time = time.time()
 
+        print(f"Query processing: {request.query[:100]}")
         # Language detection and processing
         if request.language_detection:
             language_result = language_processor.detect_and_process_query(
@@ -555,6 +556,7 @@ async def process_query(request: QueryRequest, api_key: str = Depends(get_api_ke
             translation_needed=language_result["needs_translation"],
             confidence=language_result.get("confidence", 0.0),
         )
+        print("processed")
 
         # Processing time
         processing_time = time.time() - start_time
@@ -578,6 +580,7 @@ async def process_query(request: QueryRequest, api_key: str = Depends(get_api_ke
             web_search_used=response_data.get("web_search_used", False)
         )
 
+        print(query_response)
         # Include debug information if requested
         if request.include_context:
             query_response.retrieved_chunks = retrieved_chunks
