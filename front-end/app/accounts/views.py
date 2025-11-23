@@ -441,19 +441,17 @@ def add_message(conversation_id):
             "conversation_context": conversation_context,
             "user_preferences": {
                 "response_style": "comprehensive_empathetic",
-                "include_safety_protocols": True,
-                "include_cost_information": True,
-                "show_sources": show_sources,
+                "include_safety_protocols": "true" if True else "false",
+                "include_cost_information": "true" if True else "false",
+                "show_sources": "true" if show_sources else "false",
             },
         }
-
         response = requests.post(
             f"{api_url}/query",
             json=request_payload,
             headers=headers,
             timeout=45,
         )
-
         if response.status_code == 401:
             return flask.jsonify({"error": "API authentication failed"}), 500
         elif response.status_code == 422:
@@ -799,30 +797,30 @@ def api_get_conversations():
             conv_details = conversation.getDetails()
 
             # Add additional metadata
-            last_message = (
+            first_message = (
                 Message.query.filter_by(
                     conversationId=conversation.conversationId
                 )
-                .order_by(Message.dateCreated.desc())
+                .order_by(Message.dateCreated.asc())
                 .first()
             )
 
-            if last_message:
-                conv_details["lastMessage"] = {
-                    "content": last_message.content[:100] + "..."
-                    if len(last_message.content) > 100
-                    else last_message.content,
-                    "isUserMessage": last_message.isUserMessage,
-                    "dateCreated": last_message.dateCreated.isoformat()
-                    if last_message.dateCreated
+            if first_message:
+                conv_details["firstMessage"] = {
+                    "content": first_message.content[:100] + "..."
+                    if len(first_message.content) > 100
+                    else first_message.content,
+                    "isUserMessage": first_message.isUserMessage,
+                    "dateCreated": first_message.dateCreated.isoformat()
+                    if first_message.dateCreated
                     else None,
                 }
-                conv_details["lastTopic"] = last_message.topic
-                conv_details["lastIntent"] = last_message.intentType
+                conv_details["firstTopic"] = first_message.topic
+                conv_details["firstIntent"] = first_message.intentType
             else:
-                conv_details["lastMessage"] = None
-                conv_details["lastTopic"] = None
-                conv_details["lastIntent"] = None
+                conv_details["firstMessage"] = None
+                conv_details["firstTopic"] = None
+                conv_details["firstIntent"] = None
 
             conversation_list.append(conv_details)
 
