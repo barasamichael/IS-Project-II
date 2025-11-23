@@ -1,0 +1,835 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Dashboard - {{ current_user.fullName }} | SettleBot{% endblock %}
+
+{% block meta_description %}View your SettleBot profile, track settlement progress, and access account features.{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {margin-top: 35px;}
+    .profile-layout {
+        min-height: calc(100vh);
+        padding: 2rem 0;
+    }
+
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    /* Profile Header Card */
+    .profile-header {
+        background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+        color: var(--white);
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .profile-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+    }
+
+    .profile-info h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--white);
+    }
+
+    .profile-meta {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .meta-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .profile-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        background: var(--success);
+        border-radius: 50%;
+    }
+
+    /* Statistics Grid */
+    .stats-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+        color: var(--white);
+        padding: 2rem;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+    }
+
+    .stat-card:nth-child(2) {
+        background: linear-gradient(135deg, var(--brown-600) 0%, var(--brown-700) 100%);
+        box-shadow: 0 4px 20px rgba(139, 95, 71, 0.25);
+    }
+
+    .stat-card:nth-child(3) {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 20px rgba(5, 150, 105, 0.25);
+    }
+
+    .stat-card:nth-child(4) {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        opacity: 0.9;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.95;
+        font-weight: 500;
+    }
+
+    .stat-trend {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Quick Actions Grid */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .action-card {
+        background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+        border: 1px solid var(--brown-300);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: var(--brown-800);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(139, 95, 71, 0.15);
+        border-color: var(--brown-400);
+    }
+
+    .action-card.primary {
+        background: linear-gradient(135deg, var(--orange-100) 0%, var(--orange-200) 100%);
+        border-color: var(--orange-300);
+        color: var(--orange-800);
+    }
+
+    .action-card.primary:hover {
+        border-color: var(--orange-400);
+        box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
+    }
+
+    .action-card.secondary {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .action-card.secondary:hover {
+        border-color: #7dd3fc;
+        box-shadow: 0 12px 32px rgba(14, 165, 233, 0.15);
+    }
+
+    .action-card.success {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: #bbf7d0;
+        color: #14532d;
+    }
+
+    .action-card.success:hover {
+        border-color: #86efac;
+        box-shadow: 0 12px 32px rgba(34, 197, 94, 0.15);
+    }
+
+    .action-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+    }
+
+    .action-arrow {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .action-card:hover .action-arrow {
+        transform: translateX(4px);
+    }
+
+    .action-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: inherit;
+    }
+
+    .action-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        opacity: 0.8;
+    }
+
+    /* Recent Activity */
+    .activity-section {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .activity-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .activity-item:hover {
+        border-color: var(--brown-300);
+        transform: translateX(4px);
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--brown-100);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--brown-700);
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .activity-description {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .activity-time {
+        color: var(--gray-500);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Account Status */
+    .account-status {
+        background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        border: 1px solid #fbbf24;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .status-header h3 {
+        color: #92400e;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+    .status-label {
+        color: #78716c;
+        font-weight: 500;
+    }
+
+    .status-value {
+        color: #92400e;
+        font-weight: 600;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-layout {
+            padding: 1rem 0;
+        }
+
+        .profile-container {
+            padding: 0 1rem;
+        }
+
+        .profile-header {
+            padding: 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .profile-info h1 {
+            font-size: 1.5rem;
+        }
+
+        .profile-meta {
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .activity-section {
+            padding: 1.5rem;
+        }
+
+        .activity-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Loading states */
+    .loading-shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <header class="profile-header">
+            <div class="header-content">
+                <img src="{{ current_user.getGravatar(size=200) }}" alt="{{ current_user.fullName }}" class="profile-avatar">
+                <div class="profile-info">
+                    <h1>Welcome, {{ current_user.fullName }}</h1>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                            </svg>
+                            {{ current_user.role.title() }} Student
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            {{ current_user.emailAddress }}
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            Member since {{ current_user.dateCreated.strftime('%B %Y') if current_user.dateCreated else 'Unknown' }}
+                        </div>
+                    </div>
+                    <div class="profile-status">
+                        <div class="status-indicator"></div>
+                        Account Active
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Section -->
+        <section class="stats-section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                </svg>
+                Your Settlement Progress
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="totalConversations">--</div>
+                    <div class="stat-label">Total Conversations</div>
+                    <div class="stat-trend">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
+                            <polyline points="17,6 23,6 23,12"/>
+                        </svg>
+                        Active this week
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <circle cx="12" cy="17" r="0.5"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="questionsAsked">--</div>
+                    <div class="stat-label">Questions Asked</div>
+                    <div class="stat-trend">Settlement guidance received</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="helpfulAnswers">--</div>
+                    <div class="stat-label">Helpful Responses</div>
+                    <div class="stat-trend">AI-powered assistance</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="daysSince">--</div>
+                    <div class="stat-label">Days Since Joining</div>
+                    <div class="stat-trend">Part of SettleBot community</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="actions-section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Quick Actions
+            </h2>
+
+            <div class="actions-grid">
+                <a href="{{ url_for('accounts.user_conversations') }}" class="action-card primary">
+                    <div class="action-header">
+                        <div class="action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="action-title">Start New Chat</div>
+                    <div class="action-description">Ask SettleBot about housing, visas, university processes, or any settlement questions</div>
+                </a>
+
+                <a href="{{ url_for('accounts.user_conversations') }}" class="action-card">
+                    <div class="action-header">
+                        <div class="action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="action-title">View Conversations</div>
+                    <div class="action-description">Browse your chat history and continue previous conversations</div>
+                </a>
+
+                <a href="{{ url_for('accounts.update_profile') }}" class="action-card secondary">
+                    <div class="action-header">
+                        <div class="action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1.51a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h1.51a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2 2 2 2 0 0 1 2 2v1.51a1.65 1.65 0 0 0 1 1.51"/>
+                            </svg>
+                        </div>
+                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="action-title">Update Profile</div>
+                    <div class="action-description">Manage your account information and preferences</div>
+                </a>
+
+                <a href="{{ url_for('accounts.change_password') }}" class="action-card success">
+                    <div class="action-header">
+                        <div class="action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+                                <circle cx="12" cy="16" r="1"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="action-title">Change Password</div>
+                    <div class="action-description">Update your account security settings</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Account Status -->
+        <section class="account-status">
+            <div class="status-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <h3>Account Status</h3>
+            </div>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Account Status</span>
+                    <span class="status-value">{% if current_user.isActive %}Active{% else %}Inactive{% endif %}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Data Usage Permission</span>
+                    <span class="status-value">{% if current_user.allowDataUsage %}Allowed{% else %}Restricted{% endif %}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Last Login</span>
+                    <span class="status-value">{{ current_user.lastLogin.strftime('%m/%d/%Y') if current_user.lastLogin else 'Never' }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Profile Completion</span>
+                    <span class="status-value">Complete</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="activity-section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+            </svg>
+            Recent Activity
+        </h2>
+
+        <div class="activity-list" id="recentActivity">
+            <!-- Activity items will be loaded here -->
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Welcome to SettleBot!</div>
+                    <div class="activity-description">Start your first conversation to see your activity here. Ask about housing, visas, university processes, or any settlement questions.</div>
+                    <div class="activity-time">Getting started</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load dashboard statistics
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardStats();
+        loadRecentActivity();
+    });
+
+    function loadDashboardStats() {
+        fetch('/account/api/statistics')
+            .then(response => response.json())
+            .then(data => {
+                // Update stat values
+                document.getElementById('totalConversations').textContent = data.total_conversations || 0;
+                document.getElementById('questionsAsked').textContent = data.user_messages || 0;
+                document.getElementById('helpfulAnswers').textContent = data.assistant_messages || 0;
+                
+                // Calculate days since joining
+                const joinDate = new Date('{{ current_user.dateCreated.isoformat() if current_user.dateCreated else "" }}');
+                const today = new Date();
+                const daysDiff = Math.floor((today - joinDate) / (1000 * 60 * 60 * 24));
+                document.getElementById('daysSince').textContent = daysDiff || 0;
+            })
+            .catch(error => {
+                console.error('Error loading stats:', error);
+                // Keep default values
+            });
+    }
+
+    function loadRecentActivity() {
+        fetch('/account/api/conversations')
+            .then(response => response.json())
+            .then(conversations => {
+                const activityContainer = document.getElementById('recentActivity');
+                
+                if (conversations.length === 0) {
+                    return; // Keep welcome message
+                }
+
+                const recentConversations = conversations.slice(0, 3);
+                const activityHTML = recentConversations.map(conv => `
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${conv.title}</div>
+                            <div class="activity-description">${conv.lastMessage ? conv.lastMessage.content : 'No messages yet'}</div>
+                            <div class="activity-time">${formatDate(conv.lastUpdated)}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                activityContainer.innerHTML = activityHTML;
+            })
+            .catch(error => {
+                console.error('Error loading activity:', error);
+            });
+    }
+
+    // Format date helper
+    function formatDate(dateString) {
+        if (!dateString) return 'Unknown';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return 'Today';
+        if (diffDays === 2) return 'Yesterday';
+        if (diffDays <= 7) return `${diffDays - 1} days ago`;
+        return date.toLocaleDateString();
+    }
+</script>
+{% endblock %}

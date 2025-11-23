@@ -1,0 +1,779 @@
+{% extends "base.html" %}
+
+{% block title %}My Conversations - {{ current_user.fullName }} | SettleBot{% endblock %}
+
+{% block meta_description %}Manage your SettleBot conversations and continue getting settlement assistance for Nairobi.{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {margin-top: 35px;}
+    .conversations-layout {
+        min-height: calc(100vh - 72px);
+        background: linear-gradient(135deg, var(--brown-50) 0%, var(--gray-100) 100%);
+        padding: 2rem 0;
+    }
+
+    .conversations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    /* Page Header */
+    .conversations-header {
+        background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+        color: var(--white);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(139, 95, 71, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .conversations-header::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-info h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #ffffff;
+    }
+
+    .header-info p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-new {
+        background: var(--orange-500);
+        color: var(--white);
+        padding: 0.875rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-new:hover {
+        background: var(--orange-600);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        color: var(--white);
+    }
+
+    /* Conversations Grid */
+    .conversations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .conversation-card {
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .conversation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        border-color: var(--brown-300);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--brown-300);
+        position: relative;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: var(--brown-700);
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .meta-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .topic-badge {
+        background: var(--orange-200);
+        color: var(--orange-800);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .conversation-preview {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .message-count {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: var(--gray-500);
+        font-size: 0.8rem;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn:hover {
+        background: var(--brown-100);
+        color: var(--brown-700);
+    }
+
+    .action-btn.delete:hover {
+        background: #fee2e2;
+        color: var(--error);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-600);
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--gray-200);
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem auto;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 1rem;
+    }
+
+    .empty-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .suggested-questions {
+        margin-top: 3rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .suggested-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .questions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .question-card {
+        background: linear-gradient(135deg, var(--brown-50) 0%, var(--orange-50) 100%);
+        border: 1px solid var(--brown-200);
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--brown-800);
+        text-decoration: none;
+    }
+
+    .question-card:hover {
+        background: linear-gradient(135deg, var(--brown-100) 0%, var(--orange-100) 100%);
+        border-color: var(--brown-300);
+        transform: translateY(-2px);
+        color: var(--brown-900);
+    }
+
+    .question-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .question-category {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        background: var(--white);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    /* Loading State */
+    .loading-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .skeleton-card {
+        background: var(--white);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+
+    .skeleton-header {
+        background: var(--gray-100);
+        height: 80px;
+        padding: 1rem;
+    }
+
+    .skeleton-title {
+        background: var(--gray-200);
+        height: 16px;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+
+    .skeleton-meta {
+        background: var(--gray-200);
+        height: 12px;
+        width: 60%;
+        border-radius: 4px;
+    }
+
+    .skeleton-body {
+        padding: 1rem;
+    }
+
+    .skeleton-text {
+        background: var(--gray-200);
+        height: 12px;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+
+    .skeleton-text:last-child {
+        width: 70%;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .conversations-layout {
+            padding: 1rem 0;
+        }
+
+        .conversations-container {
+            padding: 0 1rem;
+        }
+
+        .conversations-header {
+            padding: 1.5rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .header-info h1 {
+            font-size: 1.5rem;
+            justify-content: center;
+        }
+
+        .conversations-grid,
+        .loading-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .questions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .empty-state {
+            padding: 3rem 1.5rem;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .conversations-header {
+            padding: 1rem;
+        }
+
+        .card-header,
+        .card-body {
+            padding: 1rem;
+        }
+
+        .empty-state {
+            padding: 2rem 1rem;
+        }
+
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="conversations-layout">
+    <div class="conversations-container">
+        <!-- Page Header -->
+        <header class="conversations-header">
+            <div class="header-content">
+                <div class="header-info">
+                    <h1>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        My Conversations
+                    </h1>
+                    <p>Access your chat history with SettleBot and continue getting settlement guidance for Nairobi</p>
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="btn-new" onclick="openModal('newConversationModal')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        New Chat
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Conversations Content -->
+        <div id="conversationsContent">
+            <!-- Loading State -->
+            <div class="loading-grid" id="loadingState">
+                <div class="skeleton-card">
+                    <div class="skeleton-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                    </div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-header">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversations Grid -->
+            <div class="conversations-grid" id="conversationsGrid" style="display: none;"></div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <h2 class="empty-title">Start Your Settlement Journey</h2>
+                <p class="empty-description">
+                    You haven't started any conversations yet. Begin by asking SettleBot about housing, university processes, visas, or any questions about settling in Nairobi.
+                </p>
+                <button type="button" class="btn-new" onclick="openModal('newConversationModal')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Start Your First Chat
+                </button>
+
+                <div class="suggested-questions">
+                    <h3 class="suggested-title">Popular Questions to Get Started</h3>
+                    <div class="questions-grid">
+                        <a href="#" class="question-card" onclick="startWithQuestion('Where can I find affordable housing near University of Nairobi?')">
+                            <div class="question-text">Where can I find affordable housing near University of Nairobi?</div>
+                            <div class="question-category">Housing</div>
+                        </a>
+                        <a href="#" class="question-card" onclick="startWithQuestion('How do I get from JKIA airport to the city center safely?')">
+                            <div class="question-text">How do I get from JKIA airport to the city center safely?</div>
+                            <div class="question-category">Transportation</div>
+                        </a>
+                        <a href="#" class="question-card" onclick="startWithQuestion('What documents do I need to open a bank account as a student?')">
+                            <div class="question-text">What documents do I need to open a bank account as a student?</div>
+                            <div class="question-category">Banking</div>
+                        </a>
+                        <a href="#" class="question-card" onclick="startWithQuestion('How do I renew my student visa in Kenya?')">
+                            <div class="question-text">How do I renew my student visa in Kenya?</div>
+                            <div class="question-category">Visa & Immigration</div>
+                        </a>
+                        <a href="#" class="question-card" onclick="startWithQuestion('Which areas should I avoid in Nairobi for safety?')">
+                            <div class="question-text">Which areas should I avoid in Nairobi for safety?</div>
+                            <div class="question-category">Safety</div>
+                        </a>
+                        <a href="#" class="question-card" onclick="startWithQuestion('How do I register for courses at my university?')">
+                            <div class="question-text">How do I register for courses at my university?</div>
+                            <div class="question-category">University</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Conversation Modal -->
+<div class="modal-backdrop" id="newConversationModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Start New Conversation</h2>
+            <button type="button" class="modal-close" onclick="closeModal('newConversationModal')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="newConversationForm" action="{{ url_for('accounts.create_conversation') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="conversationTitle" class="form-label">Conversation Title (Optional)</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                            <line x1="4" y1="22" x2="4" y2="15"/>
+                        </svg>
+                        <input type="text" id="conversationTitle" name="title" class="form-input" 
+                               placeholder="e.g., Housing in Westlands, University Registration">
+                    </div>
+                    <div class="form-help">Leave blank to auto-generate based on your first question</div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('newConversationModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createConversation()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Start Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Conversation Modal -->
+<div class="modal-backdrop" id="deleteConversationModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Delete Conversation</h2>
+            <button type="button" class="modal-close" onclick="closeModal('deleteConversationModal')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-notice warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                    <strong>This action cannot be undone.</strong><br>
+                    The conversation and all its messages will be permanently removed.
+                </div>
+            </div>
+            <p id="deleteConversationText" style="color: var(--gray-700); margin: 0;"></p>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('deleteConversationModal')">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteConversation()" id="confirmDeleteBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    Delete Conversation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let conversations = [];
+    let conversationToDelete = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadConversations();
+    });
+
+    function loadConversations() {
+        fetch('/account/api/conversations')
+            .then(response => response.json())
+            .then(data => {
+                conversations = data || [];
+                displayConversations();
+            })
+            .catch(error => {
+                console.error('Error loading conversations:', error);
+                showEmptyState();
+            });
+    }
+
+    function displayConversations() {
+        const loadingState = document.getElementById('loadingState');
+        const conversationsGrid = document.getElementById('conversationsGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        loadingState.style.display = 'none';
+
+        if (conversations.length === 0) {
+            showEmptyState();
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        conversationsGrid.style.display = 'grid';
+
+        const conversationsHTML = conversations.map(conv => `
+            <div class="conversation-card" onclick="openConversation(${conv.conversationId})">
+                <div class="card-header">
+                    <h3 class="card-title">${conv.title}</h3>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            ${formatDate(conv.lastUpdated)}
+                        </div>
+                        ${conv.lastTopic ? `<span class="topic-badge">${conv.lastTopic}</span>` : ''}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="conversation-preview">
+                        ${conv.lastMessage ? conv.lastMessage.content : 'No messages yet'}
+                    </div>
+                    <div class="card-footer">
+                        <div class="message-count">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            ${conv.messageCount || 0} messages
+                        </div>
+                        <div class="card-actions">
+                            <button class="action-btn delete" onclick="deleteConversation(event, ${conv.conversationId}, '${conv.title}')" title="Delete conversation">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        conversationsGrid.innerHTML = conversationsHTML;
+    }
+
+    function showEmptyState() {
+        const loadingState = document.getElementById('loadingState');
+        const conversationsGrid = document.getElementById('conversationsGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        loadingState.style.display = 'none';
+        conversationsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+    }
+
+    function openConversation(conversationId) {
+        window.location.href = `/account/conversation/${conversationId}`;
+    }
+
+    function createConversation() {
+        const title = document.getElementById('conversationTitle').value.trim();
+        const form = document.getElementById('newConversationForm');
+        form.submit();
+    }
+
+    function startWithQuestion(question) {
+        document.getElementById('conversationTitle').value = '';
+        openModal('newConversationModal');
+        
+        // Store question for use after modal opens
+        setTimeout(() => {
+            const form = document.getElementById('newConversationForm');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'question';
+            hiddenInput.value = question;
+            form.appendChild(hiddenInput);
+        }, 100);
+    }
+
+    function deleteConversation(event, conversationId, title) {
+        event.stopPropagation();
+        conversationToDelete = conversationId;
+        document.getElementById('deleteConversationText').textContent = `Are you sure you want to delete "${title}"?`;
+        openModal('deleteConversationModal');
+    }
+
+    function confirmDeleteConversation() {
+        if (!conversationToDelete) return;
+
+        fetch(`/account/api/conversations/${conversationToDelete}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('deleteConversationModal');
+                loadConversations(); // Reload the list
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting conversation:', error);
+        })
+        .finally(() => {
+            conversationToDelete = null;
+        });
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'Unknown';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return 'Today';
+        if (diffDays === 2) return 'Yesterday';
+        if (diffDays <= 7) return `${diffDays - 1} days ago`;
+        return date.toLocaleDateString();
+    }
+</script>
+{% endblock %}

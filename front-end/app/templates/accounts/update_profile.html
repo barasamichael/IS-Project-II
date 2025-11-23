@@ -1,0 +1,757 @@
+{% extends "base.html" %}
+
+{% block title %}Update Profile - {{ current_user.fullName }} | SettleBot{% endblock %}
+
+{% block meta_description %}Update your SettleBot profile information, preferences and account settings.{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {margin-top: 35px;}
+    .profile-layout {
+        min-height: calc(100vh);
+        padding: 2rem 0;
+    }
+
+    .profile-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    /* Breadcrumb Navigation */
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+        color: var(--gray-600);
+    }
+
+    .breadcrumb a {
+        color: var(--brown-600);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb a:hover {
+        color: var(--brown-800);
+    }
+
+    .breadcrumb-separator {
+        width: 16px;
+        height: 16px;
+        color: var(--gray-400);
+    }
+
+    /* Page Header */
+    .profile-header {
+        background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+        color: var(--white);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(245, 158, 11, 0.15);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -15%;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .profile-header::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        left: -10%;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        text-align: left;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+    }
+
+    .header-info h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--white);
+    }
+
+    .header-info p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Main Form Card */
+    .profile-form-card {
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--brown-300);
+    }
+
+    .form-header h2 {
+        color: var(--brown-900);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-header-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--brown-700);
+    }
+
+    .form-description {
+        color: var(--brown-700);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .form-body {
+        padding: 2rem;
+    }
+
+    /* Account Info Notice */
+    .account-info-notice {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .notice-icon {
+        width: 20px;
+        height: 20px;
+        color: #0284c7;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .notice-content {
+        flex: 1;
+    }
+
+    .notice-title {
+        font-weight: 600;
+        color: #0c4a6e;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .notice-text {
+        color: #0369a1;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    /* Form Styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--brown-900);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-label.required::after {
+        content: ' *';
+        color: var(--error);
+    }
+
+    .form-input-wrapper {
+        position: relative;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: var(--white);
+        color: var(--gray-900);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--brown-500);
+        box-shadow: 0 0 0 3px rgba(139, 95, 71, 0.1);
+    }
+
+    .form-input.error {
+        border-color: var(--error);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: var(--gray-400);
+        z-index: 1;
+    }
+
+    .form-error {
+        color: var(--error);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        line-height: 1.4;
+    }
+
+    .error-icon {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+
+    .form-help {
+        color: var(--gray-600);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        line-height: 1.4;
+    }
+
+    /* Checkbox Group */
+    .checkbox-group {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1rem;
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .checkbox-input {
+        margin-top: 0.125rem;
+        width: 16px;
+        height: 16px;
+        accent-color: var(--brown-600);
+    }
+
+    .checkbox-label {
+        flex: 1;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #166534;
+        cursor: pointer;
+    }
+
+    .checkbox-description {
+        color: #059669;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        margin-top: 0.25rem;
+    }
+
+    /* Current Avatar Section */
+    .current-avatar {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .avatar-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 0.75rem auto;
+        border: 2px solid var(--brown-300);
+    }
+
+    .avatar-info {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+    }
+
+    .avatar-link {
+        color: var(--brown-600);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .avatar-link:hover {
+        color: var(--brown-800);
+        text-decoration: underline;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gray-200);
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+        font-size: 0.9rem;
+        min-width: 140px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-800) 100%);
+        color: var(--white);
+        flex: 1;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--brown-800) 0%, var(--brown-900) 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 95, 71, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--white);
+        color: var(--gray-700);
+        border: 2px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-400);
+    }
+
+    /* Additional Actions */
+    .additional-actions {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        margin-top: 2rem;
+    }
+
+    .actions-title {
+        color: var(--brown-900);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .actions-list {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--gray-700);
+        transition: all 0.2s ease;
+    }
+
+    .action-link:hover {
+        border-color: var(--brown-300);
+        background: var(--brown-50);
+        color: var(--brown-800);
+    }
+
+    .action-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .action-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--brown-600);
+    }
+
+    .action-info {
+        flex: 1;
+    }
+
+    .action-title {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.125rem;
+    }
+
+    .action-description {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        line-height: 1.3;
+    }
+
+    .action-arrow {
+        width: 16px;
+        height: 16px;
+        color: var(--gray-400);
+        transition: transform 0.2s ease;
+    }
+
+    .action-link:hover .action-arrow {
+        transform: translateX(2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-layout {
+            padding: 1rem 0;
+        }
+
+        .profile-container {
+            padding: 0 1rem;
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .header-info h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-body {
+            padding: 1.5rem;
+        }
+
+        .additional-actions {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        .breadcrumb {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-header {
+            padding: 1rem;
+        }
+
+        .form-body {
+            padding: 1rem;
+        }
+
+        .form-input {
+            padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+        }
+
+        .checkbox-group {
+            padding: 1rem;
+        }
+
+        .additional-actions {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <div class="profile-container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb">
+            <a href="{{ url_for('accounts.profile') }}">Profile</a>
+            <svg class="breadcrumb-separator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+            <span>Update Profile</span>
+        </nav>
+
+        <!-- Page Header -->
+        <header class="profile-header">
+            <div class="header-content">
+                <img src="{{ current_user.getGravatar(size=160) }}" alt="{{ current_user.fullName }}" class="profile-avatar">
+                <div class="header-info">
+                    <h1>Update Profile</h1>
+                    <p>Manage your account information and preferences to personalize your SettleBot experience</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Profile Update Form -->
+        <div class="profile-form-card">
+            <div class="form-header">
+                <h2>
+                    <svg class="form-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <path d="M20 8v6"/>
+                        <path d="M23 11h-6"/>
+                    </svg>
+                    Personal Information
+                </h2>
+                <p class="form-description">Update your basic profile information and account preferences</p>
+            </div>
+
+            <div class="form-body">
+                <!-- Account Info Notice -->
+                <div class="account-info-notice">
+                    <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    <div class="notice-content">
+                        <div class="notice-title">Profile Information</div>
+                        <p class="notice-text">Your information helps us provide better settlement assistance. Only you can see your personal details.</p>
+                    </div>
+                </div>
+
+                <!-- Current Avatar -->
+                <div class="current-avatar">
+                    <img src="{{ current_user.getGravatar(size=160) }}" alt="Current Avatar" class="avatar-preview">
+                    <div class="avatar-info">
+                        Your profile picture is provided by <a href="https://gravatar.com" target="_blank" class="avatar-link">Gravatar</a>.<br>
+                        Update it by changing your Gravatar at the email address associated with your account.
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('accounts.update_profile') }}">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        {{ form.fullName.label(class="form-label required") }}
+                        <div class="form-input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                            </svg>
+                            {{ form.fullName(class="form-input" + (" error" if form.fullName.errors else ""), placeholder="Enter your full name") }}
+                        </div>
+                        {% for error in form.fullName.errors %}
+                        <div class="form-error">
+                            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                        <div class="form-help">This is how your name will appear throughout SettleBot</div>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label required") }}
+                        <div class="form-input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            {{ form.username(class="form-input" + (" error" if form.username.errors else ""), placeholder="Choose a username") }}
+                        </div>
+                        {% for error in form.username.errors %}
+                        <div class="form-error">
+                            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                        <div class="form-help">Your unique username for login and identification</div>
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="form-group">
+                        {{ form.emailAddress.label(class="form-label required") }}
+                        <div class="form-input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            {{ form.emailAddress(class="form-input" + (" error" if form.emailAddress.errors else ""), placeholder="Enter your email address") }}
+                        </div>
+                        {% for error in form.emailAddress.errors %}
+                        <div class="form-error">
+                            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                        <div class="form-help">Used for account security and important notifications</div>
+                    </div>
+
+                    <!-- Data Usage Preference -->
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <div class="checkbox-wrapper">
+                                {{ form.allowDataUsage(class="checkbox-input") }}
+                                {{ form.allowDataUsage.label(class="checkbox-label") }}
+                            </div>
+                            <div class="checkbox-description">
+                                Help us improve SettleBot by allowing anonymous usage of your conversations to enhance AI responses for future students. Your personal information remains private.
+                            </div>
+                        </div>
+                        {% for error in form.allowDataUsage.errors %}
+                        <div class="form-error">
+                            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('accounts.profile') }}" class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18"/>
+                                <path d="M6 6l12 12"/>
+                            </svg>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Additional Actions -->
+        <div class="additional-actions">
+            <h3 class="actions-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1.51a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h1.51a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2 2 2 2 0 0 1 2 2v1.51a1.65 1.65 0 0 0 1 1.51"/>
+                </svg>
+                Account Settings
+            </h3>
+            <div class="actions-list">
+                <a href="{{ url_for('accounts.change_password') }}" class="action-link">
+                    <div class="action-left">
+                        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+                            <circle cx="12" cy="16" r="1"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <div class="action-info">
+                            <div class="action-title">Change Password</div>
+                            <div class="action-description">Update your account password for better security</div>
+                        </div>
+                    </div>
+                    <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+
+                <a href="{{ url_for('accounts.user_conversations') }}" class="action-link">
+                    <div class="action-left">
+                        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <div class="action-info">
+                            <div class="action-title">Manage Conversations</div>
+                            <div class="action-description">View, export, or delete your chat history</div>
+                        </div>
+                    </div>
+                    <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
