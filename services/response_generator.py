@@ -963,7 +963,7 @@ I'm here to assist you with questions about:
         if web_info and web_info.get("search_successful"):
             context_parts.append("CURRENT WEB INFORMATION:")
             for result in web_info["results"]:
-                context_parts.append(f"Recent Information - {result['query']}:")
+                context_parts.append(f"Recent Information - {result.get('query')}:")
                 context_parts.append(result["content"])
                 context_parts.append("")
 
@@ -999,7 +999,7 @@ I'm here to assist you with questions about:
                         "key_hospitals"
                     ].items():
                         context_parts.append(
-                            f"- {hospital_info['name']}: {hospital_info['address']}, {hospital_info['phone']}"
+                            f"- {hospital_info.get('name', '')}: {hospital_info.get('address', '')}, {hospital_info.get('phone', '')}"
                         )
                     context_parts.append("")
 
@@ -1009,7 +1009,7 @@ I'm here to assist you with questions about:
                         "universities"
                     ].items():
                         context_parts.append(
-                            f"- {uni_info['name']}: {uni_info['address']}"
+                            f"- {uni_info.get('name', '')}: {uni_info.get('address', '')}"
                         )
                     context_parts.append("")
 
@@ -1595,7 +1595,6 @@ I apologize for this interruption and am designed to provide comprehensive settl
             )
 
             # Check specific details
-            # Continuation from Part 2 - validate_response_quality method
             detail_indicators = [
                 "ksh",
                 "phone",
