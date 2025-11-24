@@ -1,0 +1,1350 @@
+{% extends "base.html" %}
+
+{% block title %}Message Analytics - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive message analytics dashboard for SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+  margin-top: 35px;
+}
+
+.messages-layout {
+  min-height: calc(100vh - 72px);
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+  padding: 2rem 0;
+}
+
+.messages-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Messages Header */
+.messages-header {
+  background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+  color: var(--white);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.messages-header::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.breadcrumb a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.header-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.messages-info h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--white);
+  line-height: 1.2;
+}
+
+.messages-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.action-btn-header {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--white);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Filter Section */
+.filter-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  margin-bottom: 1.5rem;
+}
+
+.filter-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--brown-900);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.filter-input {
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.filter-input:focus {
+  border-color: var(--brown-500);
+  box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+  outline: none;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-filter {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.btn-filter.primary {
+  background: var(--brown-700);
+  color: var(--white);
+}
+
+.btn-filter.primary:hover {
+  background: var(--brown-900);
+  transform: translateY(-1px);
+}
+
+.btn-filter.secondary {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.btn-filter.secondary:hover {
+  background: var(--gray-300);
+  color: var(--gray-900);
+}
+
+/* Analytics Grid */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-color: var(--brown-300);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brown-900);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--brown-100);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--brown-700);
+}
+
+.card-metric {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--brown-700);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.card-description {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Distribution Charts */
+.distribution-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--brown-900);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.distribution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.distribution-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.distribution-header {
+  background: var(--brown-100);
+  padding: 1rem;
+  border-bottom: 1px solid var(--brown-200);
+}
+
+.distribution-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--brown-900);
+  margin: 0;
+}
+
+.distribution-body {
+  padding: 1rem;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: var(--gray-50);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.distribution-item:hover {
+  background: var(--brown-50);
+  border-color: var(--brown-200);
+  transform: translateX(2px);
+}
+
+.distribution-item:last-child {
+  margin-bottom: 0;
+}
+
+.distribution-label {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.distribution-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  margin: 0 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.distribution-fill {
+  height: 100%;
+  background: linear-gradient(135deg, var(--brown-600) 0%, var(--brown-700) 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.distribution-count {
+  background: var(--brown-600);
+  color: var(--white);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Confidence Analysis */
+.confidence-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.confidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.confidence-item {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.confidence-item:hover {
+  border-color: var(--brown-300);
+  background: var(--brown-50);
+  transform: translateY(-2px);
+}
+
+.confidence-item.high {
+  border-left: 4px solid var(--success);
+}
+
+.confidence-item.medium {
+  border-left: 4px solid var(--warning);
+}
+
+.confidence-item.low {
+  border-left: 4px solid var(--error);
+}
+
+.confidence-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.confidence-item.high .confidence-value {
+  color: var(--success);
+}
+
+.confidence-item.medium .confidence-value {
+  color: var(--warning);
+}
+
+.confidence-item.low .confidence-value {
+  color: var(--error);
+}
+
+.confidence-label {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.confidence-description {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+/* Settlement Insights */
+.settlement-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.settlement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.settlement-metric {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--brown-50);
+  border-radius: 8px;
+  border: 1px solid var(--brown-200);
+  transition: all 0.2s ease;
+}
+
+.settlement-metric:hover {
+  background: var(--brown-100);
+  border-color: var(--brown-300);
+  transform: translateY(-2px);
+}
+
+.settlement-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--brown-700);
+  margin-bottom: 0.5rem;
+}
+
+.settlement-label {
+  font-size: 0.9rem;
+  color: var(--brown-800);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.settlement-description {
+  font-size: 0.8rem;
+  color: var(--brown-600);
+}
+
+.settlement-metric.emergency {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.settlement-metric.emergency .settlement-value {
+  color: #dc2626;
+}
+
+.settlement-metric.emergency .settlement-label {
+  color: #b91c1c;
+}
+
+/* Token Usage Analysis */
+.token-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.token-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.token-stat {
+  text-align: center;
+  padding: 1rem;
+  background: var(--gray-50);
+  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+}
+
+.token-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--brown-700);
+  margin-bottom: 0.25rem;
+}
+
+.token-label {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+/* Export Section */
+.export-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.export-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.export-btn.csv {
+  background: #059669;
+  color: var(--white);
+}
+
+.export-btn.csv:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.export-btn.excel {
+  background: #2563eb;
+  color: var(--white);
+}
+
+.export-btn.excel:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.export-btn.json {
+  background: var(--orange-600);
+  color: var(--white);
+}
+
+.export-btn.json:hover {
+  background: var(--orange-700);
+  transform: translateY(-1px);
+}
+
+/* Applied Filters Display */
+.applied-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filter-tag {
+  background: var(--brown-100);
+  color: var(--brown-800);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-tag .remove {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brown-600);
+}
+
+.filter-tag .remove:hover {
+  color: var(--brown-900);
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-600);
+}
+
+.no-data-icon {
+  font-size: 4rem;
+  color: var(--gray-400);
+  margin-bottom: 1rem;
+}
+
+.no-data-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.no-data-description {
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .analytics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .distribution-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .messages-layout {
+        padding: 1rem 0;
+      }
+
+      .messages-container {
+        padding: 0 1rem;
+      }
+
+      .messages-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .messages-info h1 {
+        font-size: 1.5rem;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .action-btn-header {
+        justify-content: center;
+      }
+
+      .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .filter-actions {
+        flex-direction: column;
+      }
+
+      .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .confidence-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .settlement-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .token-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .export-options {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .messages-header {
+        padding: 1.5rem 1rem;
+      }
+
+      .filter-section,
+      .distribution-section,
+      .confidence-section,
+      .settlement-section,
+      .token-section,
+      .export-section {
+        padding: 1.5rem;
+      }
+
+      .card-metric {
+        font-size: 2rem;
+      }
+
+      .confidence-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .token-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messages-layout">
+  <div class="messages-container">
+    <!-- Messages Header -->
+    <header class="messages-header">
+      <div class="header-content">
+        <div class="breadcrumb">
+          <a href="{{ url_for('administration.dashboard') }}">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+          </a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Message Analytics</span>
+        </div>
+
+        <div class="header-main">
+          <div class="messages-info">
+            <h1>Message Analytics Dashboard</h1>
+            <p class="messages-subtitle">
+            Comprehensive analysis of settlement assistance conversations, intent classification accuracy, and AI performance metrics
+            </p>
+          </div>
+
+          <div class="header-actions">
+            <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+              <i class="fas fa-arrow-left"></i>
+              Back to Dashboard
+            </a>
+            <a href="{{ url_for('administration.conversations') }}" class="action-btn-header">
+              <i class="fas fa-comments"></i>
+              View Conversations
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filter Section -->
+    <section class="filter-section">
+      <div class="filter-header">
+        <h2 class="filter-title">
+          <i class="fas fa-filter"></i>
+          Analytics Filters
+        </h2>
+      </div>
+
+      <form method="GET" action="{{ url_for('administration.messages') }}">
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label class="filter-label">{{ form.date_range.label }}</label>
+            {{ form.date_range(class="filter-input") }}
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">{{ form.intent_type.label }}</label>
+            {{ form.intent_type(class="filter-input") }}
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">{{ form.topic_type.label }}</label>
+            {{ form.topic_type(class="filter-input") }}
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">{{ form.min_confidence.label }}</label>
+            {{ form.min_confidence(class="filter-input", placeholder="0.0 - 1.0") }}
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn-filter primary">
+            <i class="fas fa-search"></i>
+            Apply Filters
+          </button>
+          <a href="{{ url_for('administration.messages') }}" class="btn-filter secondary">
+            <i class="fas fa-times"></i>
+            Clear Filters
+          </a>
+        </div>
+      </form>
+
+      <!-- Applied Filters -->
+      {% if date_range != '30' or intent_type or topic_type %}
+      <div class="applied-filters">
+        {% if date_range != '30' %}
+        <span class="filter-tag">
+          Date Range: {{ date_range }} days
+          <span class="remove" onclick="removeFilter('date_range')">&times;</span>
+        </span>
+        {% endif %}
+        {% if intent_type %}
+        <span class="filter-tag">
+          Intent: {{ intent_type.replace('_', ' ').title() }}
+          <span class="remove" onclick="removeFilter('intent_type')">&times;</span>
+        </span>
+        {% endif %}
+        {% if topic_type %}
+        <span class="filter-tag">
+          Topic: {{ topic_type.title() }}
+          <span class="remove" onclick="removeFilter('topic_type')">&times;</span>
+        </span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Key Analytics Cards -->
+    <section class="analytics-grid">
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-comment-dots"></i>
+            </div>
+            Total Messages Analyzed
+          </h3>
+        </div>
+        <div class="card-metric">{{ "{:,}".format(analytics.total_messages) }}</div>
+        <div class="card-description">
+          Assistant messages processed and analyzed for intent classification and settlement assistance quality
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            Average Confidence Score
+          </h3>
+        </div>
+        <div class="card-metric">{{ "%.1f"|format(analytics.avg_confidence * 100) }}%</div>
+        <div class="card-description">
+          Overall confidence in AI intent classification and response accuracy across all analyzed messages
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            Crisis Interventions
+          </h3>
+        </div>
+        <div class="card-metric">{{ analytics.crisis_interventions }}</div>
+        <div class="card-description">
+          Emergency help requests and crisis situations requiring immediate attention and specialized support
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            Safety Concerns Flagged
+          </h3>
+        </div>
+        <div class="card-metric">{{ analytics.safety_concerns }}</div>
+        <div class="card-description">
+          Messages identified as containing safety-related concerns requiring additional attention and resources
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-globe-africa"></i>
+            </div>
+            Cultural Adaptation Queries
+          </h3>
+        </div>
+        <div class="card-metric">{{ analytics.cultural_queries }}</div>
+        <div class="card-description">
+          Messages related to cultural adaptation and integration challenges faced by international students
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <div class="card-icon">
+              <i class="fas fa-coins"></i>
+            </div>
+            Total Tokens Processed
+          </h3>
+        </div>
+        <div class="card-metric">{{ "{:,}".format(analytics.total_tokens) }}</div>
+        <div class="card-description">
+          Total computational tokens used for processing settlement assistance queries and generating responses
+        </div>
+      </div>
+    </section>
+
+    <!-- Intent Distribution -->
+    <section class="distribution-section">
+      <h2 class="section-title">
+        <i class="fas fa-bullseye"></i>
+        Intent Classification Distribution
+      </h2>
+
+      {% if analytics.intent_distribution %}
+      <div class="distribution-grid">
+        <div class="distribution-card">
+          <div class="distribution-header">
+            <h3 class="distribution-title">Settlement Intent Types</h3>
+          </div>
+          <div class="distribution-body">
+            {% for intent, count in (analytics.intent_distribution | dictsort(true, 'value'))[:10] %}
+            <div class="distribution-item">
+              <span class="distribution-label">{{ intent.replace('_', ' ').title() }}</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill"
+                     style="width: {{ (count / (analytics.intent_distribution.values()|list|max) * 100) | round(1) }}%">
+                </div>
+              </div>
+              <span class="distribution-count">{{ count }}</span>
+            </div>
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="no-data">
+        <div class="no-data-icon">
+          <i class="fas fa-chart-bar"></i>
+        </div>
+        <h3 class="no-data-title">No Intent Data Available</h3>
+        <p class="no-data-description">
+        No messages with intent classification found for the selected filters. Adjust your filters or check that messages are being processed correctly.
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Topic Distribution -->
+    <section class="distribution-section">
+      <h2 class="section-title">
+        <i class="fas fa-tags"></i>
+        Topic Distribution Analysis
+      </h2>
+
+      {% if analytics.topic_distribution %}
+      <div class="distribution-grid">
+        <div class="distribution-card">
+          <div class="distribution-header">
+            <h3 class="distribution-title">Settlement Discussion Topics</h3>
+          </div>
+          <div class="distribution-body">
+            {% for topic, count in (analytics.topic_distribution | dictsort(true, 'value'))[:10] %}
+            <div class="distribution-item">
+              <span class="distribution-label">{{ topic.title() }}</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill"
+                     style="width: {{ (count / (analytics.topic_distribution.values() | list | max) * 100) | round(1) }}%">
+                </div>
+              </div>
+              <span class="distribution-count">{{ count }}</span>
+            </div>
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="no-data">
+        <div class="no-data-icon">
+          <i class="fas fa-tags"></i>
+        </div>
+        <h3 class="no-data-title">No Topic Data Available</h3>
+        <p class="no-data-description">
+        No messages with topic classification found for the selected filters. Topics are automatically assigned based on conversation content.
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Confidence Analysis -->
+    <section class="confidence-section">
+      <h2 class="section-title">
+        <i class="fas fa-chart-line"></i>
+        Intent Classification Confidence Analysis
+      </h2>
+
+      <div class="confidence-grid">
+        <div class="confidence-item high">
+          <div class="confidence-value">{{ analytics.confidence_distribution.high }}</div>
+          <div class="confidence-label">High Confidence</div>
+          <div class="confidence-description">80%+ classification accuracy</div>
+        </div>
+        <div class="confidence-item medium">
+          <div class="confidence-value">{{ analytics.confidence_distribution.medium }}</div>
+          <div class="confidence-label">Medium Confidence</div>
+          <div class="confidence-description">50-79% classification accuracy</div>
+        </div>
+        <div class="confidence-item low">
+          <div class="confidence-value">{{ analytics.confidence_distribution.low }}</div>
+          <div class="confidence-label">Low Confidence</div>
+          <div class="confidence-description">Below 50% classification accuracy</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settlement Insights -->
+    <section class="settlement-section">
+      <h2 class="section-title">
+        <i class="fas fa-home"></i>
+        Settlement-Specific Message Analytics
+      </h2>
+
+      <div class="settlement-grid">
+        <div class="settlement-metric">
+          <div class="settlement-value">{{ analytics.crisis_interventions }}</div>
+          <div class="settlement-label">Emergency Help Requests</div>
+          <div class="settlement-description">Critical situations requiring immediate attention</div>
+        </div>
+        <div class="settlement-metric">
+          <div class="settlement-value">{{ analytics.safety_concerns }}</div>
+          <div class="settlement-label">Safety Concerns Raised</div>
+          <div class="settlement-description">Security and safety-related discussions</div>
+        </div>
+        <div class="settlement-metric">
+          <div class="settlement-value">{{ analytics.cultural_queries }}</div>
+          <div class="settlement-label">Cultural Adaptation Support</div>
+          <div class="settlement-description">Cultural integration and adaptation assistance</div>
+        </div>
+        <div class="settlement-metric emergency">
+          <div class="settlement-value">{{ ((analytics.crisis_interventions + analytics.safety_concerns) / analytics.total_messages * 100)|round(1) }}%</div>
+          <div class="settlement-label">Crisis Response Rate</div>
+          <div class="settlement-description">Percentage of messages requiring urgent attention</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Token Usage Analysis -->
+    <section class="token-section">
+      <h2 class="section-title">
+        <i class="fas fa-microchip"></i>
+        Token Usage and Performance Metrics
+      </h2>
+
+      <div class="token-stats">
+        <div class="token-stat">
+          <div class="token-number">{{ "{:,}".format(analytics.total_tokens) }}</div>
+          <div class="token-label">Total Tokens</div>
+        </div>
+        <div class="token-stat">
+          <div class="token-number">{{ (analytics.total_tokens / analytics.total_messages)|round if analytics.total_messages > 0 else 0 }}</div>
+          <div class="token-label">Avg Tokens/Message</div>
+        </div>
+        <div class="token-stat">
+          <div class="token-number">{{ "%.1f"|format(analytics.avg_confidence * 100) }}%</div>
+          <div class="token-label">Processing Accuracy</div>
+        </div>
+        <div class="token-stat">
+          <div class="token-number">{{ analytics.total_messages }}</div>
+          <div class="token-label">Messages Processed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Message Quality Assessment -->
+    <section class="distribution-section">
+      <h2 class="section-title">
+        <i class="fas fa-star"></i>
+        Message Quality and Response Effectiveness
+      </h2>
+
+      <div class="distribution-grid">
+        <div class="distribution-card">
+          <div class="distribution-header">
+            <h3 class="distribution-title">Response Quality Metrics</h3>
+          </div>
+          <div class="distribution-body">
+            <div class="distribution-item">
+              <span class="distribution-label">High Quality Responses</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.confidence_distribution.high / (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) * 100)|round(1) if (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.confidence_distribution.high }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">Satisfactory Responses</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.confidence_distribution.medium / (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) * 100)|round(1) if (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.confidence_distribution.medium }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">Needs Improvement</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.confidence_distribution.low / (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) * 100)|round(1) if (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.confidence_distribution.low }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">Settlement Accuracy Rate</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.avg_confidence * 100)|round(1) }}%"></div>
+              </div>
+              <span class="distribution-count">{{ "%.1f"|format(analytics.avg_confidence * 100) }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="distribution-card">
+          <div class="distribution-header">
+            <h3 class="distribution-title">Settlement Support Effectiveness</h3>
+          </div>
+          <div class="distribution-body">
+            <div class="distribution-item">
+              <span class="distribution-label">Housing Assistance Queries</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.intent_distribution.get('housing_inquiry', 0) / analytics.total_messages * 100)|round(1) if analytics.total_messages > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.intent_distribution.get('housing_inquiry', 0) }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">University Information Requests</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.intent_distribution.get('university_info', 0) / analytics.total_messages * 100)|round(1) if analytics.total_messages > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.intent_distribution.get('university_info', 0) }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">Transportation Guidance</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.intent_distribution.get('transportation', 0) / analytics.total_messages * 100)|round(1) if analytics.total_messages > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.intent_distribution.get('transportation', 0) }}</span>
+            </div>
+            <div class="distribution-item">
+              <span class="distribution-label">Immigration & Visa Support</span>
+              <div class="distribution-bar">
+                <div class="distribution-fill" style="width: {{ (analytics.intent_distribution.get('immigration_visa', 0) / analytics.total_messages * 100)|round(1) if analytics.total_messages > 0 else 0 }}%"></div>
+              </div>
+              <span class="distribution-count">{{ analytics.intent_distribution.get('immigration_visa', 0) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Export Section -->
+    <section class="export-section">
+      <h2 class="section-title">
+        <i class="fas fa-download"></i>
+        Export Message Analytics Data
+      </h2>
+
+      <div class="export-options">
+        <a href="{{ url_for('administration.generate_export') }}?export_type=message_analytics&format=csv&date_range={{ date_range }}&intent_type={{ intent_type }}&topic_type={{ topic_type }}" class="export-btn csv">
+          <i class="fas fa-file-csv"></i>
+          Export CSV
+        </a>
+        <a href="{{ url_for('administration.generate_export') }}?export_type=message_analytics&format=excel&date_range={{ date_range }}&intent_type={{ intent_type }}&topic_type={{ topic_type }}" class="export-btn excel">
+          <i class="fas fa-file-excel"></i>
+          Export Excel
+        </a>
+        <a href="{{ url_for('administration.generate_export') }}?export_type=message_analytics&format=json&date_range={{ date_range }}&intent_type={{ intent_type }}&topic_type={{ topic_type }}" class="export-btn json">
+          <i class="fas fa-file-code"></i>
+          Export JSON
+        </a>
+      </div>
+
+      <p style="color: var(--gray-600); font-size: 0.9rem; margin-top: 1rem;">
+      Export includes intent classification data, confidence scores, topic distribution, and settlement-specific analytics for the selected time period and filters.
+      </p>
+    </section>
+
+    <!-- Performance Summary -->
+    <section class="analytics-card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3 class="card-title">
+          <div class="card-icon">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          Message Analytics Summary
+        </h3>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+        <div style="text-align: center; padding: 1rem; background: var(--brown-50); border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: var(--brown-700); margin-bottom: 0.5rem;">
+            {{ analytics.intent_distribution|length }}
+          </div>
+          <div style="font-size: 0.9rem; color: var(--brown-800); font-weight: 600;">
+            Distinct Intent Types
+          </div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: var(--brown-50); border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: var(--brown-700); margin-bottom: 0.5rem;">
+            {{ analytics.topic_distribution|length }}
+          </div>
+          <div style="font-size: 0.9rem; color: var(--brown-800); font-weight: 600;">
+            Discussion Topics
+          </div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: var(--brown-50); border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: var(--brown-700); margin-bottom: 0.5rem;">
+            {{ "%.1f"|format((analytics.confidence_distribution.high / (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low)) * 100 if (analytics.confidence_distribution.high + analytics.confidence_distribution.medium + analytics.confidence_distribution.low) > 0 else 0) }}%
+          </div>
+          <div style="font-size: 0.9rem; color: var(--brown-800); font-weight: 600;">
+            High Quality Rate
+          </div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: var(--brown-50); border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: var(--brown-700); margin-bottom: 0.5rem;">
+            {{ "%.1f"|format(((analytics.crisis_interventions + analytics.safety_concerns + analytics.cultural_queries) / analytics.total_messages * 100) if analytics.total_messages > 0 else 0) }}%
+          </div>
+          <div style="font-size: 0.9rem; color: var(--brown-800); font-weight: 600;">
+            Settlement Support Rate
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Remove filter functionality
+  function removeFilter(filterType) {
+    const url = new URL(window.location);
+    url.searchParams.delete(filterType);
+    window.location.href = url.toString();
+  }
+
+  // Initialize page
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to analytics cards
+    document.querySelectorAll('.analytics-card').forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.transition = 'transform 0.2s ease';
+      });
+
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+
+    // Add hover effects to distribution items
+    document.querySelectorAll('.distribution-item').forEach(item => {
+      item.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'var(--brown-50)';
+        this.style.borderColor = 'var(--brown-200)';
+        this.style.transition = 'all 0.2s ease';
+      });
+
+      item.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'var(--gray-50)';
+        this.style.borderColor = 'transparent';
+      });
+    });
+
+    console.log('Message analytics page initialized');
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,1354 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive analytics and reporting for SettleBot settlement assistance platform with user engagement and system performance metrics{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.analytics-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-100) 0%, var(--brown-100) 100%);
+    padding: 2rem 0;
+}
+
+.analytics-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Analytics Header */
+.analytics-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.analytics-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.analytics-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Time Period Selector */
+.period-selector {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.period-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.period-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.period-tab:hover {
+    background: var(--brown-100);
+    color: var(--brown-700);
+    text-decoration: none;
+}
+
+.period-tab.active {
+    background: var(--brown-600);
+    color: var(--white);
+}
+
+/* User Engagement Metrics */
+.engagement-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.metric-card {
+    background: var(--gray-100);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-color: var(--brown-300);
+}
+
+.metric-card.primary {
+    background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+    color: var(--white);
+}
+
+.metric-card.success {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: var(--white);
+}
+
+.metric-card.warning {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: var(--white);
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.metric-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: inherit;
+}
+
+.metric-card:not(.primary):not(.success):not(.warning) .metric-icon {
+    background: var(--brown-100);
+    color: var(--brown-700);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.metric-trend {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Conversation Metrics */
+.conversation-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.conversation-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.conversation-stat {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--brown-100);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.conversation-stat:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Intent Accuracy Chart */
+.accuracy-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.accuracy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.accuracy-item {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.accuracy-item:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-100);
+    transform: translateY(-2px);
+}
+
+.accuracy-item.excellent {
+    border-left: 4px solid var(--success);
+}
+
+.accuracy-item.good {
+    border-left: 4px solid var(--warning);
+}
+
+.accuracy-item.needs-improvement {
+    border-left: 4px solid var(--error);
+}
+
+.accuracy-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.accuracy-item.excellent .accuracy-value {
+    color: var(--success);
+}
+
+.accuracy-item.good .accuracy-value {
+    color: var(--warning);
+}
+
+.accuracy-item.needs-improvement .accuracy-value {
+    color: var(--error);
+}
+
+.accuracy-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.accuracy-description {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+/* Settlement Insights */
+.settlement-insights {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.insight-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.insight-header {
+    background: var(--brown-100);
+    padding: 1rem;
+    border-bottom: 1px solid var(--brown-200);
+}
+
+.insight-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin: 0;
+}
+
+.insight-body {
+    padding: 1.5rem;
+}
+
+.insight-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--gray-100);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.insight-item:hover {
+    background: var(--brown-100);
+    transform: translateX(2px);
+}
+
+.insight-location {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.insight-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--brown-700);
+    font-weight: 600;
+}
+
+.insight-metric .icon {
+    width: 16px;
+    height: 16px;
+    color: var(--brown-600);
+}
+
+/* Performance Analytics */
+.performance-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.performance-card {
+    padding: 1.5rem;
+    background: var(--gray-100);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.performance-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.performance-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+}
+
+.performance-metrics {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.performance-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.performance-label {
+    color: var(--gray-600);
+}
+
+.performance-value {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+/* Export Actions */
+.export-actions {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.export-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-select,
+.form-input {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus,
+.form-input:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.form-checkbox:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+}
+
+.checkbox-input {
+    accent-color: var(--brown-600);
+}
+
+.checkbox-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.export-btn.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.export-btn.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+    text-decoration: none;
+    color: var(--white);
+}
+
+/* Summary Cards */
+.summary-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-card {
+    text-align: center;
+    padding: 2rem;
+    background: var(--brown-100);
+    border-radius: 12px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.summary-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--brown-600);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    font-size: 24px;
+    color: var(--white);
+}
+
+.summary-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.5rem;
+}
+
+.summary-description {
+    font-size: 0.9rem;
+    color: var(--brown-700);
+    line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .analytics-layout {
+        padding: 1rem 0;
+    }
+
+    .analytics-container {
+        padding: 0 1rem;
+    }
+
+    .analytics-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .analytics-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .period-tabs {
+        flex-direction: column;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .conversation-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .accuracy-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .export-form {
+        grid-template-columns: 1fr;
+    }
+
+    .export-buttons {
+        flex-direction: column;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .engagement-section,
+    .conversation-section,
+    .accuracy-section,
+    .settlement-insights,
+    .performance-section,
+    .export-actions,
+    .summary-section {
+        padding: 1.5rem;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+    }
+
+    .conversation-stats {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-layout">
+    <div class="analytics-container">
+        <!-- Analytics Header -->
+        <header class="analytics-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Analytics & Insights</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="analytics-info">
+                        <h1>Analytics Dashboard</h1>
+                        <p class="analytics-subtitle">
+                            Comprehensive analytics and reporting for SettleBot platform performance, user engagement, and settlement assistance effectiveness
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.exports') }}" class="action-btn-header">
+                            <i class="fas fa-download"></i>
+                            Export Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Time Period Selector -->
+        <section class="period-selector">
+            <div class="period-tabs">
+                <a href="?period=7" class="period-tab {% if request.args.get('period', '30') == '7' %}active{% endif %}">Last 7 Days</a>
+                <a href="?period=30" class="period-tab {% if request.args.get('period', '30') == '30' %}active{% endif %}">Last 30 Days</a>
+                <a href="?period=90" class="period-tab {% if request.args.get('period', '30') == '90' %}active{% endif %}">Last 90 Days</a>
+                <a href="?period=365" class="period-tab {% if request.args.get('period', '30') == '365' %}active{% endif %}">Last Year</a>
+                <a href="?period=all" class="period-tab {% if request.args.get('period', '30') == 'all' %}active{% endif %}">All Time</a>
+            </div>
+        </section>
+
+        <!-- User Engagement Metrics -->
+        <section class="engagement-section">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i>
+                User Engagement Analytics
+            </h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "{:,}".format(analytics.user_engagement.total_users) }}</div>
+                    <div class="metric-label">Total Users</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ analytics.user_engagement.active_users_week }} active this week
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "{:,}".format(analytics.user_engagement.active_users_month) }}</div>
+                    <div class="metric-label">Active Monthly Users</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-chart-line"></i>
+                        {{ "%.1f"|format(analytics.user_engagement.retention_rate) }}% retention rate
+                    </div>
+                </div>
+
+                <div class="metric-card warning">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.user_engagement.active_users_week }}</div>
+                    <div class="metric-label">Weekly Active Users</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-percentage"></i>
+                        {{ "%.1f"|format((analytics.user_engagement.active_users_week / analytics.user_engagement.total_users * 100) if analytics.user_engagement.total_users > 0 else 0) }}% of total users
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "%.1f"|format(analytics.user_engagement.retention_rate) }}%</div>
+                    <div class="metric-label">User Retention Rate</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-heart"></i>
+                        Strong user engagement
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conversation Metrics -->
+        <section class="conversation-section">
+            <h2 class="section-title">
+                <i class="fas fa-comments"></i>
+                Conversation Analytics
+            </h2>
+
+            <div class="conversation-stats">
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ "{:,}".format(analytics.conversation_metrics.total_conversations) }}</div>
+                    <div class="stat-label">Total Conversations</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.conversation_metrics.conversations_week }}</div>
+                    <div class="stat-label">This Week</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.conversation_metrics.conversations_month }}</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.conversation_metrics.avg_messages_per_conversation }}</div>
+                    <div class="stat-label">Avg Messages/Conv</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Message Analytics -->
+        <section class="engagement-section">
+            <h2 class="section-title">
+                <i class="fas fa-comment-dots"></i>
+                Message Processing Analytics
+            </h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "{:,}".format(analytics.message_metrics.total_messages) }}</div>
+                    <div class="metric-label">Total Messages</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-clock"></i>
+                        {{ analytics.message_metrics.messages_week }} this week
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.message_metrics.messages_week }}</div>
+                    <div class="metric-label">Messages This Week</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-trending-up"></i>
+                        Recent activity
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.message_metrics.messages_month }}</div>
+                    <div class="metric-label">Messages This Month</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-chart-bar"></i>
+                        Monthly activity
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.conversation_metrics.avg_messages_per_conversation }}</div>
+                    <div class="metric-label">Avg Messages per Conversation</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-exchange-alt"></i>
+                        Engagement depth
+                    </div>
+                </div>
+            </div>
+<!-- Intent Classification Accuracy -->
+        <section class="accuracy-section">
+            <h2 class="section-title">
+                <i class="fas fa-brain"></i>
+                AI Intent Classification Performance
+            </h2>
+
+            <div class="accuracy-grid">
+                <div class="accuracy-item excellent">
+                    <div class="accuracy-value">{{ analytics.intent_accuracy.high_confidence }}</div>
+                    <div class="accuracy-label">High Confidence</div>
+                    <div class="accuracy-description">80%+ classification accuracy</div>
+                </div>
+                <div class="accuracy-item good">
+                    <div class="accuracy-value">{{ analytics.intent_accuracy.medium_confidence }}</div>
+                    <div class="accuracy-label">Medium Confidence</div>
+                    <div class="accuracy-description">50-79% classification accuracy</div>
+                </div>
+                <div class="accuracy-item needs-improvement">
+                    <div class="accuracy-value">{{ analytics.intent_accuracy.low_confidence }}</div>
+                    <div class="accuracy-label">Low Confidence</div>
+                    <div class="accuracy-description">Below 50% accuracy</div>
+                </div>
+                <div class="accuracy-item excellent">
+                    <div class="accuracy-value">{{ "%.1f"|format(analytics.intent_accuracy.accuracy_rate) }}%</div>
+                    <div class="accuracy-label">Overall Accuracy</div>
+                    <div class="accuracy-description">System performance rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settlement Insights -->
+        <section class="settlement-insights">
+            <h2 class="section-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Settlement Assistance Analytics
+            </h2>
+
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <h3 class="insight-title">Popular Nairobi Locations</h3>
+                    </div>
+                    <div class="insight-body">
+                        <div class="insight-list">
+                            {% for location, stats in analytics.settlement_insights.popular_locations.items() %}
+                            <div class="insight-item">
+                                <span class="insight-location">{{ location.replace('_', ' ').title() }}</span>
+                                <div class="insight-metric">
+                                    <i class="fas fa-home icon"></i>
+                                    {{ stats }} queries
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <h3 class="insight-title">University Preferences</h3>
+                    </div>
+                    <div class="insight-body">
+                        <div class="insight-list">
+                            {% for university, stats in analytics.settlement_insights.popular_universities.items() %}
+                            <div class="insight-item">
+                                <span class="insight-location">{{ university.replace('_', ' ').title() }}</span>
+                                <div class="insight-metric">
+                                    <i class="fas fa-graduation-cap icon"></i>
+                                    {{ stats }} students
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-grid" style="margin-top: 2rem;">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.settlement_insights.settlement_queries }}</div>
+                    <div class="metric-label">Settlement Queries</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-percentage"></i>
+                        {{ "%.1f"|format(analytics.settlement_insights.settlement_percentage) }}% of all messages
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.settlement_insights.settlement_percentage|round }}</div>
+                    <div class="metric-label">Settlement Success Rate</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-check-circle"></i>
+                        Effective assistance provided
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export and Reporting -->
+        <section class="export-actions">
+            <h2 class="section-title">
+                <i class="fas fa-download"></i>
+                Export Analytics Reports
+            </h2>
+
+            <form method="GET" action="{{ url_for('administration.generate_export') }}">
+                <div class="export-form">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.export_type.label }}</label>
+                        {{ form.export_type(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.format.label }}</label>
+                        {{ form.format(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.date_range.label }}</label>
+                        {{ form.date_range(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <div class="form-checkbox">
+                            {{ form.include_user_data(class="checkbox-input") }}
+                            <label class="checkbox-label">{{ form.include_user_data.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-buttons">
+                    {{ form.submit(class="export-btn primary") }}
+                </div>
+            </form>
+        </section>
+
+        <!-- Analytics Summary -->
+        <section class="summary-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-pie"></i>
+                Analytics Summary
+            </h2>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="summary-title">User Engagement</h3>
+                    <p class="summary-description">
+                        {{ "{:,}".format(analytics.user_engagement.total_users) }} total users with {{ "%.1f"|format(analytics.user_engagement.retention_rate) }}% retention rate. 
+                        Strong user engagement with {{ analytics.user_engagement.active_users_month }} monthly active users.
+                    </p>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="summary-title">Conversation Quality</h3>
+                    <p class="summary-description">
+                        {{ "{:,}".format(analytics.conversation_metrics.total_conversations) }} conversations with an average of 
+                        {{ analytics.conversation_metrics.avg_messages_per_conversation }} messages per conversation, indicating strong user engagement.
+                    </p>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="summary-title">AI Performance</h3>
+                    <p class="summary-description">
+                        {{ "%.1f"|format(analytics.intent_accuracy.accuracy_rate) }}% overall intent classification accuracy with 
+                        {{ analytics.intent_accuracy.high_confidence }} high-confidence classifications out of {{ analytics.intent_accuracy.total_classified }} total.
+                    </p>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3 class="summary-title">Settlement Success</h3>
+                    <p class="summary-description">
+                        {{ analytics.settlement_insights.settlement_queries }} settlement-related queries processed, representing 
+                        {{ "%.1f"|format(analytics.settlement_insights.settlement_percentage) }}% of all platform interactions.
+                    </p>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="summary-title">Growth Trends</h3>
+                    <p class="summary-description">
+                        {{ analytics.message_metrics.messages_week }} messages this week and {{ analytics.conversation_metrics.conversations_week }} 
+                        new conversations, showing consistent platform growth and user adoption.
+                    </p>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="summary-title">System Health</h3>
+                    <p class="summary-description">
+                        System operating at optimal performance with stable API responses and efficient vector database operations 
+                        supporting real-time settlement assistance.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Performance Indicators -->
+        <section class="engagement-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy"></i>
+                Key Performance Indicators
+            </h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "%.1f"|format((analytics.user_engagement.active_users_month / analytics.user_engagement.total_users * 100) if analytics.user_engagement.total_users > 0 else 0) }}%</div>
+                    <div class="metric-label">Monthly Active Rate</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-chart-line"></i>
+                        User engagement metric
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "%.1f"|format(analytics.intent_accuracy.accuracy_rate) }}%</div>
+                    <div class="metric-label">AI Accuracy Rate</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-brain"></i>
+                        Intent classification performance
+                    </div>
+                </div>
+
+                <div class="metric-card warning">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ "%.1f"|format(analytics.settlement_insights.settlement_percentage) }}%</div>
+                    <div class="metric-label">Settlement Query Rate</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Platform focus effectiveness
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ analytics.conversation_metrics.avg_messages_per_conversation }}</div>
+                    <div class="metric-label">Avg Conversation Depth</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-comments"></i>
+                        User engagement depth
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Trends -->
+        <section class="conversation-section">
+            <h2 class="section-title">
+                <i class="fas fa-trending-up"></i>
+                Recent Platform Trends
+            </h2>
+
+            <div class="conversation-stats">
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.user_engagement.active_users_week }}</div>
+                    <div class="stat-label">Weekly Active Users</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.conversation_metrics.conversations_week }}</div>
+                    <div class="stat-label">New Conversations</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.message_metrics.messages_week }}</div>
+                    <div class="stat-label">Messages This Week</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.intent_accuracy.high_confidence }}</div>
+                    <div class="stat-label">High-Quality Responses</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ analytics.settlement_insights.settlement_queries }}</div>
+                    <div class="stat-label">Settlement Assistance</div>
+                </div>
+                <div class="conversation-stat">
+                    <div class="stat-value">{{ "%.1f"|format(analytics.user_engagement.retention_rate) }}%</div>
+                    <div class="stat-label">User Retention</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add hover effects to metric cards
+        document.querySelectorAll('.metric-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to summary cards
+        document.querySelectorAll('.summary-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to conversation stats
+        document.querySelectorAll('.conversation-stat').forEach(stat => {
+            stat.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            stat.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        console.log('Analytics dashboard initialized');
+    });
+</script>
+{% endblock %}

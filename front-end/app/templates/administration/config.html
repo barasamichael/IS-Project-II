@@ -1,0 +1,837 @@
+{% extends "base.html" %}
+
+{% block title %}System Configuration - SettleBot Admin{% endblock %}
+
+{% block meta_description %}System configuration and settings overview for SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.config-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.config-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Config Header */
+.config-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.config-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.config-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.config-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Warning Banner */
+.warning-banner {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+}
+
+.warning-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.warning-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Configuration Sections */
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.config-section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.section-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--brown-700);
+}
+
+.section-body {
+    padding: 1.5rem;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-100);
+    gap: 1rem;
+}
+
+.config-item:last-child {
+    border-bottom: none;
+}
+
+.config-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.config-value {
+    font-size: 0.9rem;
+    color: var(--gray-900);
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+}
+
+.config-value.configured {
+    color: var(--success);
+}
+
+.config-value.not-configured {
+    color: var(--error);
+}
+
+.config-value.sensitive {
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+/* API Configuration */
+.api-config {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.api-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    margin-bottom: 1.5rem;
+}
+
+.api-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.api-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.connected {
+    background: var(--success);
+}
+
+.status-dot.disconnected {
+    background: var(--error);
+}
+
+.api-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+/* Settlement Configuration */
+.settlement-config {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.settlement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.settlement-metric {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.settlement-metric:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.metric-description {
+    font-size: 0.8rem;
+    color: var(--brown-600);
+}
+
+/* Configuration Status */
+.status-overview {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.status-card {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.status-card:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-50);
+    transform: translateY(-2px);
+}
+
+.status-card.healthy {
+    border-left: 4px solid var(--success);
+    background: #f0fdf4;
+}
+
+.status-card.warning {
+    border-left: 4px solid var(--warning);
+    background: #fffbeb;
+}
+
+.status-card.error {
+    border-left: 4px solid var(--error);
+    background: #fef2f2;
+}
+
+.status-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.status-card.healthy .status-icon {
+    color: var(--success);
+}
+
+.status-card.warning .status-icon {
+    color: var(--warning);
+}
+
+.status-card.error .status-icon {
+    color: var(--error);
+}
+
+.status-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.status-card.healthy .status-title {
+    color: #065f46;
+}
+
+.status-card.warning .status-title {
+    color: #92400e;
+}
+
+.status-card.error .status-title {
+    color: #b91c1c;
+}
+
+.status-description {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+/* Environment Badge */
+.environment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.environment-badge.production {
+    background: #dc2626;
+    color: var(--white);
+}
+
+.environment-badge.staging {
+    background: #d97706;
+    color: var(--white);
+}
+
+.environment-badge.development {
+    background: #059669;
+    color: var(--white);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settlement-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .config-layout {
+        padding: 1rem 0;
+    }
+
+    .config-container {
+        padding: 0 1rem;
+    }
+
+    .config-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .config-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .config-grid {
+        gap: 1rem;
+    }
+
+    .config-section {
+        margin-bottom: 1rem;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settlement-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .api-config,
+    .settlement-config,
+    .status-overview {
+        padding: 1.5rem;
+    }
+
+    .config-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .config-label {
+        min-width: auto;
+    }
+
+    .config-value {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="config-layout">
+    <div class="config-container">
+        <!-- Config Header -->
+        <header class="config-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>System Configuration</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="config-info">
+                        <h1>System Configuration</h1>
+                        <p class="config-subtitle">
+                            Current system settings and configuration overview for SettleBot platform components
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.system') }}" class="action-btn-header">
+                            <i class="fas fa-server"></i>
+                            System Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Warning Banner -->
+        <div class="warning-banner">
+            <i class="fas fa-exclamation-triangle warning-icon"></i>
+            <div class="warning-text">
+                This page displays read-only system configuration. Sensitive values are masked for security. 
+                Contact system administrators for configuration changes.
+            </div>
+        </div>
+
+        <!-- Environment Information -->
+        <section class="status-overview">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Environment Information
+            </h2>
+
+            <div class="status-grid">
+                <div class="status-card healthy">
+                    <div class="status-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <h3 class="status-title">Environment</h3>
+                    <p class="status-description">
+                        <span class="environment-badge {{ config.flask_config.get('ENV', 'development').lower() }}">
+                            {{ config.flask_config.get('ENV', 'Development').title() }}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.flask_config.get('SECRET_KEY') == 'Configured' %}healthy{% else %}error{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h3 class="status-title">Security</h3>
+                    <p class="status-description">
+                        Secret key {{ 'configured' if config.flask_config.get('SECRET_KEY') == 'Configured' else 'not configured' }}
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.flask_config.get('DATABASE_URL') == 'Configured' %}healthy{% else %}error{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 class="status-title">Database</h3>
+                    <p class="status-description">
+                        Connection {{ 'established' if config.flask_config.get('DATABASE_URL') == 'Configured' else 'not configured' }}
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.api_config %}healthy{% else %}warning{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3 class="status-title">SettleBot API</h3>
+                    <p class="status-description">
+                        API {{ 'connected' if config.api_config else 'configuration incomplete' }}
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Grid -->
+        <div class="config-grid">
+            <!-- Flask Application Configuration -->
+            <div class="config-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-flask section-icon"></i>
+                        Flask Application
+                    </h3>
+                </div>
+                <div class="section-body">
+                  {% set val = value|string %}
+
+<span class="config-value
+    {% if val == 'Configured' %}configured
+    {% elif val == 'Not configured' %}not-configured
+    {% elif 'Configured' in val %}sensitive
+    {% endif %}
+">
+    {{ value }}
+</span>
+
+                </div>
+            </div>
+
+            <!-- System Configuration -->
+            <div class="config-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-cogs section-icon"></i>
+                        System Settings
+                    </h3>
+                </div>
+                <div class="section-body">
+                    {% if config.system_config %}
+                        {% for key, value in config.system_config.items() %}
+                        <div class="config-item">
+                            <span class="config-label">{{ key.replace('_', ' ').title() }}:</span>
+                            <span class="config-value">{{ value }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="config-item">
+                        <span class="config-label">Status:</span>
+                        <span class="config-value not-configured">System configuration not available</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- API Configuration -->
+        <section class="api-config">
+            <div class="api-header">
+                <h2 class="api-title">
+                    <i class="fas fa-cloud"></i>
+                    SettleBot API Configuration
+                </h2>
+                <div class="api-status">
+                    <span class="status-dot {% if config.api_config %}connected{% else %}disconnected{% endif %}"></span>
+                    {% if config.api_config %}Connected{% else %}Disconnected{% endif %}
+                </div>
+            </div>
+
+            <div class="api-grid">
+                {% if config.api_config %}
+                    {% for key, value in config.api_config.items() %}
+                    <div class="config-item">
+                        <span class="config-label">{{ key.replace('_', ' ').title() }}:</span>
+                        <span class="config-value">{{ value }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="config-item">
+                    <span class="config-label">Status:</span>
+                    <span class="config-value not-configured">API configuration not available from remote system</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">API URL:</span>
+                    <span class="config-value">{{ config.flask_config.get('SETTLEBOT_API_URL', 'Not configured') }}</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">API Key:</span>
+                    <span class="config-value sensitive">{{ 'Configured' if config.flask_config.get('SETTLEBOT_API_URL') != 'Not configured' else 'Not configured' }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Settlement Optimization Configuration -->
+        {% if config.settlement_config %}
+        <section class="settlement-config">
+            <h2 class="section-title">
+                <i class="fas fa-home"></i>
+                Settlement Optimization Settings
+            </h2>
+
+            <div class="settlement-grid">
+                {% for key, value in config.settlement_config.items() %}
+                <div class="settlement-metric">
+                    <div class="metric-value">{{ value }}</div>
+                    <div class="metric-label">{{ key.replace('_', ' ').title() }}</div>
+                    <div class="metric-description">
+                        {% if 'nairobi' in key.lower() %}
+                        Nairobi-specific optimization
+                        {% elif 'university' in key.lower() %}
+                        University assistance focus
+                        {% elif 'housing' in key.lower() %}
+                        Housing search optimization
+                        {% elif 'safety' in key.lower() %}
+                        Safety protocol settings
+                        {% else %}
+                        Settlement configuration
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Configuration Summary -->
+        <section class="status-overview">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                Configuration Health Summary
+            </h2>
+
+            <div class="status-grid">
+                <div class="status-card {% if config.flask_config.get('SECRET_KEY') == 'Configured' and config.flask_config.get('DATABASE_URL') == 'Configured' %}healthy{% else %}error{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <h3 class="status-title">Core Security</h3>
+                    <p class="status-description">
+                        Essential security configurations including secret keys and database connections
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.api_config %}healthy{% else %}warning{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="status-title">AI Services</h3>
+                    <p class="status-description">
+                        SettleBot AI processing and settlement assistance capabilities
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.flask_config.get('MAIL_SERVER') != 'Not configured' %}healthy{% else %}warning{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="status-title">Email Services</h3>
+                    <p class="status-description">
+                        Email notification and communication system setup
+                    </p>
+                </div>
+
+                <div class="status-card {% if config.settlement_config %}healthy{% else %}warning{% endif %}">
+                    <div class="status-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="status-title">Settlement Features</h3>
+                    <p class="status-description">
+                        Nairobi-specific settlement assistance and optimization features
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Notes -->
+        <section class="api-config">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Configuration Notes
+            </h2>
+
+            <div class="api-grid">
+                <div class="config-item">
+                    <span class="config-label">Security:</span>
+                    <span class="config-value">Sensitive configuration values are masked for security purposes</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Environment:</span>
+                    <span class="config-value">Configuration varies by deployment environment (development/staging/production)</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">API Integration:</span>
+                    <span class="config-value">SettleBot API configuration retrieved dynamically when available</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Settlement Optimization:</span>
+                    <span class="config-value">Nairobi-specific settings optimized for international student assistance</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Updates:</span>
+                    <span class="config-value">Configuration changes require system restart and administrator access</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

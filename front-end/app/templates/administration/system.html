@@ -1,0 +1,1278 @@
+{% extends "base.html" %}
+
+{% block title %}System Management - SettleBot Admin{% endblock %}
+
+{% block meta_description %}System status monitoring and management interface for SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.system-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.system-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* System Header */
+.system-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.system-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.system-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.system-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* System Health Overview */
+.health-overview {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.health-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.health-card:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-50);
+    transform: translateY(-2px);
+}
+
+.health-card.healthy {
+    border-left: 4px solid var(--success);
+}
+
+.health-card.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.health-card.error {
+    border-left: 4px solid var(--error);
+}
+
+.health-header {
+    padding: 1rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: between;
+}
+
+.health-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.health-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.healthy {
+    background: var(--success);
+}
+
+.status-dot.warning {
+    background: var(--warning);
+}
+
+.status-dot.error {
+    background: var(--error);
+}
+
+.health-body {
+    padding: 1rem;
+}
+
+.health-metrics {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.health-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.metric-label {
+    color: var(--gray-600);
+}
+
+.metric-value {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+/* System Statistics */
+.stats-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 2rem;
+    background: var(--brown-50);
+    border-radius: 12px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--brown-600);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    font-size: 24px;
+    color: var(--white);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.stat-description {
+    font-size: 0.8rem;
+    color: var(--brown-600);
+}
+
+/* System Actions */
+.actions-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.form-checkbox:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+}
+
+.checkbox-input {
+    accent-color: var(--brown-600);
+}
+
+.checkbox-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.system-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.system-btn.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.system-btn.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.system-btn.danger {
+    background: #dc2626;
+    color: var(--white);
+}
+
+.system-btn.danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.system-btn.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.system-btn.secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-900);
+}
+
+/* API Status */
+.api-status-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.api-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.api-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.api-card:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-50);
+    transform: translateY(-2px);
+}
+
+.api-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.api-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.api-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--success);
+}
+
+.api-status.error {
+    color: var(--error);
+}
+
+.api-metrics {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.api-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.api-metric-label {
+    color: var(--gray-600);
+}
+
+.api-metric-value {
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+/* Emergency Actions */
+.emergency-section {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.emergency-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.emergency-icon {
+    font-size: 1.5rem;
+    color: #dc2626;
+}
+
+.emergency-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 0;
+}
+
+.emergency-description {
+    color: #b91c1c;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.emergency-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.emergency-btn {
+    background: #dc2626;
+    color: var(--white);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.emergency-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    color: var(--white);
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .health-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .api-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .system-layout {
+        padding: 1rem 0;
+    }
+
+    .system-container {
+        padding: 0 1rem;
+    }
+
+    .system-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .system-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .emergency-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .system-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .health-overview,
+    .stats-section,
+    .actions-section,
+    .api-status-section {
+        padding: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="system-layout">
+    <div class="system-container">
+        <!-- System Header -->
+        <header class="system-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>System Management</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="system-info">
+                        <h1>System Management</h1>
+                        <p class="system-subtitle">
+                            Monitor system health, manage services, and perform administrative actions for the SettleBot platform
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.config') }}" class="action-btn-header">
+                            <i class="fas fa-cogs"></i>
+                            Configuration
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- System Health Overview -->
+        <section class="health-overview">
+            <h2 class="section-title">
+                <i class="fas fa-heartbeat"></i>
+                System Health Overview
+            </h2>
+
+            <div class="health-grid">
+                <div class="health-card {% if system_data.api_connected %}healthy{% else %}error{% endif %}">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-cloud"></i>
+                            SettleBot API
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot {% if system_data.api_connected %}healthy{% else %}error{% endif %}"></span>
+                            {% if system_data.api_connected %}Connected{% else %}Disconnected{% endif %}
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Status:</span>
+                                <span class="metric-value">{{ system_data.health.get('status', 'Unknown') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Response Time:</span>
+                                <span class="metric-value">{{ system_data.status.get('response_time', '--') }}ms</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Last Check:</span>
+                                <span class="metric-value">{{ system_data.status.get('last_check', 'Never') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="health-card healthy">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-database"></i>
+                            Database
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot healthy"></span>
+                            Connected
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Connections:</span>
+                                <span class="metric-value">{{ system_data.status.get('db_connections', '--') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Query Time:</span>
+                                <span class="metric-value">{{ system_data.status.get('avg_query_time', '--') }}ms</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Storage:</span>
+                                <span class="metric-value">{{ system_data.status.get('storage_used', '--') }}GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="health-card {% if system_data.vector_stats %}healthy{% else %}warning{% endif %}">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-brain"></i>
+                            Vector Database
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot {% if system_data.vector_stats %}healthy{% else %}warning{% endif %}"></span>
+                            {% if system_data.vector_stats %}Operational{% else %}Unknown{% endif %}
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Collections:</span>
+                                <span class="metric-value">{{ system_data.vector_stats.get('collections', '--') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Vectors:</span>
+                                <span class="metric-value">{{ system_data.vector_stats.get('total_vectors', '--') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Memory:</span>
+                                <span class="metric-value">{{ system_data.vector_stats.get('memory_usage', '--') }}MB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Statistics -->
+        <section class="stats-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                System Performance Statistics
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.embedding_stats.get('total_embeddings', 0) }}</div>
+                    <div class="stat-label">Total Embeddings</div>
+                    <div class="stat-description">AI-generated content embeddings</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('total_documents', 0) }}</div>
+                    <div class="stat-label">Documents Processed</div>
+                    <div class="stat-description">Settlement knowledge documents</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('uptime', 'Unknown') }}</div>
+                    <div class="stat-label">System Uptime</div>
+                    <div class="stat-description">Continuous operation time</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-memory"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('memory_usage', '--') }}%</div>
+                    <div class="stat-label">Memory Usage</div>
+                    <div class="stat-description">Current system memory consumption</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Status Details -->
+        {% if system_data.api_connected %}
+        <section class="api-status-section">
+            <h2 class="section-title">
+                <i class="fas fa-plug"></i>
+                API Service Status
+            </h2>
+
+            <div class="api-grid">
+                <div class="api-card">
+                    <div class="api-header">
+                        <h3 class="api-title">
+                            <i class="fas fa-search"></i>
+                            Query Processing
+                        </h3>
+                        <div class="api-status">
+                            <span class="status-dot healthy"></span>
+                            Active
+                        </div>
+                    </div>
+                    <div class="api-metrics">
+                        <div class="api-metric">
+                            <span class="api-metric-label">Queries Today:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('queries_today', '--') }}</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Avg Response:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('avg_response_time', '--') }}ms</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Success Rate:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('success_rate', '--') }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-card">
+                    <div class="api-header">
+                        <h3 class="api-title">
+                            <i class="fas fa-brain"></i>
+                            AI Processing
+                        </h3>
+                        <div class="api-status">
+                            <span class="status-dot healthy"></span>
+                            Operational
+                        </div>
+                    </div>
+                    <div class="api-metrics">
+                        <div class="api-metric">
+                            <span class="api-metric-label">Intent Accuracy:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('intent_accuracy', '--') }}%</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Processing Queue:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('processing_queue', 0) }}</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Model Load:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('model_load', '--') }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-card">
+                    <div class="api-header">
+                        <h3 class="api-title">
+                            <i class="fas fa-home"></i>
+                            Settlement Features
+                        </h3>
+                        <div class="api-status">
+                            <span class="status-dot healthy"></span>
+                            Optimized
+                        </div>
+                    </div>
+                    <div class="api-metrics">
+                        <div class="api-metric">
+                            <span class="api-metric-label">Nairobi Coverage:</span>
+                            <span class="api-metric-value">{{ system_data.status.get('nairobi_coverage', '--') }}%</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Safety Protocols:</span>
+                            <span class="api-metric-value">{{ 'Active' if system_data.status.get('safety_protocols') else 'Inactive' }}</span>
+                        </div>
+                        <div class="api-metric">
+                            <span class="api-metric-label">Crisis Detection:</span>
+                            <span class="api-metric-value">{{ 'Enabled' if system_data.status.get('crisis_detection') else 'Disabled' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- System Actions -->
+        <section class="actions-section">
+            <h2 class="section-title">
+                <i class="fas fa-tools"></i>
+                System Management Actions
+            </h2>
+
+            <form method="POST" action="{{ url_for('administration.system_action') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.action.label }}</label>
+                        {{ form.action(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <div class="form-checkbox">
+                            {{ form.confirm_action(class="checkbox-input") }}
+                            <label class="checkbox-label">{{ form.confirm_action.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    {{ form.submit(class="system-btn primary") }}
+                </div>
+            </form>
+        </section>
+
+        <!-- Emergency Actions -->
+        <section class="emergency-section">
+            <div class="emergency-header">
+                <i class="fas fa-exclamation-triangle emergency-icon"></i>
+                <h3 class="emergency-title">Emergency System Actions</h3>
+            </div>
+            <p class="emergency-description">
+                Critical system operations that may affect platform performance and user experience. 
+                Use these actions only when necessary and during maintenance windows when possible.
+            </p>
+
+            <div class="emergency-actions">
+                <a href="{{ url_for('administration.system_action') }}?action=clear_cache" class="emergency-btn" onclick="return confirmAction('clear system cache')">
+                    <i class="fas fa-broom"></i>
+                    Clear System Cache
+                </a>
+                <a href="{{ url_for('administration.system_action') }}?action=rebuild_index" class="emergency-btn" onclick="return confirmAction('rebuild vector index')">
+                    <i class="fas fa-sync-alt"></i>
+                    Rebuild Vector Index
+                </a>
+                <a href="{{ url_for('administration.system_action') }}?action=optimize_collection" class="emergency-btn" onclick="return confirmAction('optimize vector collection')">
+                    <i class="fas fa-compress-alt"></i>
+                    Optimize Collection
+                </a>
+                <a href="{{ url_for('administration.system_action') }}?action=health_check" class="emergency-btn" onclick="return confirmAction('run comprehensive health check')">
+                    <i class="fas fa-heart"></i>
+                    Run Health Check
+                </a>
+                <a href="{{ url_for('administration.system_action') }}?action=generate_embeddings" class="emergency-btn" onclick="return confirmAction('regenerate all embeddings')">
+                    <i class="fas fa-brain"></i>
+                    Generate Embeddings
+                </a>
+                <a href="{{ url_for('administration.conversations') }}?intent_filter=emergency_help" class="emergency-btn">
+                    <i class="fas fa-ambulance"></i>
+                    View Emergency Cases
+                </a>
+            </div>
+        </section>
+
+        <!-- System Logs Preview -->
+        <section class="health-overview">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Recent System Activity
+            </h2>
+
+            <div class="health-grid">
+                <div class="health-card healthy">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-check-circle"></i>
+                            Recent Operations
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot healthy"></span>
+                            Operational
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Last Health Check:</span>
+                                <span class="metric-value">{{ system_data.status.get('last_health_check', 'Never') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Cache Status:</span>
+                                <span class="metric-value">{{ system_data.status.get('cache_status', 'Unknown') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Last Optimization:</span>
+                                <span class="metric-value">{{ system_data.status.get('last_optimization', 'Never') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="health-card {% if system_data.status.get('error_rate', 0) > 5 %}warning{% else %}healthy{% endif %}">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error Monitoring
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot {% if system_data.status.get('error_rate', 0) > 5 %}warning{% else %}healthy{% endif %}"></span>
+                            {% if system_data.status.get('error_rate', 0) > 5 %}High Errors{% else %}Normal{% endif %}
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Error Rate:</span>
+                                <span class="metric-value">{{ system_data.status.get('error_rate', 0) }}%</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Failed Requests:</span>
+                                <span class="metric-value">{{ system_data.status.get('failed_requests', 0) }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">Last Error:</span>
+                                <span class="metric-value">{{ system_data.status.get('last_error_time', 'None') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="health-card healthy">
+                    <div class="health-header">
+                        <h3 class="health-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Security Status
+                        </h3>
+                        <div class="health-status">
+                            <span class="status-dot healthy"></span>
+                            Secure
+                        </div>
+                    </div>
+                    <div class="health-body">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <span class="metric-label">Security Scan:</span>
+                                <span class="metric-value">{{ system_data.status.get('last_security_scan', 'Never') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">SSL Status:</span>
+                                <span class="metric-value">{{ system_data.status.get('ssl_status', 'Active') }}</span>
+                            </div>
+                            <div class="health-metric">
+                                <span class="metric-label">API Keys:</span>
+                                <span class="metric-value">{{ system_data.status.get('api_keys_status', 'Configured') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Metrics -->
+        <section class="stats-section">
+            <h2 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Performance Metrics (Last 24 Hours)
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('avg_response_time', '--') }}ms</div>
+                    <div class="stat-label">Average Response Time</div>
+                    <div class="stat-description">API query processing speed</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('uptime_percentage', '--') }}%</div>
+                    <div class="stat-label">System Uptime</div>
+                    <div class="stat-description">Platform availability</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-value">{{ "{:,}".format(system_data.status.get('total_requests', 0)) }}</div>
+                    <div class="stat-label">Total Requests</div>
+                    <div class="stat-description">API calls processed</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('concurrent_users', '--') }}</div>
+                    <div class="stat-label">Concurrent Users</div>
+                    <div class="stat-description">Peak simultaneous users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('settlement_queries', '--') }}</div>
+                    <div class="stat-label">Settlement Queries</div>
+                    <div class="stat-description">Nairobi assistance requests</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-value">{{ system_data.status.get('ai_accuracy', '--') }}%</div>
+                    <div class="stat-label">AI Accuracy</div>
+                    <div class="stat-description">Intent classification success</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Health Summary -->
+        <section class="health-overview">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                System Health Summary
+            </h2>
+
+            <div style="background: var(--brown-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--brown-200); margin-bottom: 1rem;">
+                <h4 style="color: var(--brown-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-info-circle"></i>
+                    Current System Status
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Overall Health:</span>
+                        <span style="color: var(--success); font-weight: 600;">
+                            {% if system_data.api_connected and system_data.vector_stats %}
+                            Excellent
+                            {% elif system_data.api_connected %}
+                            Good
+                            {% else %}
+                            Needs Attention
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">API Services:</span>
+                        <span style="color: {% if system_data.api_connected %}var(--success){% else %}var(--error){% endif %}; font-weight: 600;">
+                            {% if system_data.api_connected %}Operational{% else %}Disconnected{% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Vector Database:</span>
+                        <span style="color: {% if system_data.vector_stats %}var(--success){% else %}var(--warning){% endif %}; font-weight: 600;">
+                            {% if system_data.vector_stats %}Active{% else %}Unknown{% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Settlement Features:</span>
+                        <span style="color: var(--success); font-weight: 600;">
+                            {% if system_data.api_connected %}Optimized{% else %}Limited{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border: 1px solid #bae6fd;">
+                <h4 style="color: #0c4a6e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-lightbulb"></i>
+                    Recommendations
+                </h4>
+                <ul style="color: #0c4a6e; font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1.5rem;">
+                    {% if not system_data.api_connected %}
+                    <li>Check SettleBot API connection and configuration</li>
+                    {% endif %}
+                    {% if not system_data.vector_stats %}
+                    <li>Verify vector database connectivity and performance</li>
+                    {% endif %}
+                    <li>Regular system health checks recommended every 24 hours</li>
+                    <li>Monitor settlement query performance for international students</li>
+                    <li>Keep AI model embeddings updated for optimal accuracy</li>
+                    {% if system_data.status.get('error_rate', 0) > 5 %}
+                    <li style="color: #dc2626; font-weight: 600;">High error rate detected - investigate immediately</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmAction(actionName) {
+        return confirm(`Are you sure you want to ${actionName}?\n\nThis action may affect system performance and should be performed during maintenance windows when possible.\n\nProceed with ${actionName}?`);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add hover effects to health cards
+        document.querySelectorAll('.health-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to API cards
+        document.querySelectorAll('.api-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        console.log('System management page initialized');
+    });
+</script>
+{% endblock %}
