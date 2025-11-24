@@ -251,7 +251,7 @@ CRITICAL TRANSLATION RULES:
 Translate to {language_name}:"""
 
             response = self.openai_client.chat.completions.create(
-                model="gpt-4.1-mini",
+                model="gpt-4.1-nano",
                 messages=[
                     {
                         "role": "system",
@@ -260,7 +260,7 @@ Translate to {language_name}:"""
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.1,
-                max_tokens=1500,
+                max_tokens=4096,
             )
 
             translation = response.choices[0].message.content.strip()
