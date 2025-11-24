@@ -84,6 +84,8 @@
         gap: 0.5rem;
         transition: all 0.2s ease;
         font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-new:hover {
@@ -211,6 +213,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 12px;
     }
 
     .action-btn:hover {
@@ -218,9 +221,14 @@
         color: var(--brown-700);
     }
 
-    .action-btn.delete:hover {
+    .action-btn.delete {
         background: #fee2e2;
-        color: var(--error);
+        color: #dc2626;
+    }
+
+    .action-btn.delete:hover {
+        background: #fecaca;
+        color: #b91c1c;
     }
 
     /* Empty State */
@@ -239,6 +247,8 @@
         height: 80px;
         margin: 0 auto 1.5rem auto;
         opacity: 0.5;
+        font-size: 80px;
+        color: var(--gray-400);
     }
 
     .empty-title {
@@ -361,7 +371,147 @@
         width: 70%;
     }
 
+    /* Modal form container adjustments */
+    .modal-form .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    /* Form inputs sized for modals - styled like conversation detail */
+    .modal .form-input {
+        width: 100%;
+        min-height: 50px;
+        max-height: 120px;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 15px;
+        line-height: 1.5;
+        resize: vertical;
+        background: #ffffff;
+        transition: all 0.2s ease;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .modal .form-input:focus {
+        border-color: #8b5f47;
+        box-shadow: 0 0 0 3px rgba(139, 95, 71, 0.1);
+        outline: none;
+    }
+
+    .modal .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .modal .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .modal .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .modal .form-help {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+
+    /* Delete modal and button styling */
+    .btn-danger {
+        background: #dc2626;
+        color: var(--white);
+        border: 1px solid #dc2626;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .modal .form-notice.warning {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 0.8rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .modal .form-notice.warning .warning-icon {
+        color: #dc2626;
+        font-size: 16px;
+        margin-top: 0.1rem;
+        flex-shrink: 0;
+    }
+
+    /* Form actions */
+    .modal .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .modal .btn {
+        padding: 0.7rem 1.4rem;
+        font-size: 0.85rem;
+        min-width: 100px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-200);
+        border-color: var(--gray-400);
+    }
+
+    .btn-primary {
+        background: var(--brown-700);
+        color: var(--white);
+        border: 1px solid var(--brown-700);
+    }
+
+    .btn-primary:hover {
+        background: var(--brown-900);
+        border-color: var(--brown-900);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 95, 71, 0.3);
+    }
+
     /* Responsive Design */
+    @media (max-width: 1024px) {
+        .footer-content {
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+    }
+
     @media (max-width: 768px) {
         .conversations-layout {
             padding: 1rem 0;
@@ -403,6 +553,18 @@
         .empty-title {
             font-size: 1.25rem;
         }
+
+        .modal .form-actions {
+            flex-direction: column;
+        }
+
+        .modal .btn {
+            width: 100%;
+        }
+
+        .modal .form-input {
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
     }
 
     @media (max-width: 480px) {
@@ -422,6 +584,7 @@
         .empty-icon {
             width: 60px;
             height: 60px;
+            font-size: 60px;
         }
     }
 </style>
@@ -435,18 +598,14 @@
             <div class="header-content">
                 <div class="header-info">
                     <h1>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
+                        <i class="fas fa-comments"></i>
                         My Conversations
                     </h1>
                     <p>Access your chat history with SettleBot and continue getting settlement guidance for Nairobi</p>
                 </div>
                 <div class="header-actions">
                     <button type="button" class="btn-new" onclick="openModal('newConversationModal')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 5v14M5 12h14"/>
-                        </svg>
+                        <i class="fas fa-plus"></i>
                         New Chat
                     </button>
                 </div>
@@ -486,17 +645,13 @@
 
             <!-- Empty State -->
             <div class="empty-state" id="emptyState" style="display: none;">
-                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
+                <div class="empty-icon"><i class="fas fa-comments"></i></div>
                 <h2 class="empty-title">Start Your Settlement Journey</h2>
                 <p class="empty-description">
                     You haven't started any conversations yet. Begin by asking SettleBot about housing, university processes, visas, or any questions about settling in Nairobi.
                 </p>
                 <button type="button" class="btn-new" onclick="openModal('newConversationModal')">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
+                    <i class="fas fa-comment-dots"></i>
                     Start Your First Chat
                 </button>
 
@@ -540,10 +695,7 @@
         <div class="modal-header">
             <h2 class="modal-title">Start New Conversation</h2>
             <button type="button" class="modal-close" onclick="closeModal('newConversationModal')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6L6 18"/>
-                    <path d="M6 6l12 12"/>
-                </svg>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
@@ -551,14 +703,8 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label for="conversationTitle" class="form-label">Conversation Title (Optional)</label>
-                    <div class="input-wrapper">
-                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                            <line x1="4" y1="22" x2="4" y2="15"/>
-                        </svg>
-                        <input type="text" id="conversationTitle" name="title" class="form-input" 
-                               placeholder="e.g., Housing in Westlands, University Registration">
-                    </div>
+                    <input type="text" id="conversationTitle" name="title" class="form-input"
+                           placeholder="e.g., Housing in Westlands, University Registration">
                     <div class="form-help">Leave blank to auto-generate based on your first question</div>
                 </div>
             </form>
@@ -567,9 +713,7 @@
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('newConversationModal')">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="createConversation()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
+                    <i class="fas fa-comment-dots"></i>
                     Start Chat
                 </button>
             </div>
@@ -583,35 +727,23 @@
         <div class="modal-header">
             <h2 class="modal-title">Delete Conversation</h2>
             <button type="button" class="modal-close" onclick="closeModal('deleteConversationModal')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6L6 18"/>
-                    <path d="M6 6l12 12"/>
-                </svg>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
             <div class="form-notice warning">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
+                <i class="fas fa-exclamation-triangle warning-icon"></i>
                 <div>
                     <strong>This action cannot be undone.</strong><br>
-                    The conversation and all its messages will be permanently removed.
+                    <span id="deleteConversationText">The conversation and all its messages will be permanently removed.</span>
                 </div>
             </div>
-            <p id="deleteConversationText" style="color: var(--gray-700); margin: 0;"></p>
         </div>
         <div class="modal-footer">
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('deleteConversationModal')">Cancel</button>
                 <button type="button" class="btn btn-danger" onclick="confirmDeleteConversation()" id="confirmDeleteBtn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18"/>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                    </svg>
+                    <i class="fas fa-trash-alt"></i>
                     Delete Conversation
                 </button>
             </div>
@@ -663,10 +795,7 @@
                     <h3 class="card-title">${conv.title}</h3>
                     <div class="card-meta">
                         <div class="meta-item">
-                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
+                            <i class="fas fa-clock meta-icon"></i>
                             ${formatDate(conv.lastUpdated)}
                         </div>
                         ${conv.lastTopic ? `<span class="topic-badge">${conv.lastTopic}</span>` : ''}
@@ -674,22 +803,16 @@
                 </div>
                 <div class="card-body">
                     <div class="conversation-preview">
-                        ${conv.lastMessage ? conv.lastMessage.content : 'No messages yet'}
+                        ${conv.firstMessage ? conv.firstMessage.content : 'No messages yet'}
                     </div>
                     <div class="card-footer">
                         <div class="message-count">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
+                            <i class="fas fa-comment"></i>
                             ${conv.messageCount || 0} messages
                         </div>
                         <div class="card-actions">
                             <button class="action-btn delete" onclick="deleteConversation(event, ${conv.conversationId}, '${conv.title}')" title="Delete conversation">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18"/>
-                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                </svg>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </div>
@@ -723,7 +846,7 @@
     function startWithQuestion(question) {
         document.getElementById('conversationTitle').value = '';
         openModal('newConversationModal');
-        
+
         // Store question for use after modal opens
         setTimeout(() => {
             const form = document.getElementById('newConversationForm');
@@ -738,7 +861,12 @@
     function deleteConversation(event, conversationId, title) {
         event.stopPropagation();
         conversationToDelete = conversationId;
-        document.getElementById('deleteConversationText').textContent = `Are you sure you want to delete "${title}"?`;
+
+        // Update the warning text to show which conversation is being deleted
+        document.getElementById('deleteConversationText').innerHTML = `
+            The conversation "<strong>${escapeHtml(title)}</strong>" and all its messages will be permanently removed.
+        `;
+
         openModal('deleteConversationModal');
     }
 
@@ -769,11 +897,17 @@
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) return 'Today';
         if (diffDays === 2) return 'Yesterday';
         if (diffDays <= 7) return `${diffDays - 1} days ago`;
         return date.toLocaleDateString();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 </script>
 {% endblock %}
