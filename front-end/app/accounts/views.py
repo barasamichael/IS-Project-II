@@ -107,7 +107,7 @@ def user_conversations():
     :return: Rendered conversations template
     """
     conversations = (
-        Conversation.query#.filter_by(userId=current_user.userId)
+        Conversation.query.filter_by(userId=current_user.userId)
         .order_by(Conversation.lastUpdated.desc())
         .all()
     )
@@ -126,7 +126,7 @@ def view_conversation(conversation_id):
     :return: Rendered conversation template
     """
     conversation = Conversation.query.filter_by(
-        conversationId=conversation_id, #userId=current_user.userId
+        conversationId=conversation_id, userId=current_user.userId
     ).first_or_404()
 
     messages = (
@@ -136,7 +136,7 @@ def view_conversation(conversation_id):
     )
 
     conversations = (
-        Conversation.query#.filter_by(userId=current_user.userId)
+        Conversation.query.filter_by(userId=current_user.userId)
         .order_by(Conversation.lastUpdated.desc())
         .limit(30)
     )
@@ -146,6 +146,177 @@ def view_conversation(conversation_id):
         conversation=conversation,
         conversations=conversations,
         messages=messages,
+    )
+
+
+@accounts.route("/settlement-assistant", methods=["GET", "POST"])
+@login_required
+def settlement_assistant():
+    """
+    Enhanced settlement assistant interface using the new SettleBot API.
+
+    :return: Rendered settlement assistant template
+    """
+    response_data = None
+    query = None
+    api_response_details = {}
+    error_message = None
+
+    if flask.request.method == "POST":
+        query = flask.request.form.get("query", "").strip()
+
+        if not query:
+            flask.flash("Please enter a settlement question", "warning")
+            return flask.render_template("accounts/settlement_assistant.html")
+
+        api_url = flask.current_app.config.get(
+            "SETTLEBOT_API_URL", "http://localhost:8000"
+        )
+        api_key = flask.current_app.config.get("SETTLEBOT_API_KEY")
+
+        try:
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}" if api_key else "",
+            }
+
+            # Enhanced request payload for SettleBot API
+            request_payload = {
+                "query": query,
+                "top_k": 15,
+                "include_context": True,
+                "language_detection": True,
+                "user_preferences": {
+                    "response_style": "comprehensive",
+                    "include_safety_info": True,
+                    "include_cost_info": True,
+                },
+            }
+
+            response = requests.post(
+                f"{api_url}/query",
+                json=request_payload,
+                headers=headers,
+                timeout=None,
+            )
+
+            if response.status_code == 200:
+                api_response = response.json()
+
+                # Extract main response
+                response_data = api_response.get("response", "")
+
+                # Extract detailed API response information
+                api_response_details = {
+                    "intent_type": api_response.get("intent_type", "Unknown"),
+                    "topic": api_response.get("topic", "Unknown"),
+                    "confidence": api_response.get("confidence", 0.0),
+                    "language_info": api_response.get("language_info", {}),
+                    "empathy_applied": api_response.get(
+                        "empathy_applied", False
+                    ),
+                    "safety_protocols_added": api_response.get(
+                        "safety_protocols_added", False
+                    ),
+                    "crisis_level": api_response.get("crisis_level", "none"),
+                    "emotional_state": api_response.get("emotional_state"),
+                    "web_search_used": api_response.get(
+                        "web_search_used", False
+                    ),
+                    "current_time": api_response.get("current_time"),
+                    "token_usage": api_response.get("token_usage", {}),
+                    "retrieved_chunks": api_response.get("retrieved_chunks", [])
+                    if flask.request.form.get("show_context")
+                    else [],
+                }
+
+            elif response.status_code == 401:
+                error_message = "API authentication failed. Please check your API key configuration."
+            elif response.status_code == 422:
+                error_message = f"Invalid request: {response.json().get('detail', 'Validation error')}"
+            elif response.status_code >= 500:
+                error_message = (
+                    "SettleBot API server error. Please try again later."
+                )
+            else:
+                error_message = (
+                    f"API error ({response.status_code}): {response.text[:200]}"
+                )
+
+        except requests.exceptions.Timeout:
+            error_message = "Request timeout - the SettleBot service is taking too long to respond"
+        except requests.exceptions.ConnectionError:
+            error_message = (
+                "Cannot connect to SettleBot service - please try again later"
+            )
+        except requests.exceptions.RequestIOError as e:
+            error_message = f"Request error: {str(e)}"
+        except IOError as e:
+            error_message = f"Unexpected error: {str(e)}"
+
+    return flask.render_template(
+        "accounts/settlement_assistant.html",
+        response_data=response_data,
+        query=query,
+        api_response_details=api_response_details,
+        error_message=error_message,
+    )
+
+
+@accounts.route("/api-system-status")
+@login_required
+def api_system_status():
+    """
+    Display SettleBot API system status and health information.
+
+    :return: Rendered system status template
+    """
+    if current_user.role not in ["admin", "developer"]:
+        flask.flash(
+            "You do not have permissions to access this page", "warning"
+        )
+        return flask.redirect(flask.url_for("accounts.profile"))
+
+    api_url = flask.current_app.config.get(
+        "SETTLEBOT_API_URL", "http://localhost:8000"
+    )
+    api_key = flask.current_app.config.get("SETTLEBOT_API_KEY")
+
+    system_status = None
+    health_status = None
+    error_message = None
+
+    try:
+        headers = {"Authorization": f"Bearer {api_key}" if api_key else ""}
+
+        # Get health status (no auth required)
+        health_response = requests.get(f"{api_url}/health", timeout=10)
+        if health_response.status_code == 200:
+            health_status = health_response.json()
+
+        # Get detailed system status (requires auth)
+        if api_key:
+            status_response = requests.get(
+                f"{api_url}/system/status", headers=headers, timeout=15
+            )
+            if status_response.status_code == 200:
+                system_status = status_response.json()
+            elif status_response.status_code == 401:
+                error_message = "Authentication required for detailed status"
+        else:
+            error_message = "API key required for detailed system status"
+
+    except requests.exceptions.RequestIOError as e:
+        error_message = f"Could not connect to SettleBot API: {str(e)}"
+    except IOError as e:
+        error_message = f"Error getting system status: {str(e)}"
+
+    return flask.render_template(
+        "accounts/api_system_status.html",
+        health_status=health_status,
+        system_status=system_status,
+        error_message=error_message,
+        api_url=api_url,
     )
 
 
@@ -173,12 +344,14 @@ def create_conversation():
                 conversation_id=conversation.conversationId,
             )
         )
-    except Exception as e:
+    except IOError as e:
         flask.flash(f"Error creating conversation: {str(e)}", "error")
         return flask.redirect(flask.url_for("accounts.user_conversations"))
 
 
-@accounts.route("/api/conversation/<int:conversation_id>/message", methods=["POST"])
+@accounts.route(
+    "/api/conversation/<int:conversation_id>/message", methods=["POST"]
+)
 @csrf.exempt
 @login_required
 def add_message(conversation_id):
@@ -189,7 +362,7 @@ def add_message(conversation_id):
     :return: JSON response
     """
     conversation = Conversation.query.filter_by(
-        conversationId=conversation_id#, userId=current_user.userId
+        conversationId=conversation_id, userId=current_user.userId
     ).first_or_404()
 
     # Get message content from request
@@ -397,28 +570,302 @@ def add_message(conversation_id):
 
     except requests.exceptions.Timeout:
         return (
-            flask.jsonify(
-                {
-                    "error": "SettleBot service timeout"
-                }
-            ),
+            flask.jsonify({"error": "SettleBot service timeout"}),
             504,
         )
     except requests.exceptions.ConnectionError:
         return (
-            flask.jsonify(
-                {
-                    "error": "Cannot connect to SettleBot service"
-                }
-            ),
+            flask.jsonify({"error": "Cannot connect to SettleBot service"}),
             503,
         )
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestIOError as e:
         return (
             flask.jsonify({"error": f"SettleBot service error: {str(e)}"}),
             500,
         )
-    except Exception as e:
+    except IOError as e:
         db.session.rollback()
         flask.current_app.logger.error(f"Error in add_message: {str(e)}")
         return flask.jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@accounts.route("/api/conversation/new", methods=["POST"])
+@csrf.exempt
+@login_required
+def api_new_conversation():
+    """
+    API endpoint to create a new conversation.
+
+    :return: JSON response with conversation details
+    """
+    try:
+        data = flask.request.get_json()
+        title = data.get(
+            "title",
+            f"Settlement Chat {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        )
+
+        conversation = Conversation.create(
+            {"userId": current_user.userId, "title": title}
+        )
+
+        return flask.jsonify(conversation.getDetails())
+    except IOError as e:
+        return (
+            flask.jsonify(
+                {"error": f"Failed to create conversation: {str(e)}"}
+            ),
+            500,
+        )
+
+
+@accounts.route("/api/conversations/<int:conversation_id>", methods=["DELETE"])
+@csrf.exempt
+@login_required
+def api_delete_conversation(conversation_id):
+    """
+    API endpoint to delete a conversation.
+
+    :param conversation_id: ID of the conversation to delete
+    :return: JSON response indicating success or failure
+    """
+    conversation = Conversation.query.filter_by(
+        conversationId=conversation_id, userId=current_user.userId
+    ).first_or_404()
+
+    try:
+        success, message = conversation.delete()
+
+        if success:
+            return flask.jsonify({"success": True, "message": message})
+        else:
+            return flask.jsonify({"success": False, "error": message}), 400
+    except IOError as e:
+        return flask.jsonify({"success": False, "error": str(e)}), 500
+
+
+@accounts.route("/api/conversations/<int:conversation_id>", methods=["PUT"])
+@csrf.exempt
+@login_required
+def api_update_conversation(conversation_id):
+    """
+    API endpoint to update a conversation.
+
+    :param conversation_id: ID of the conversation to update
+    :return: JSON response with updated conversation details
+    """
+    conversation = Conversation.query.filter_by(
+        conversationId=conversation_id, userId=current_user.userId
+    ).first_or_404()
+
+    data = flask.request.get_json()
+    if not data:
+        return flask.jsonify({"error": "No update data provided"}), 400
+
+    try:
+        success, message = conversation.update(data)
+
+        if success:
+            return flask.jsonify(conversation.getDetails())
+        else:
+            return flask.jsonify({"error": message}), 400
+    except IOError as e:
+        return flask.jsonify({"error": str(e)}), 500
+
+
+@accounts.route("/api/statistics")
+@login_required
+def api_statistics():
+    """
+    API endpoint to get usage statistics for the current user.
+
+    :return: JSON response with statistics
+    """
+    try:
+        # Query total conversations for the user
+        total_conversations = Conversation.query.filter_by(
+            userId=current_user.userId
+        ).count()
+
+        # Query total messages with enhanced statistics
+        total_messages = 0
+        user_messages = 0
+        assistant_messages = 0
+        intent_distribution = {}
+        topic_distribution = {}
+
+        conversations = Conversation.query.filter_by(
+            userId=current_user.userId
+        ).all()
+        for conversation in conversations:
+            messages = Message.query.filter_by(
+                conversationId=conversation.conversationId
+            ).all()
+            total_messages += len(messages)
+
+            for message in messages:
+                if message.isUserMessage:
+                    user_messages += 1
+                else:
+                    assistant_messages += 1
+
+                    # Count intent types and topics for assistant messages
+                    if message.intentType:
+                        intent_distribution[message.intentType] = (
+                            intent_distribution.get(message.intentType, 0) + 1
+                        )
+                    if message.topic:
+                        topic_distribution[message.topic] = (
+                            topic_distribution.get(message.topic, 0) + 1
+                        )
+
+        # Calculate total tokens
+        total_tokens = (
+            Message.query.filter(
+                Message.conversationId.in_(
+                    [c.conversationId for c in conversations]
+                )
+            )
+            .with_entities(db.func.sum(Message.tokenCount))
+            .scalar()
+            or 0
+        )
+
+        # Calculate average confidence for assistant messages
+        avg_confidence = (
+            Message.query.filter(
+                Message.conversationId.in_(
+                    [c.conversationId for c in conversations]
+                ),
+                Message.isUserMessage == False,
+                Message.confidence.isnot(None),
+            )
+            .with_entities(db.func.avg(Message.confidence))
+            .scalar()
+            or 0.0
+        )
+
+        return flask.jsonify(
+            {
+                "total_conversations": total_conversations,
+                "total_messages": total_messages,
+                "user_messages": user_messages,
+                "assistant_messages": assistant_messages,
+                "total_tokens": total_tokens,
+                "avg_confidence": round(float(avg_confidence), 3),
+                "intent_distribution": intent_distribution,
+                "topic_distribution": topic_distribution,
+                "most_common_intent": max(
+                    intent_distribution.items(), key=lambda x: x[1]
+                )[0]
+                if intent_distribution
+                else None,
+                "most_common_topic": max(
+                    topic_distribution.items(), key=lambda x: x[1]
+                )[0]
+                if topic_distribution
+                else None,
+            }
+        )
+    except IOError as e:
+        return flask.jsonify({"error": str(e)}), 500
+
+
+@accounts.route("/api/conversations")
+@login_required
+def api_get_conversations():
+    """
+    API endpoint to get all conversations for the current user with enhanced details.
+
+    :return: JSON list of conversations
+    """
+    try:
+        conversations = (
+            Conversation.query.filter_by(userId=current_user.userId)
+            .order_by(Conversation.lastUpdated.desc())
+            .all()
+        )
+
+        conversation_list = []
+        for conversation in conversations:
+            conv_details = conversation.getDetails()
+
+            # Add additional metadata
+            first_message = (
+                Message.query.filter_by(
+                    conversationId=conversation.conversationId
+                )
+                .order_by(Message.dateCreated.asc())
+                .first()
+            )
+
+            if first_message:
+                conv_details["firstMessage"] = {
+                    "content": first_message.content[:100] + "..."
+                    if len(first_message.content) > 100
+                    else first_message.content,
+                    "isUserMessage": first_message.isUserMessage,
+                    "dateCreated": first_message.dateCreated.isoformat()
+                    if first_message.dateCreated
+                    else None,
+                }
+                conv_details["firstTopic"] = first_message.topic
+                conv_details["firstIntent"] = first_message.intentType
+            else:
+                conv_details["firstMessage"] = None
+                conv_details["firstTopic"] = None
+                conv_details["firstIntent"] = None
+
+            conversation_list.append(conv_details)
+
+        return flask.jsonify(conversation_list)
+    except IOError as e:
+        return flask.jsonify({"error": str(e)}), 500
+
+
+@accounts.route("/api/conversations/<int:conversation_id>/messages")
+@login_required
+def api_get_conversation_messages(conversation_id):
+    """
+    API endpoint to get all messages for a specific conversation with enhanced details.
+
+    :param conversation_id: ID of the conversation
+    :return: JSON list of messages
+    """
+    try:
+        # Verify conversation exists and user has access
+        conversation = Conversation.query.filter_by(
+            conversationId=conversation_id, userId=current_user.userId
+        ).first_or_404()
+
+        messages = (
+            Message.query.filter_by(conversationId=conversation.conversationId)
+            .order_by(Message.dateCreated)
+            .all()
+        )
+
+        message_list = []
+        for message in messages:
+            msg_details = message.getDetails()
+
+            # Add formatting hints for the frontend
+            if not message.isUserMessage:
+                msg_details["hasSettlementInfo"] = bool(
+                    message.intentType and message.intentType != "general_query"
+                )
+                msg_details["isHighConfidence"] = (
+                    message.confidence and message.confidence > 0.8
+                )
+                msg_details["topicCategory"] = message.topic
+
+            message_list.append(msg_details)
+
+        return flask.jsonify(
+            {
+                "conversation": conversation.getDetails(),
+                "messages": message_list,
+                "totalMessages": len(messages),
+            }
+        )
+    except IOError as e:
+        return flask.jsonify({"error": str(e)}), 500
