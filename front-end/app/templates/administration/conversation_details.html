@@ -1,0 +1,1300 @@
+{% extends "base.html" %}
+
+{% block title %}{{ conversation.title }} - Conversation Details - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Detailed view of settlement assistance conversation with analytics and message history{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.conversation-details-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.conversation-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Conversation Header */
+.conversation-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.conversation-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.conversation-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.conversation-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.meta-item {
+    text-align: center;
+}
+
+.meta-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--white);
+}
+
+.meta-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.action-btn-header.danger {
+    background: rgba(220, 38, 38, 0.8);
+}
+
+.action-btn-header.danger:hover {
+    background: rgba(220, 38, 38, 1);
+}
+
+/* Content Layout */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Analytics Cards */
+.analytics-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.analytics-card {
+    text-align: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.analytics-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.25rem;
+}
+
+.analytics-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* Settlement Insights */
+.insights-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.insights-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 500;
+}
+
+.insight-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-700);
+}
+
+.insight-item.emergency {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.insight-item.emergency .insight-label {
+    color: #dc2626;
+}
+
+.insight-item.emergency .insight-value {
+    color: #b91c1c;
+}
+
+/* Messages Section */
+.messages-section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.messages-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+}
+
+.messages-content {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.message-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+}
+
+.message-item.user {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--brown-600);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.message-item.user .message-avatar {
+    background: var(--orange-500);
+}
+
+.message-bubble {
+    background: var(--gray-100);
+    border-radius: 12px;
+    padding: 1rem;
+    max-width: 70%;
+    position: relative;
+}
+
+.message-item.user .message-bubble {
+    background: var(--brown-600);
+    color: var(--white);
+}
+
+.message-bubble::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid var(--gray-100);
+}
+
+.message-item.user .message-bubble::before {
+    left: auto;
+    right: -8px;
+    border-right: none;
+    border-left: 8px solid var(--brown-600);
+}
+
+.message-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.message-meta .timestamp {
+    color: var(--gray-500);
+}
+
+.message-item.user .message-meta .timestamp {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.confidence-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.confidence-badge.high {
+    background: var(--success);
+    color: var(--white);
+}
+
+.confidence-badge.medium {
+    background: var(--warning);
+    color: var(--white);
+}
+
+.confidence-badge.low {
+    background: var(--error);
+    color: var(--white);
+}
+
+.intent-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: var(--orange-100);
+    color: var(--orange-800);
+    text-transform: capitalize;
+}
+
+.topic-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: var(--brown-100);
+    color: var(--brown-800);
+    text-transform: capitalize;
+}
+
+/* User Profile Card */
+.user-profile-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.user-profile-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.user-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--brown-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin: 0 auto 1rem auto;
+}
+
+.user-profile-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+}
+
+.user-profile-username {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.user-profile-details {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.profile-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.detail-label {
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.detail-value {
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+.profile-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.profile-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.profile-btn.primary {
+    background: var(--brown-600);
+    color: var(--white);
+}
+
+.profile-btn.primary:hover {
+    background: var(--brown-700);
+    text-decoration: none;
+    color: var(--white);
+}
+
+.profile-btn.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.profile-btn.secondary:hover {
+    background: var(--gray-300);
+    text-decoration: none;
+    color: var(--gray-900);
+}
+
+/* Distribution Charts */
+.distribution-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+}
+
+.distribution-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.distribution-count {
+    background: var(--brown-600);
+    color: var(--white);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .conversation-details-layout {
+        padding: 1rem 0;
+    }
+
+    .conversation-container {
+        padding: 0 1rem;
+    }
+
+    .conversation-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .conversation-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .conversation-meta {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .message-bubble {
+        max-width: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .conversation-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .analytics-section,
+    .insights-section,
+    .user-profile-card,
+    .distribution-section {
+        padding: 1.5rem;
+    }
+
+    .conversation-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="conversation-details-layout">
+    <div class="conversation-container">
+        <!-- Conversation Header -->
+        <header class="conversation-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <a href="{{ url_for('administration.conversations') }}">Conversations</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Conversation Details</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="conversation-info">
+                        <h1>{{ conversation.title }}</h1>
+                        
+                        <div class="conversation-meta">
+                            <div class="meta-item">
+                                <div class="meta-value">{{ analytics.total_messages }}</div>
+                                <div class="meta-label">Total Messages</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-value">{{ analytics.user_messages }}</div>
+                                <div class="meta-label">User Messages</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-value">{{ analytics.assistant_messages }}</div>
+                                <div class="meta-label">Assistant Messages</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-value">{{ "%.1f"|format(analytics.conversation_length) }}h</div>
+                                <div class="meta-label">Duration</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-value">{{ "%.0f"|format(analytics.avg_confidence * 100) }}%</div>
+                                <div class="meta-label">Avg Confidence</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.conversations') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to List
+                        </a>
+                        <button class="action-btn-header" onclick="exportConversation()">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                        <button class="action-btn-header danger" onclick="deleteConversation()">
+                            <i class="fas fa-trash-alt"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Main Column -->
+            <div class="main-column">
+                <!-- Messages Section -->
+                <section class="messages-section">
+                    <div class="messages-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-comments"></i>
+                            Conversation Messages
+                        </h2>
+                    </div>
+                    
+                    <div class="messages-content">
+                        {% for message in messages %}
+                        <div class="message-item{% if message.isUserMessage %} user{% endif %}">
+                            <div class="message-avatar">
+                                {% if message.isUserMessage %}
+                                    {{ conversation.user.fullName[0].upper() if conversation.user.fullName else 'U' }}
+                                {% else %}
+                                    SB
+                                {% endif %}
+                            </div>
+                            
+                            <div class="message-bubble">
+                                <div class="message-content">
+                                    {{ message.content|replace('\n', '<br>')|safe }}
+                                </div>
+                                
+                                <div class="message-meta">
+                                    <span class="timestamp">
+                                        {{ message.dateCreated.strftime('%m/%d/%y at %I:%M %p') if message.dateCreated else 'Unknown' }}
+                                    </span>
+                                    
+                                    {% if not message.isUserMessage %}
+                                        {% if message.confidence %}
+                                        <span class="confidence-badge {% if message.confidence >= 0.8 %}high{% elif message.confidence >= 0.6 %}medium{% else %}low{% endif %}">
+                                            {{ (message.confidence * 100)|round }}% conf
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if message.intentType %}
+                                        <span class="intent-badge">{{ message.intentType.replace('_', ' ') }}</span>
+                                        {% endif %}
+                                        
+                                        {% if message.topic %}
+                                        <span class="topic-badge">{{ message.topic }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <!-- Analytics Section -->
+                <section class="analytics-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Conversation Analytics
+                    </h2>
+                    
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-value">{{ analytics.total_tokens }}</div>
+                            <div class="analytics-label">Total Tokens</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-value">{{ analytics.safety_concerns_flagged }}</div>
+                            <div class="analytics-label">Safety Concerns</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-value">{{ analytics.emergency_help_requests }}</div>
+                            <div class="analytics-label">Emergency Requests</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-value">{{ analytics.cultural_adaptation_queries }}</div>
+                            <div class="analytics-label">Cultural Queries</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar Column -->
+            <div class="sidebar-column">
+                <!-- User Profile Card -->
+                <section class="user-profile-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-user"></i>
+                        User Profile
+                    </h2>
+                    
+                    <div class="user-profile-header">
+                        <div class="user-profile-avatar">
+                            {{ conversation.user.fullName[0].upper() if conversation.user.fullName else 'U' }}
+                        </div>
+                        <div class="user-profile-name">{{ conversation.user.fullName or 'Unknown User' }}</div>
+                        <div class="user-profile-username">@{{ conversation.user.username }}</div>
+                    </div>
+
+                    <div class="user-profile-details">
+                        <div class="profile-detail">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value">{{ conversation.user.emailAddress }}</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span class="detail-label">Role:</span>
+                            <span class="detail-value">{{ conversation.user.role|title }}</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">
+                                {% if conversation.user.isActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        <div class="profile-detail">
+                            <span class="detail-label">Joined:</span>
+                            <span class="detail-value">
+                                {{ conversation.user.dateCreated.strftime('%m/%d/%y') if conversation.user.dateCreated else 'Unknown' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <a href="{{ url_for('administration.user_details', user_id=conversation.user.userId) }}" 
+                           class="profile-btn primary">
+                            <i class="fas fa-eye"></i>
+                            View Profile
+                        </a>
+                        <a href="{{ url_for('administration.users') }}?search_query={{ conversation.user.username }}" 
+                           class="profile-btn secondary">
+                            <i class="fas fa-search"></i>
+                            Find User
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Settlement Insights -->
+                <section class="insights-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-home"></i>
+                        Settlement Insights
+                    </h2>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-item{% if analytics.safety_concerns_flagged > 0 %} emergency{% endif %}">
+                            <span class="insight-label">Safety Concerns Flagged</span>
+                            <span class="insight-value">{{ analytics.safety_concerns_flagged }}</span>
+                        </div>
+                        <div class="insight-item{% if analytics.emergency_help_requests > 0 %} emergency{% endif %}">
+                            <span class="insight-label">Emergency Help Requests</span>
+                            <span class="insight-value">{{ analytics.emergency_help_requests }}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Cultural Adaptation Queries</span>
+                            <span class="insight-value">{{ analytics.cultural_adaptation_queries }}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Average Confidence</span>
+                            <span class="insight-value">{{ "%.0f"|format(analytics.avg_confidence * 100) }}%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Intent Distribution -->
+                {% if analytics.intent_distribution %}
+                <section class="distribution-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Intent Distribution
+                    </h2>
+                    
+                    {% for intent, count in analytics.intent_distribution.items() %}
+                    <div class="distribution-item">
+                        <span class="distribution-label">{{ intent.replace('_', ' ') }}</span>
+                        <span class="distribution-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                <!-- Topic Distribution -->
+                {% if analytics.topic_distribution %}
+                <section class="distribution-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Topic Distribution
+                    </h2>
+                    
+                    {% for topic, count in analytics.topic_distribution.items() %}
+                    <div class="distribution-item">
+                        <span class="distribution-label">{{ topic }}</span>
+                        <span class="distribution-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportConversation() {
+        if (confirm('Export this conversation data including all messages and analytics?')) {
+            // Create form to submit export request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("administration.conversation_bulk_action") }}';
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = '{{ csrf_token() }}';
+            form.appendChild(csrfInput);
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'export';
+            form.appendChild(actionInput);
+            
+            const idsInput = document.createElement('input');
+            idsInput.type = 'hidden';
+            idsInput.name = 'selected_conversations';
+            idsInput.value = '{{ conversation.conversationId }}';
+            form.appendChild(idsInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+    }
+
+    function deleteConversation() {
+        if (confirm('Are you sure you want to delete this conversation?\n\nThis will permanently remove:\n- All messages in this conversation\n- All analytics data\n- This action cannot be undone\n\nProceed with deletion?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("administration.conversation_bulk_action") }}';
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = '{{ csrf_token() }}';
+            form.appendChild(csrfInput);
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'delete';
+            form.appendChild(actionInput);
+            
+            const idsInput = document.createElement('input');
+            idsInput.type = 'hidden';
+            idsInput.name = 'selected_conversations';
+            idsInput.value = '{{ conversation.conversationId }}';
+            form.appendChild(idsInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+    }
+
+    // Auto-scroll to latest message on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContent = document.querySelector('.messages-content');
+        if (messagesContent) {
+            messagesContent.scrollTop = messagesContent.scrollHeight;
+        }
+        
+        // Initialize message interactions
+        initializeMessageInteractions();
+    });
+
+    function initializeMessageInteractions() {
+        // Add click handlers for confidence badges
+        document.querySelectorAll('.confidence-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                const confidence = this.textContent.replace('% conf', '');
+                showTooltip(this, `Confidence Score: ${confidence}%`);
+            });
+        });
+
+        // Add click handlers for intent and topic badges
+        document.querySelectorAll('.intent-badge, .topic-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                const type = this.classList.contains('intent-badge') ? 'intent' : 'topic';
+                const value = this.textContent;
+                showTooltip(this, `${type.charAt(0).toUpperCase() + type.slice(1)}: ${value}`);
+            });
+        });
+    }
+
+    function showTooltip(element, text) {
+        // Simple tooltip implementation
+        const tooltip = document.createElement('div');
+        tooltip.style.position = 'absolute';
+        tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+        tooltip.style.color = 'white';
+        tooltip.style.padding = '0.5rem';
+        tooltip.style.borderRadius = '4px';
+        tooltip.style.fontSize = '0.75rem';
+        tooltip.style.zIndex = '1000';
+        tooltip.textContent = text;
+        
+        const rect = element.getBoundingClientRect();
+        tooltip.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        tooltip.style.left = (rect.left + window.scrollX) + 'px';
+        
+        document.body.appendChild(tooltip);
+        
+        setTimeout(() => {
+            if (document.body.contains(tooltip)) {
+                document.body.removeChild(tooltip);
+            }
+        }, 3000);
+    }
+
+    // Add smooth scrolling for message navigation
+    function scrollToMessage(messageId) {
+        const message = document.getElementById(`message-${messageId}`);
+        if (message) {
+            message.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            message.style.backgroundColor = 'rgba(139, 95, 71, 0.1)';
+            setTimeout(() => {
+                message.style.backgroundColor = '';
+            }, 2000);
+        }
+    }
+
+    // Analytics card hover effects
+    document.querySelectorAll('.analytics-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.12)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+        });
+    });
+
+    // Distribution items hover effects
+    document.querySelectorAll('.distribution-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'var(--brown-50)';
+            this.style.borderColor = 'var(--brown-200)';
+        });
+
+        item.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'var(--gray-50)';
+            this.style.borderColor = 'transparent';
+        });
+    });
+
+    // Insight items interaction
+    document.querySelectorAll('.insight-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            if (this.classList.contains('emergency')) {
+                this.style.backgroundColor = '#fef2f2';
+                this.style.borderColor = '#fca5a5';
+            } else {
+                this.style.backgroundColor = 'var(--brown-100)';
+                this.style.borderColor = 'var(--brown-300)';
+            }
+        });
+
+        item.addEventListener('mouseleave', function() {
+            if (this.classList.contains('emergency')) {
+                this.style.backgroundColor = '#fef2f2';
+                this.style.borderColor = '#fecaca';
+            } else {
+                this.style.backgroundColor = 'var(--brown-50)';
+                this.style.borderColor = 'var(--brown-200)';
+            }
+        });
+    });
+
+    // Profile action button hover effects
+    document.querySelectorAll('.profile-btn').forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-1px)';
+        });
+
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Message bubble hover effects for better readability
+    document.querySelectorAll('.message-bubble').forEach(bubble => {
+        bubble.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+
+        bubble.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+
+    // Copy message content functionality
+    function addCopyToMessages() {
+        document.querySelectorAll('.message-bubble').forEach(bubble => {
+            bubble.addEventListener('dblclick', function() {
+                const content = this.querySelector('.message-content').textContent;
+                navigator.clipboard.writeText(content).then(() => {
+                    showTooltip(this, 'Message copied to clipboard');
+                }).catch(() => {
+                    showTooltip(this, 'Failed to copy message');
+                });
+            });
+        });
+    }
+
+    // Initialize copy functionality
+    addCopyToMessages();
+
+    // Add search functionality for messages
+    function addMessageSearch() {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search messages...';
+        searchInput.style.cssText = `
+            position: sticky;
+            top: 0;
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: var(--white);
+            z-index: 10;
+        `;
+
+        const messagesContent = document.querySelector('.messages-content');
+        if (messagesContent) {
+            messagesContent.insertBefore(searchInput, messagesContent.firstChild);
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const messages = messagesContent.querySelectorAll('.message-item');
+
+                messages.forEach(message => {
+                    const content = message.querySelector('.message-content').textContent.toLowerCase();
+                    if (content.includes(searchTerm) || searchTerm === '') {
+                        message.style.display = 'flex';
+                    } else {
+                        message.style.display = 'none';
+                    }
+                });
+            });
+        }
+    }
+
+    // Initialize message search
+    addMessageSearch();
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + F for message search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            const searchInput = document.querySelector('.messages-content input[type="text"]');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        // Escape to clear search
+        if (e.key === 'Escape') {
+            const searchInput = document.querySelector('.messages-content input[type="text"]');
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        }
+    });
+
+    // Add message statistics tooltip
+    function addMessageStats() {
+        const totalMessages = document.querySelectorAll('.message-item').length;
+        const userMessages = document.querySelectorAll('.message-item.user').length;
+        const assistantMessages = totalMessages - userMessages;
+
+        const statsDiv = document.createElement('div');
+        statsDiv.style.cssText = `
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--gray-200);
+        `;
+        statsDiv.innerHTML = `
+            <div>Total: ${totalMessages}</div>
+            <div>User: ${userMessages}</div>
+            <div>Assistant: ${assistantMessages}</div>
+        `;
+
+        const messagesHeader = document.querySelector('.messages-header');
+        if (messagesHeader) {
+            messagesHeader.style.position = 'relative';
+            messagesHeader.appendChild(statsDiv);
+        }
+    }
+
+    // Initialize message stats
+    addMessageStats();
+
+    // Add print functionality
+    function addPrintButton() {
+        const printBtn = document.createElement('button');
+        printBtn.className = 'action-btn-header';
+        printBtn.innerHTML = '<i class="fas fa-print"></i> Print';
+        printBtn.onclick = function() {
+            window.print();
+        };
+
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions) {
+            headerActions.insertBefore(printBtn, headerActions.lastElementChild);
+        }
+    }
+
+    // Initialize print button
+    addPrintButton();
+
+    // Add responsive behavior for mobile
+    function handleMobileView() {
+        if (window.innerWidth <= 768px) {
+            const contentGrid = document.querySelector('.content-grid');
+            if (contentGrid) {
+                contentGrid.style.gridTemplateColumns = '1fr';
+            }
+
+            // Stack action buttons vertically on mobile
+            const headerActions = document.querySelector('.header-actions');
+            if (headerActions) {
+                headerActions.style.flexDirection = 'column';
+                headerActions.style.gap = '0.5rem';
+            }
+
+            // Adjust message bubbles for mobile
+            document.querySelectorAll('.message-bubble').forEach(bubble => {
+                bubble.style.maxWidth = '90%';
+            });
+        }
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', handleMobileView);
+    handleMobileView(); // Initial call
+
+    // Add loading states for actions
+    function addLoadingState(button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        button.disabled = true;
+
+        return function removeLoadingState() {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        };
+    }
+
+    // Enhanced error handling for failed actions
+    function handleActionError(action, error) {
+        console.error(`Action ${action} failed:`, error);
+        showTooltip(document.body, `Action failed: ${error}`);
+    }
+
+    // Add animation for new elements
+    function animateElement(element) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'all 0.3s ease';
+
+        setTimeout(() => {
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, 100);
+    }
+
+    // Initialize all animations on page load
+    setTimeout(() => {
+        document.querySelectorAll('.metric-card, .insight-item, .distribution-item').forEach((item, index) => {
+            setTimeout(() => {
+                animateElement(item);
+            }, index * 100);
+        });
+    }, 500);
+
+    console.log('Conversation details page initialized successfully');
+</script>
+{% endblock %}

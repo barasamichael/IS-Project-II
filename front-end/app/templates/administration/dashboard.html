@@ -1,0 +1,1316 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SettleBot{% endblock %}
+
+{% block meta_description %}Comprehensive administration dashboard for SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.dashboard-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+}
+
+.header-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.status-dot.warning {
+    background: var(--warning);
+}
+
+.status-dot.error {
+    background: var(--error);
+}
+
+/* Key Metrics Grid */
+.metrics-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.metric-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-color: var(--brown-300);
+}
+
+.metric-card.primary {
+    background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+    color: var(--white);
+}
+
+.metric-card.secondary {
+    background: linear-gradient(135deg, var(--brown-600) 0%, var(--brown-700) 100%);
+    color: var(--white);
+}
+
+.metric-card.success {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: var(--white);
+}
+
+.metric-card.warning {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: var(--white);
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.metric-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: inherit;
+}
+
+.metric-card:not(.primary):not(.secondary):not(.success):not(.warning) .metric-icon {
+    background: var(--brown-100);
+    color: var(--brown-700);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.metric-trend {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Quick Actions Grid */
+.actions-section {
+    margin-bottom: 2rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.action-category {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.action-category:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-color: var(--brown-300);
+}
+
+.category-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+}
+
+.category-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.category-description {
+    color: var(--brown-700);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.category-actions {
+    padding: 1rem;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: var(--gray-700);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+    border: 1px solid transparent;
+}
+
+.action-item:hover {
+    background: var(--brown-50);
+    color: var(--brown-800);
+    text-decoration: none;
+    border-color: var(--brown-200);
+    transform: translateX(4px);
+}
+
+.action-item:last-child {
+    margin-bottom: 0;
+}
+
+.action-item-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--gray-100);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 16px;
+    color: var(--gray-600);
+    flex-shrink: 0;
+}
+
+.action-item:hover .action-item-icon {
+    background: var(--brown-200);
+    color: var(--brown-700);
+}
+
+.action-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.action-item-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.action-item-description {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    line-height: 1.3;
+}
+
+.action-item-arrow {
+    font-size: 14px;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+.action-item:hover .action-item-arrow {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+/* System Status Cards */
+.status-section {
+    margin-bottom: 2rem;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.status-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.status-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.status-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.status-indicator.warning {
+    background: var(--warning);
+}
+
+.status-indicator.error {
+    background: var(--error);
+}
+
+.status-details {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.status-label {
+    color: var(--gray-600);
+}
+
+.status-value {
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+/* Recent Activity */
+.activity-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 2rem;
+}
+
+.activity-list {
+    display: grid;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-50);
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--brown-100);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brown-700);
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.activity-description {
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.activity-time {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+}
+
+/* Emergency Actions */
+.emergency-section {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.emergency-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.emergency-header h3 {
+    color: #dc2626;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.emergency-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.emergency-btn {
+    background: #dc2626;
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.emergency-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    color: var(--white);
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+    
+    .actions-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-layout {
+        padding: 1rem 0;
+    }
+
+    .dashboard-container {
+        padding: 0 1rem;
+    }
+
+    .dashboard-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .header-info h1 {
+        font-size: 2rem;
+        justify-content: center;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .metric-card {
+        padding: 1.5rem;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+    }
+
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .emergency-actions {
+        flex-direction: column;
+    }
+
+    .emergency-btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .metric-card {
+        padding: 1rem;
+    }
+
+    .metric-value {
+        font-size: 1.75rem;
+    }
+
+    .activity-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Loading states */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-info">
+                    <h1>
+                        <i class="fas fa-tachometer-alt"></i>
+                        Administration Dashboard
+                    </h1>
+                    <p class="header-subtitle">
+                        Complete oversight and management for SettleBot settlement assistance platform
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <div class="status-badge">
+                        <div class="status-dot {% if api_connected %}{% else %}error{% endif %}"></div>
+                        {% if api_connected %}API Connected{% else %}API Disconnected{% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Key Metrics -->
+        <section class="metrics-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                System Overview
+            </h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ key_metrics.total_users }}</div>
+                    <div class="metric-label">Total Users</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ recent_activity.new_users_week }} new this week
+                    </div>
+                </div>
+
+                <div class="metric-card secondary">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ key_metrics.total_conversations }}</div>
+                    <div class="metric-label">Total Conversations</div>
+                    <div class="metric-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ recent_activity.new_conversations_week }} new this week
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ key_metrics.total_messages }}</div>
+                    <div class="metric-label">Total Messages</div>
+                    <div class="metric-trend">Settlement assistance provided</div>
+                </div>
+
+                <div class="metric-card warning">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ key_metrics.total_documents }}</div>
+                    <div class="metric-label">Knowledge Documents</div>
+                    <div class="metric-trend">Settlement knowledge base</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="actions-section">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i>
+                Administrative Tools
+            </h2>
+
+            <div class="actions-grid">
+                <!-- User Management -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-users-cog"></i>
+                            User Management
+                        </h3>
+                        <p class="category-description">Manage user accounts, roles, and permissions</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.users') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">View All Users</div>
+                                <div class="action-item-description">Browse, search, and manage user accounts</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.users') }}?status_filter=active" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Active Users</div>
+                                <div class="action-item-description">View currently active users</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.users') }}?role_filter=admin" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Admin Users</div>
+                                <div class="action-item-description">Manage administrative accounts</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Conversation Management -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-comments"></i>
+                            Conversation Management
+                        </h3>
+                        <p class="category-description">Monitor settlement conversations and assistance quality</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.conversations') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">All Conversations</div>
+                                <div class="action-item-description">View and manage settlement conversations</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.conversations') }}?intent_filter=emergency_help" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Emergency Conversations</div>
+                                <div class="action-item-description">Review crisis intervention cases</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.conversations') }}?intent_filter=safety_concern" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Safety Concerns</div>
+                                <div class="action-item-description">Monitor safety-related discussions</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Analytics & Insights -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Analytics & Insights
+                        </h3>
+                        <p class="category-description">Comprehensive reporting and settlement insights</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.analytics') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">System Analytics</div>
+                                <div class="action-item-description">Comprehensive platform analytics</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.messages') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-comment-alt"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Message Analytics</div>
+                                <div class="action-item-description">Intent classification and confidence analysis</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.settlement') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Settlement Insights</div>
+                                <div class="action-item-description">Nairobi location trends and student data</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Document Management -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-folder-open"></i>
+                            Document Management
+                        </h3>
+                        <p class="category-description">Manage settlement knowledge base and documents</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.documents') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">All Documents</div>
+                                <div class="action-item-description">Browse and manage knowledge documents</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.documents') }}#upload" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Upload Documents</div>
+                                <div class="action-item-description">Add new settlement knowledge</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.documents') }}?settlement_score_filter=0.8" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">High Quality Documents</div>
+                                <div class="action-item-description">View excellent settlement resources</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- System Management -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-cogs"></i>
+                            System Management
+                        </h3>
+                        <p class="category-description">System status, API management, and configuration</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.system') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">System Status</div>
+                                <div class="action-item-description">Monitor system health and performance</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.api') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">API Management</div>
+                                <div class="action-item-description">Test and manage API endpoints</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.config') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-sliders-h"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">System Configuration</div>
+                                <div class="action-item-description">View system and API configuration</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Data Export -->
+                <div class="action-category">
+                    <div class="category-header">
+                        <h3 class="category-title">
+                            <i class="fas fa-download"></i>
+                            Data Export & Reports
+                        </h3>
+                        <p class="category-description">Export analytics data and generate reports</p>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{{ url_for('administration.exports') }}" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Export Center</div>
+                                <div class="action-item-description">Generate and download data exports</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.exports') }}?export_type=user_analytics" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">User Analytics Export</div>
+                                <div class="action-item-description">Export user engagement data</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                        <a href="{{ url_for('administration.exports') }}?export_type=settlement_insights" class="action-item">
+                            <div class="action-item-icon">
+                                <i class="fas fa-map"></i>
+                            </div>
+                            <div class="action-item-content">
+                                <div class="action-item-title">Settlement Data Export</div>
+                                <div class="action-item-description">Export location and university trends</div>
+                            </div>
+                            <i class="fas fa-chevron-right action-item-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settlement KPIs -->
+        <section class="metrics-section">
+            <h2 class="section-title">
+                <i class="fas fa-home"></i>
+                Settlement Key Performance Indicators
+            </h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ settlement_kpis.most_common_intent|title }}</div>
+                    <div class="metric-label">Most Common Intent</div>
+                    <div class="metric-trend">Primary user concern type</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ settlement_kpis.most_common_topic|title }}</div>
+                    <div class="metric-label">Most Common Topic</div>
+                    <div class="metric-trend">Primary discussion area</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ settlement_kpis.intent_distribution|length }}</div>
+                    <div class="metric-label">Active Intent Types</div>
+                    <div class="metric-trend">This week</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ settlement_kpis.topic_distribution|length }}</div>
+                    <div class="metric-label">Discussion Topics</div>
+                    <div class="metric-trend">This week</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Status -->
+        <section class="status-section">
+            <h2 class="section-title">
+                <i class="fas fa-heartbeat"></i>
+                System Health Status
+            </h2>
+
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <h3 class="status-card-title">
+                            <i class="fas fa-server"></i>
+                            API Status
+                        </h3>
+                        <div class="status-indicator {% if api_connected %}{% else %}error{% endif %}"></div>
+                    </div>
+                    <div class="status-details">
+                        <div class="status-item">
+                            <span class="status-label">Connection:</span>
+                            <span class="status-value">{% if api_connected %}Connected{% else %}Disconnected{% endif %}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Response Time:</span>
+                            <span class="status-value">{{ system_health.response_time|default('--') }}ms</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Last Check:</span>
+                            <span class="status-value">{{ system_health.last_check|default('--') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <h3 class="status-card-title">
+                            <i class="fas fa-database"></i>
+                            Database Status
+                        </h3>
+                        <div class="status-indicator"></div>
+                    </div>
+                    <div class="status-details">
+                        <div class="status-item">
+                            <span class="status-label">Active Connections:</span>
+                            <span class="status-value">{{ system_status.db_connections|default('--') }}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Query Performance:</span>
+                            <span class="status-value">{{ system_status.avg_query_time|default('--') }}ms</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Storage Used:</span>
+                            <span class="status-value">{{ system_status.storage_used|default('--') }}GB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <h3 class="status-card-title">
+                            <i class="fas fa-brain"></i>
+                            AI Processing
+                        </h3>
+                        <div class="status-indicator"></div>
+                    </div>
+                    <div class="status-details">
+                        <div class="status-item">
+                            <span class="status-label">Vector DB Status:</span>
+                            <span class="status-value">{{ system_status.vector_db_status|default('Unknown') }}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Embeddings:</span>
+                            <span class="status-value">{{ system_status.total_embeddings|default('--') }}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Processing Queue:</span>
+                            <span class="status-value">{{ system_status.processing_queue|default('0') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Emergency Actions -->
+        <section class="emergency-section">
+            <div class="emergency-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Emergency System Actions</h3>
+            </div>
+            <div class="emergency-actions">
+                <a href="{{ url_for('administration.system') }}#clear_cache" class="emergency-btn">
+                    <i class="fas fa-broom"></i>
+                    Clear System Cache
+                </a>
+                <a href="{{ url_for('administration.system') }}#rebuild_index" class="emergency-btn">
+                    <i class="fas fa-sync-alt"></i>
+                    Rebuild Vector Index
+                </a>
+                <a href="{{ url_for('administration.api') }}#health_check" class="emergency-btn">
+                    <i class="fas fa-heart"></i>
+                    Run Health Check
+                </a>
+                <a href="{{ url_for('administration.conversations') }}?intent_filter=emergency_help" class="emergency-btn">
+                    <i class="fas fa-ambulance"></i>
+                    View Emergency Cases
+                </a>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="activity-section">
+            <h2 class="section-title">
+                <i class="fas fa-clock"></i>
+                Recent System Activity
+            </h2>
+
+            <div class="activity-list" id="recentActivity">
+                <!-- Sample activity items - would be populated via API -->
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">New User Registration</div>
+                        <div class="activity-description">{{ recent_activity.new_users_week }} new users registered this week</div>
+                        <div class="activity-time">Last 7 days</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">New Conversations</div>
+                        <div class="activity-description">{{ recent_activity.new_conversations_week }} settlement conversations started this week</div>
+                        <div class="activity-time">Last 7 days</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Document Processing</div>
+                        <div class="activity-description">Settlement knowledge base documents processed successfully</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">System Security Scan</div>
+                        <div class="activity-description">Automated security scan completed - no issues detected</div>
+                        <div class="activity-time">6 hours ago</div>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Analytics Report Generated</div>
+                        <div class="activity-description">Weekly settlement insights report compiled automatically</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize dashboard
+        initializeDashboard();
+        
+        // Auto-refresh status every 30 seconds
+        setInterval(refreshSystemStatus, 30000);
+    });
+
+    function initializeDashboard() {
+        // Load real-time metrics
+        loadSystemMetrics();
+        
+        // Initialize tooltips for metric cards
+        initializeTooltips();
+        
+        // Set up activity feed updates
+        setupActivityFeed();
+    }
+
+    function loadSystemMetrics() {
+        // This would make API calls to get real-time metrics
+        console.log('Loading system metrics...');
+        
+        // Example: Update metric values dynamically
+        // fetch('/administration/api/metrics')
+        //     .then(response => response.json())
+        //     .then(data => updateMetrics(data));
+    }
+
+    function refreshSystemStatus() {
+        // Refresh system status indicators
+        fetch('/administration/api/system-status')
+            .then(response => response.json())
+            .then(data => {
+                updateStatusIndicators(data);
+            })
+            .catch(error => {
+                console.error('Error refreshing system status:', error);
+            });
+    }
+
+    function updateStatusIndicators(data) {
+        // Update status dots based on system health
+        const indicators = document.querySelectorAll('.status-indicator');
+        indicators.forEach(indicator => {
+            // Update based on data.system_health
+            if (data.api_connected) {
+                indicator.classList.remove('error', 'warning');
+            } else {
+                indicator.classList.add('error');
+            }
+        });
+    }
+
+    function initializeTooltips() {
+        // Add hover tooltips for metric cards
+        const metricCards = document.querySelectorAll('.metric-card');
+        metricCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                // Show detailed tooltip
+            });
+        });
+    }
+
+    function setupActivityFeed() {
+        // Set up real-time activity feed updates
+        // This could use WebSockets or periodic polling
+        console.log('Setting up activity feed...');
+    }
+
+    // Emergency action confirmations
+    document.querySelectorAll('.emergency-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const action = this.textContent.trim();
+            if (!confirm(`Are you sure you want to execute: ${action}?\n\nThis action may affect system performance.`)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+
+    // Action item hover effects
+    document.querySelectorAll('.action-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(4px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+
+    // Metric card animations
+    function animateMetricCards() {
+        const cards = document.querySelectorAll('.metric-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
+
+    // Initialize animations on page load
+    setTimeout(animateMetricCards, 500);
+</script>
+{% endblock %}
