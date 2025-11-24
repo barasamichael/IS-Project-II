@@ -93,6 +93,10 @@
     .meta-icon {
         width: 16px;
         height: 16px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .profile-status {
@@ -126,6 +130,15 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+    }
+
+    .section-title i {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .stats-grid {
@@ -181,7 +194,11 @@
     .stat-icon {
         width: 32px;
         height: 32px;
+        font-size: 32px;
         opacity: 0.9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .stat-value {
@@ -204,6 +221,12 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
+    }
+
+    .stat-trend i {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
     }
 
     /* Quick Actions Grid */
@@ -230,6 +253,8 @@
         transform: translateY(-4px);
         box-shadow: 0 12px 32px rgba(139, 95, 71, 0.15);
         border-color: var(--brown-400);
+        text-decoration: none;
+        color: var(--brown-800);
     }
 
     .action-card.primary {
@@ -241,6 +266,7 @@
     .action-card.primary:hover {
         border-color: var(--orange-400);
         box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
+        color: var(--orange-800);
     }
 
     .action-card.secondary {
@@ -252,6 +278,7 @@
     .action-card.secondary:hover {
         border-color: #7dd3fc;
         box-shadow: 0 12px 32px rgba(14, 165, 233, 0.15);
+        color: #0c4a6e;
     }
 
     .action-card.success {
@@ -263,6 +290,7 @@
     .action-card.success:hover {
         border-color: #86efac;
         box-shadow: 0 12px 32px rgba(34, 197, 94, 0.15);
+        color: #14532d;
     }
 
     .action-header {
@@ -281,12 +309,17 @@
         align-items: center;
         justify-content: center;
         color: inherit;
+        font-size: 20px;
     }
 
     .action-arrow {
         width: 20px;
         height: 20px;
+        font-size: 20px;
         transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .action-card:hover .action-arrow {
@@ -346,6 +379,7 @@
         justify-content: center;
         color: var(--brown-700);
         flex-shrink: 0;
+        font-size: 20px;
     }
 
     .activity-content {
@@ -390,6 +424,16 @@
         align-items: center;
         gap: 0.75rem;
         margin-bottom: 1rem;
+    }
+
+    .status-header i {
+        font-size: 20px;
+        color: #92400e;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .status-header h3 {
@@ -482,6 +526,10 @@
         .section-title {
             font-size: 1.25rem;
         }
+
+        .section-title i {
+            font-size: 20px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -528,24 +576,15 @@
                     <h1>Welcome, {{ current_user.fullName }}</h1>
                     <div class="profile-meta">
                         <div class="meta-item">
-                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="8.5" cy="7" r="4"/>
-                            </svg>
+                            <i class="fas fa-user meta-icon"></i>
                             {{ current_user.role.title() }} Student
                         </div>
                         <div class="meta-item">
-                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
-                            </svg>
+                            <i class="fas fa-envelope meta-icon"></i>
                             {{ current_user.emailAddress }}
                         </div>
                         <div class="meta-item">
-                            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
+                            <i class="fas fa-clock meta-icon"></i>
                             Member since {{ current_user.dateCreated.strftime('%B %Y') if current_user.dateCreated else 'Unknown' }}
                         </div>
                     </div>
@@ -560,36 +599,26 @@
         <!-- Statistics Section -->
         <section class="stats-section">
             <h2 class="section-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
-                </svg>
+                <i class="fas fa-chart-line"></i>
                 Your Settlement Progress
             </h2>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
-                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
+                        <i class="fas fa-comments stat-icon"></i>
                     </div>
                     <div class="stat-value" id="totalConversations">--</div>
                     <div class="stat-label">Total Conversations</div>
                     <div class="stat-trend">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                            <polyline points="17,6 23,6 23,12"/>
-                        </svg>
+                        <i class="fas fa-trending-up"></i>
                         Active this week
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <circle cx="12" cy="17" r="0.5"/>
-                        </svg>
+                        <i class="fas fa-question-circle stat-icon"></i>
                     </div>
                     <div class="stat-value" id="questionsAsked">--</div>
                     <div class="stat-label">Questions Asked</div>
@@ -598,9 +627,7 @@
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20,6 9,17 4,12"/>
-                        </svg>
+                        <i class="fas fa-check-circle stat-icon"></i>
                     </div>
                     <div class="stat-value" id="helpfulAnswers">--</div>
                     <div class="stat-label">Helpful Responses</div>
@@ -609,12 +636,7 @@
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
+                        <i class="fas fa-calendar-alt stat-icon"></i>
                     </div>
                     <div class="stat-value" id="daysSince">--</div>
                     <div class="stat-label">Days Since Joining</div>
@@ -626,9 +648,7 @@
         <!-- Quick Actions -->
         <section class="actions-section">
             <h2 class="section-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
+                <i class="fas fa-star"></i>
                 Quick Actions
             </h2>
 
@@ -636,13 +656,9 @@
                 <a href="{{ url_for('accounts.user_conversations') }}" class="action-card primary">
                     <div class="action-header">
                         <div class="action-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
+                            <i class="fas fa-comment-dots"></i>
                         </div>
-                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                        <i class="fas fa-arrow-right action-arrow"></i>
                     </div>
                     <div class="action-title">Start New Chat</div>
                     <div class="action-description">Ask SettleBot about housing, visas, university processes, or any settlement questions</div>
@@ -651,13 +667,9 @@
                 <a href="{{ url_for('accounts.user_conversations') }}" class="action-card">
                     <div class="action-header">
                         <div class="action-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
+                            <i class="fas fa-history"></i>
                         </div>
-                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                        <i class="fas fa-arrow-right action-arrow"></i>
                     </div>
                     <div class="action-title">View Conversations</div>
                     <div class="action-description">Browse your chat history and continue previous conversations</div>
@@ -666,14 +678,9 @@
                 <a href="{{ url_for('accounts.update_profile') }}" class="action-card secondary">
                     <div class="action-header">
                         <div class="action-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1.51a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h1.51a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2 2 2 2 0 0 1 2 2v1.51a1.65 1.65 0 0 0 1 1.51"/>
-                            </svg>
+                            <i class="fas fa-cog"></i>
                         </div>
-                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                        <i class="fas fa-arrow-right action-arrow"></i>
                     </div>
                     <div class="action-title">Update Profile</div>
                     <div class="action-description">Manage your account information and preferences</div>
@@ -682,15 +689,9 @@
                 <a href="{{ url_for('accounts.change_password') }}" class="action-card success">
                     <div class="action-header">
                         <div class="action-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
-                                <circle cx="12" cy="16" r="1"/>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
+                            <i class="fas fa-lock"></i>
                         </div>
-                        <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                        <i class="fas fa-arrow-right action-arrow"></i>
                     </div>
                     <div class="action-title">Change Password</div>
                     <div class="action-description">Update your account security settings</div>
@@ -701,9 +702,7 @@
         <!-- Account Status -->
         <section class="account-status">
             <div class="status-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                </svg>
+                <i class="fas fa-heartbeat"></i>
                 <h3>Account Status</h3>
             </div>
             <div class="status-grid">
@@ -729,30 +728,25 @@
         <!-- Recent Activity -->
         <section class="activity-section">
             <h2 class="section-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
-            </svg>
-            Recent Activity
-        </h2>
+                <i class="fas fa-clock"></i>
+                Recent Activity
+            </h2>
 
-        <div class="activity-list" id="recentActivity">
-            <!-- Activity items will be loaded here -->
-            <div class="activity-item">
-                <div class="activity-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-title">Welcome to SettleBot!</div>
-                    <div class="activity-description">Start your first conversation to see your activity here. Ask about housing, visas, university processes, or any settlement questions.</div>
-                    <div class="activity-time">Getting started</div>
+            <div class="activity-list" id="recentActivity">
+                <!-- Activity items will be loaded here -->
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Welcome to SettleBot!</div>
+                        <div class="activity-description">Start your first conversation to see your activity here. Ask about housing, visas, university processes, or any settlement questions.</div>
+                        <div class="activity-time">Getting started</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 </div>
 {% endblock %}
 
@@ -772,7 +766,7 @@
                 document.getElementById('totalConversations').textContent = data.total_conversations || 0;
                 document.getElementById('questionsAsked').textContent = data.user_messages || 0;
                 document.getElementById('helpfulAnswers').textContent = data.assistant_messages || 0;
-                
+
                 // Calculate days since joining
                 const joinDate = new Date('{{ current_user.dateCreated.isoformat() if current_user.dateCreated else "" }}');
                 const today = new Date();
@@ -790,7 +784,7 @@
             .then(response => response.json())
             .then(conversations => {
                 const activityContainer = document.getElementById('recentActivity');
-                
+
                 if (conversations.length === 0) {
                     return; // Keep welcome message
                 }
@@ -799,9 +793,7 @@
                 const activityHTML = recentConversations.map(conv => `
                     <div class="activity-item">
                         <div class="activity-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
+                            <i class="fas fa-comment-dots"></i>
                         </div>
                         <div class="activity-content">
                             <div class="activity-title">${conv.title}</div>
@@ -810,7 +802,7 @@
                         </div>
                     </div>
                 `).join('');
-                
+
                 activityContainer.innerHTML = activityHTML;
             })
             .catch(error => {
@@ -825,7 +817,7 @@
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) return 'Today';
         if (diffDays === 2) return 'Yesterday';
         if (diffDays <= 7) return `${diffDays - 1} days ago`;
