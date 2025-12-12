@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import logging
 from enum import Enum
 from typing import Any
@@ -757,9 +758,12 @@ class IntentRecognizer:
     def _get_query_embedding(self, query: str) -> Optional[np.ndarray]:
         """Get embedding for the query."""
         try:
+            start_time = time.perf_counter()
             response = self.openai_client.embeddings.create(
                 input=[query], model="text-embedding-ada-002"
             )
+            end_time = time.perf_counter()
+            print(f"Elapsed time is { end_time - start_time } seconds")
             return np.array(response.data[0].embedding)
         except Exception as e:
             logger.error(f"Failed to get query embedding: {str(e)}")

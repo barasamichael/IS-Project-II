@@ -1,3 +1,4 @@
+import time
 import json
 import logging
 from typing import Dict
@@ -152,6 +153,7 @@ Respond with JSON only:
 }}"""
 
         try:
+            start_time = time.perf_counter()
             response = self.openai_client.chat.completions.create(
                 model="gpt-4.1-nano",
                 messages=[
@@ -164,6 +166,8 @@ Respond with JSON only:
                 temperature=0.1,
                 max_tokens=300,
             )
+            end_time = time.perf_counter()
+            print(f"Elapsed time is { end_time - start_time } seconds")
 
             result = json.loads(response.choices[0].message.content.strip())
 

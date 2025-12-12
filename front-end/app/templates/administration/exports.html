@@ -1,0 +1,1119 @@
+{% extends "base.html" %}
+
+{% block title %}Data Export Center - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive data export and reporting center for SettleBot settlement assistance platform analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.exports-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.exports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Exports Header */
+.exports-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.exports-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.exports-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.exports-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Export Form Section */
+.export-form-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.export-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-select,
+.form-input {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus,
+.form-input:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.form-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.form-checkbox-group:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+}
+
+.form-checkbox {
+    accent-color: var(--brown-600);
+}
+
+.checkbox-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.export-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.export-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.export-btn.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.export-btn.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+    text-decoration: none;
+    color: var(--white);
+}
+
+/* Export Types Grid */
+.export-types-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.export-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.export-type-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.export-type-card:hover {
+    border-color: var(--brown-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.export-type-header {
+    background: var(--brown-100);
+    padding: 1rem;
+    border-bottom: 1px solid var(--brown-200);
+}
+
+.export-type-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.export-type-description {
+    font-size: 0.85rem;
+    color: var(--brown-700);
+    line-height: 1.4;
+}
+
+.export-type-body {
+    padding: 1rem;
+}
+
+.export-type-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.export-type-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.export-type-features li::before {
+    content: '✓';
+    color: var(--success);
+    font-weight: bold;
+    width: 16px;
+    text-align: center;
+}
+
+.export-type-actions {
+    padding: 0 1rem 1rem 1rem;
+}
+
+.quick-export-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--brown-600);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.quick-export-btn:hover {
+    background: var(--brown-700);
+    transform: translateY(-1px);
+}
+
+/* Export History */
+.export-history-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.history-table th,
+.history-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.history-table th {
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.history-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.history-table tbody tr:hover {
+    background: var(--brown-50);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.completed {
+    background: var(--success);
+    color: var(--white);
+}
+
+.status-badge.processing {
+    background: var(--warning);
+    color: var(--white);
+}
+
+.status-badge.failed {
+    background: var(--error);
+    color: var(--white);
+}
+
+.download-btn {
+    background: var(--brown-100);
+    color: var(--brown-700);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.download-btn:hover {
+    background: var(--brown-200);
+    color: var(--brown-800);
+    text-decoration: none;
+}
+
+.download-btn:disabled {
+    background: var(--gray-200);
+    color: var(--gray-500);
+    cursor: not-allowed;
+}
+
+/* Format Options */
+.format-options {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.format-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.format-option:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+}
+
+.format-option.selected {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+}
+
+.format-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--brown-600);
+}
+
+.format-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+/* Export Progress */
+.export-progress {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    display: none;
+}
+
+.export-progress.show {
+    display: block;
+}
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.progress-icon {
+    animation: spin 1s linear infinite;
+}
+
+.progress-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0c4a6e;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0f2fe;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0369a1, #0284c7);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: #0c4a6e;
+    margin-top: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .export-form {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .export-types-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .exports-layout {
+        padding: 1rem 0;
+    }
+
+    .exports-container {
+        padding: 0 1rem;
+    }
+
+    .exports-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .exports-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .export-form {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .export-actions {
+        flex-direction: column;
+    }
+
+    .format-options {
+        flex-direction: column;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .exports-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .export-form-section,
+    .export-types-section,
+    .export-history-section {
+        padding: 1.5rem;
+    }
+
+    .history-table {
+        font-size: 0.8rem;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exports-layout">
+    <div class="exports-container">
+        <!-- Exports Header -->
+        <header class="exports-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Data Export Center</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="exports-info">
+                        <h1>Data Export Center</h1>
+                        <p class="exports-subtitle">
+                            Generate comprehensive reports and export analytics data for SettleBot settlement assistance platform. 
+                            Download user engagement metrics, conversation analytics, and settlement insights.
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.analytics') }}" class="action-btn-header">
+                            <i class="fas fa-chart-bar"></i>
+                            View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Export Form -->
+        <section class="export-form-section">
+            <h2 class="section-title">
+                <i class="fas fa-download"></i>
+                Generate Data Export
+            </h2>
+
+            <form method="POST" action="{{ url_for('administration.generate_export') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="export-form">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.export_type.label }}</label>
+                        {{ form.export_type(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.format.label }}</label>
+                        {{ form.format(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.date_range.label }}</label>
+                        {{ form.date_range(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <div class="form-checkbox-group">
+                            {{ form.include_user_data(class="form-checkbox") }}
+                            <label class="checkbox-label">{{ form.include_user_data.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-actions">
+                    {{ form.submit(class="export-btn primary") }}
+                </div>
+            </form>
+
+            <!-- Export Progress -->
+            <div class="export-progress" id="exportProgress">
+                <div class="progress-header">
+                    <i class="fas fa-spinner progress-icon"></i>
+                    <span class="progress-title">Generating Export...</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Preparing data for export...</div>
+            </div>
+        </section>
+
+        <!-- Available Export Types -->
+        <section class="export-types-section">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                Available Export Types
+            </h2>
+
+            <div class="export-types-grid">
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-users"></i>
+                            User Analytics
+                        </h3>
+                        <p class="export-type-description">{{ export_types.user_analytics }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>User registration and activity data</li>
+                            <li>Login patterns and engagement metrics</li>
+                            <li>Role distribution and permissions</li>
+                            <li>Data consent tracking</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('user_analytics', 'csv')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-comments"></i>
+                            Conversation Analytics
+                        </h3>
+                        <p class="export-type-description">{{ export_types.conversation_analytics }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>Conversation frequency and duration</li>
+                            <li>Topic and intent distribution</li>
+                            <li>User engagement patterns</li>
+                            <li>Response quality metrics</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('conversation_analytics', 'excel')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (Excel)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-comment-dots"></i>
+                            Message Analytics
+                        </h3>
+                        <p class="export-type-description">{{ export_types.message_analytics }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>Intent classification accuracy</li>
+                            <li>Confidence scores analysis</li>
+                            <li>Topic categorization data</li>
+                            <li>AI performance metrics</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('message_analytics', 'csv')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-home"></i>
+                            Settlement Insights
+                        </h3>
+                        <p class="export-type-description">{{ export_types.settlement_insights }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>Nairobi location preferences</li>
+                            <li>University distribution data</li>
+                            <li>Housing and safety concerns</li>
+                            <li>Cultural adaptation patterns</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('settlement_insights', 'excel')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (Excel)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-file-alt"></i>
+                            Document Analytics
+                        </h3>
+                        <p class="export-type-description">{{ export_types.document_analytics }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>Document processing statistics</li>
+                            <li>Knowledge base performance</li>
+                            <li>Settlement score distributions</li>
+                            <li>Content effectiveness metrics</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('document_analytics', 'csv')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-type-card">
+                    <div class="export-type-header">
+                        <h3 class="export-type-title">
+                            <i class="fas fa-server"></i>
+                            System Performance
+                        </h3>
+                        <p class="export-type-description">{{ export_types.system_performance }}</p>
+                    </div>
+                    <div class="export-type-body">
+                        <ul class="export-type-features">
+                            <li>API response times and errors</li>
+                            <li>Database performance metrics</li>
+                            <li>Vector database statistics</li>
+                            <li>System health indicators</li>
+                        </ul>
+                    </div>
+                    <div class="export-type-actions">
+                        <button class="quick-export-btn" onclick="quickExport('system_performance', 'json')">
+                            <i class="fas fa-download"></i>
+                            Quick Export (JSON)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export History -->
+        <section class="export-history-section">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Export History
+            </h2>
+
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Export Type</th>
+                        <th>Format</th>
+                        <th>Created Date</th>
+                        <th>File Size</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for export in export_history %}
+                    <tr>
+                        <td>{{ export.type.replace('_', ' ').title() }}</td>
+                        <td>{{ export.format.upper() }}</td>
+                        <td>{{ export.created_date.strftime('%m/%d/%y at %I:%M %p') if export.created_date else 'Unknown' }}</td>
+                        <td>{{ export.file_size }}</td>
+                        <td>
+                            <span class="status-badge {{ export.status }}">{{ export.status }}</span>
+                        </td>
+                        <td>
+                            {% if export.status == 'completed' %}
+                            <a href="#" class="download-btn">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </a>
+                            {% else %}
+                            <span class="download-btn" style="background: var(--gray-200); color: var(--gray-500); cursor: not-allowed;">
+                                <i class="fas fa-clock"></i>
+                                Processing
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if not export_history %}
+            <div style="text-align: center; padding: 3rem; color: var(--gray-600);">
+                <i class="fas fa-file-export" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <h3>No Export History</h3>
+                <p>You haven't generated any exports yet. Use the form above to create your first data export.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Export Guidelines -->
+        <section class="export-form-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Export Guidelines & Information
+            </h2>
+
+            <div style="background: var(--brown-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--brown-200);">
+                <h4 style="color: var(--brown-900); margin-bottom: 1rem;">Data Export Information</h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Maximum Export Size:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">50MB per export</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Data Retention:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">Exports available for 30 days</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Export Frequency:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">Maximum 10 exports per day</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Processing Time:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">1-5 minutes for most exports</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Data Privacy:</span>
+                        <span style="color: var(--success); font-weight: 600;">User consent respected for all exports</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border: 1px solid #bae6fd; margin-top: 1rem;">
+                <h4 style="color: #0c4a6e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-shield-check"></i>
+                    Data Security & Privacy
+                </h4>
+                <ul style="color: #0c4a6e; font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1.5rem;">
+                    <li>All exported data is encrypted during transmission</li>
+                    <li>Personal user information requires explicit consent selection</li>
+                    <li>Settlement insights are anonymized by default</li>
+                    <li>Export files are automatically deleted after 30 days</li>
+                    <li>Access to exports is logged for audit purposes</li>
+                </ul>
+            </div>
+
+            <div style="background: #fefce8; padding: 1.5rem; border-radius: 8px; border: 1px solid #fde047; margin-top: 1rem;">
+                <h4 style="color: #92400e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Export Format Guidelines
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="color: #92400e; font-size: 0.9rem;">
+                        <strong>CSV Format:</strong> Best for data analysis and spreadsheet applications. Includes headers and is compatible with Excel, Google Sheets, and statistical software.
+                    </div>
+                    <div style="color: #92400e; font-size: 0.9rem;">
+                        <strong>Excel Format:</strong> Ideal for detailed reporting with multiple sheets and formatting. Includes charts and summaries where applicable.
+                    </div>
+                    <div style="color: #92400e; font-size: 0.9rem;">
+                        <strong>JSON Format:</strong> Perfect for technical integration and API consumption. Structured data format for developers and system integration.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function quickExport(exportType, format) {
+        // Set form values
+        document.querySelector('select[name="export_type"]').value = exportType;
+        document.querySelector('select[name="format"]').value = format;
+        document.querySelector('select[name="date_range"]').value = '30'; // Default to 30 days
+        
+        // Show progress
+        showExportProgress();
+        
+        // Submit the form
+        document.querySelector('form').submit();
+    }
+
+    function showExportProgress() {
+        const progressDiv = document.getElementById('exportProgress');
+        progressDiv.classList.add('show');
+        
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        // Simulate progress
+        let progress = 0;
+        const progressMessages = [
+            'Preparing data for export...',
+            'Processing user analytics...',
+            'Analyzing conversation patterns...',
+            'Generating settlement insights...',
+            'Formatting export file...',
+            'Finalizing export...'
+        ];
+        
+        const interval = setInterval(() => {
+            progress += 15 + Math.random() * 10;
+            
+            if (progress >= 100) {
+                progress = 100;
+                progressText.textContent = 'Export complete! Download will begin shortly...';
+                clearInterval(interval);
+                
+                setTimeout(() => {
+                    progressDiv.classList.remove('show');
+                }, 2000);
+            } else {
+                const messageIndex = Math.floor((progress / 100) * (progressMessages.length - 1));
+                progressText.textContent = progressMessages[messageIndex];
+            }
+            
+            progressFill.style.width = progress + '%';
+        }, 800);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add hover effects to export type cards
+        document.querySelectorAll('.export-type-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to table rows
+        document.querySelectorAll('.history-table tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = 'var(--brown-50)';
+                this.style.transition = 'background-color 0.2s ease';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+
+        // Form submission handling
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const exportType = document.querySelector('select[name="export_type"]').value;
+            
+            if (!exportType) {
+                e.preventDefault();
+                alert('Please select an export type before generating the export.');
+                return;
+            }
+            
+            // Show progress for manual form submission
+            showExportProgress();
+        });
+
+        // Auto-select format based on export type
+        document.querySelector('select[name="export_type"]').addEventListener('change', function() {
+            const exportType = this.value;
+            const formatSelect = document.querySelector('select[name="format"]');
+            
+            // Set recommended format based on export type
+            switch(exportType) {
+                case 'user_analytics':
+                case 'message_analytics':
+                    formatSelect.value = 'csv';
+                    break;
+                case 'conversation_analytics':
+                case 'settlement_insights':
+                    formatSelect.value = 'excel';
+                    break;
+                case 'system_performance':
+                    formatSelect.value = 'json';
+                    break;
+                default:
+                    formatSelect.value = 'csv';
+            }
+        });
+
+        // Download button functionality
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            if (!btn.style.cursor === 'not-allowed') {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Simulate download
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+                    this.style.pointerEvents = 'none';
+                    
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-check"></i> Downloaded';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                            this.style.pointerEvents = '';
+                        }, 2000);
+                    }, 1500);
+                });
+            }
+        });
+
+        console.log('Export center initialized');
+    });
+</script>
+{% endblock %}

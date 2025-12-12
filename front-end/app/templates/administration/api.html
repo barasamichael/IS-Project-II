@@ -1,0 +1,1005 @@
+{% extends "base.html" %}
+
+{% block title %}API Management - SettleBot Admin{% endblock %}
+
+{% block meta_description %}API integration testing and management interface for SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.api-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.api-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* API Header */
+.api-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.api-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.api-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.api-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.api-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.status-dot.connected {
+    background: var(--success);
+}
+
+.status-dot.disconnected {
+    background: var(--error);
+}
+
+.status-text {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* API Configuration */
+.config-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.config-item:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+}
+
+.config-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.config-value {
+    font-size: 0.9rem;
+    color: var(--gray-900);
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.config-value.masked {
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+/* API Testing Form */
+.testing-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-select,
+.form-input,
+.form-textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+}
+
+.form-select:focus,
+.form-input:focus,
+.form-textarea:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.test-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--brown-700);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.test-btn:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.test-btn:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Test Results */
+.results-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    display: none;
+}
+
+.results-section.show {
+    display: block;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.result-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.result-status.success {
+    color: var(--success);
+}
+
+.result-status.error {
+    color: var(--error);
+}
+
+.result-time {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+.result-content {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.result-json {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--gray-800);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Endpoint Documentation */
+.endpoints-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.endpoints-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.endpoint-item {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.endpoint-item:hover {
+    border-color: var(--brown-300);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.endpoint-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.endpoint-method {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.endpoint-method.get {
+    background: var(--success);
+    color: var(--white);
+}
+
+.endpoint-method.post {
+    background: var(--orange-600);
+    color: var(--white);
+}
+
+.endpoint-path {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--gray-800);
+    font-weight: 600;
+}
+
+.endpoint-test {
+    background: var(--brown-100);
+    color: var(--brown-700);
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.endpoint-test:hover {
+    background: var(--brown-200);
+}
+
+.endpoint-body {
+    padding: 1rem;
+}
+
+.endpoint-description {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.endpoint-params {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+/* API Health Monitor */
+.health-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.health-metric {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.health-metric:hover {
+    background: var(--brown-50);
+    border-color: var(--brown-200);
+    transform: translateY(-2px);
+}
+
+.health-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.health-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .api-layout {
+        padding: 1rem 0;
+    }
+
+    .api-container {
+        padding: 0 1rem;
+    }
+
+    .api-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .api-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .health-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .api-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .config-section,
+    .testing-section,
+    .results-section,
+    .endpoints-section,
+    .health-section {
+        padding: 1.5rem;
+    }
+
+    .health-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-layout">
+    <div class="api-container">
+        <!-- API Header -->
+        <header class="api-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>API Management</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="api-info">
+                        <h1>SettleBot API Management</h1>
+                        <p class="api-subtitle">
+                            Test, monitor, and manage SettleBot API integration for settlement assistance services
+                        </p>
+
+                        <div class="api-status">
+                            <div class="status-dot {% if api_config.get('status') == 'connected' %}connected{% else %}disconnected{% endif %}"></div>
+                            <span class="status-text">
+                                API Status: {% if api_config.get('status') == 'connected' %}Connected{% else %}Disconnected{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.system') }}" class="action-btn-header">
+                            <i class="fas fa-server"></i>
+                            System Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- API Configuration -->
+        <section class="config-section">
+            <h2 class="section-title">
+                <i class="fas fa-cogs"></i>
+                API Configuration
+            </h2>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <span class="config-label">API Base URL:</span>
+                    <span class="config-value">{{ api_config.get('url', 'Not configured') }}</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">API Key Status:</span>
+                    <span class="config-value {% if api_config.get('key') %}success{% else %}error{% endif %}">
+                        {% if api_config.get('key') %}Configured{% else %}Not configured{% endif %}
+                    </span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Connection Status:</span>
+                    <span class="config-value {% if api_config.get('status') == 'connected' %}success{% else %}error{% endif %}">
+                        {% if api_config.get('status') == 'connected' %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">Last Health Check:</span>
+                    <span class="config-value">{{ api_config.get('last_check', 'Never') }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Testing Interface -->
+        <section class="testing-section">
+            <h2 class="section-title">
+                <i class="fas fa-vial"></i>
+                API Endpoint Testing
+            </h2>
+
+            <form method="POST" action="{{ url_for('administration.api_test') }}" id="apiTestForm">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.endpoint.label }}</label>
+                        {{ form.endpoint(class="form-select", id="endpoint") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.method.label }}</label>
+                        {{ form.method(class="form-select", id="method") }}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.query_params.label }}</label>
+                        {{ form.query_params(class="form-input", placeholder="param1=value1&param2=value2") }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ form.request_body.label }}</label>
+                    {{ form.request_body(class="form-textarea", placeholder='{\n  "query": "Where can I find housing in Nairobi?",\n  "top_k": 5\n}') }}
+                </div>
+
+                <div class="form-actions">
+                    {{ form.submit(class="test-btn", id="testButton") }}
+                    <button type="button" class="test-btn" onclick="clearResults()" style="background: var(--gray-600);">
+                        <i class="fas fa-eraser"></i>
+                        Clear Results
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Test Results -->
+        <section class="results-section" id="testResults">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                Test Results
+            </h2>
+
+            <div class="result-header">
+                <div class="result-status" id="resultStatus">
+                    <i class="fas fa-clock"></i>
+                    Waiting for test...
+                </div>
+                <div class="result-time" id="resultTime"></div>
+            </div>
+
+            <div class="result-content">
+                <pre class="result-json" id="resultContent">No test results yet. Select an endpoint and click "Test Endpoint" to begin.</pre>
+            </div>
+        </section>
+
+        <!-- API Health Monitor -->
+        <section class="health-section">
+            <h2 class="section-title">
+                <i class="fas fa-heartbeat"></i>
+                API Health Metrics
+            </h2>
+
+            <div class="health-grid">
+                <div class="health-metric">
+                    <div class="health-value">{{ api_config.get('response_time', '--') }}ms</div>
+                    <div class="health-label">Response Time</div>
+                </div>
+                <div class="health-metric">
+                    <div class="health-value">{{ api_config.get('uptime', '--') }}%</div>
+                    <div class="health-label">Uptime</div>
+                </div>
+                <div class="health-metric">
+                    <div class="health-value">{{ api_config.get('requests_today', '--') }}</div>
+                    <div class="health-label">Requests Today</div>
+                </div>
+                <div class="health-metric">
+                    <div class="health-value">{{ api_config.get('error_rate', '--') }}%</div>
+                    <div class="health-label">Error Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Endpoints -->
+        <section class="endpoints-section">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                Available API Endpoints
+            </h2>
+
+            <div class="endpoints-grid">
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method get">GET</span>
+                            <span class="endpoint-path">/health</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/health', 'GET')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">Check API health and service availability</div>
+                        <div class="endpoint-params">No parameters required</div>
+                    </div>
+                </div>
+
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method get">GET</span>
+                            <span class="endpoint-path">/system/status</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/system/status', 'GET')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">Get comprehensive system status and statistics</div>
+                        <div class="endpoint-params">Requires API authentication</div>
+                    </div>
+                </div>
+
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method post">POST</span>
+                            <span class="endpoint-path">/query</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/query', 'POST')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">Process settlement assistance queries with AI</div>
+                        <div class="endpoint-params">Body: {"query": "string", "top_k": number}</div>
+                    </div>
+                </div>
+
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method post">POST</span>
+                            <span class="endpoint-path">/intent/analyze</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/intent/analyze', 'POST')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">Analyze query intent with detailed breakdown</div>
+                        <div class="endpoint-params">Body: {"query": "string", "include_semantic_scores": boolean}</div>
+                    </div>
+                </div>
+
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method get">GET</span>
+                            <span class="endpoint-path">/documents</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/documents', 'GET')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">List processed settlement documents</div>
+                        <div class="endpoint-params">Query: doc_type, settlement_score_min</div>
+                    </div>
+                </div>
+
+                <div class="endpoint-item">
+                    <div class="endpoint-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="endpoint-method get">GET</span>
+                            <span class="endpoint-path">/vector-db/stats</span>
+                        </div>
+                        <button class="endpoint-test" onclick="quickTest('/vector-db/stats', 'GET')">Quick Test</button>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-description">Get vector database statistics</div>
+                        <div class="endpoint-params">Requires API authentication</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function quickTest(endpoint, method) {
+        // Set form values
+        document.getElementById('endpoint').value = endpoint;
+        document.getElementById('method').value = method;
+        
+        // Clear previous request body for GET requests
+        if (method === 'GET') {
+            document.querySelector('textarea[name="request_body"]').value = '';
+        } else if (endpoint === '/query') {
+            document.querySelector('textarea[name="request_body"]').value = '{\n  "query": "Where can I find housing in Nairobi?",\n  "top_k": 5\n}';
+        } else if (endpoint === '/intent/analyze') {
+            document.querySelector('textarea[name="request_body"]').value = '{\n  "query": "I need help finding accommodation",\n  "include_semantic_scores": true\n}';
+        }
+        
+        // Submit the form
+        document.getElementById('apiTestForm').submit();
+    }
+
+    function clearResults() {
+        const resultsSection = document.getElementById('testResults');
+        resultsSection.classList.remove('show');
+        
+        document.getElementById('resultStatus').innerHTML = '<i class="fas fa-clock"></i> Waiting for test...';
+        document.getElementById('resultTime').textContent = '';
+        document.getElementById('resultContent').textContent = 'No test results yet. Select an endpoint and click "Test Endpoint" to begin.';
+    }
+
+    // Show results if there are any flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+        const notifications = document.querySelectorAll('.notification');
+        if (notifications.length > 0) {
+            const resultsSection = document.getElementById('testResults');
+            resultsSection.classList.add('show');
+            
+            // Check for success or error messages
+            const hasError = Array.from(notifications).some(n => n.classList.contains('error'));
+            const resultStatus = document.getElementById('resultStatus');
+            
+            if (hasError) {
+                resultStatus.innerHTML = '<i class="fas fa-times-circle"></i> Test Failed';
+                resultStatus.className = 'result-status error';
+            } else {
+                resultStatus.innerHTML = '<i class="fas fa-check-circle"></i> Test Successful';
+                resultStatus.className = 'result-status success';
+            }
+            
+            document.getElementById('resultTime').textContent = new Date().toLocaleString();
+        }
+
+        // Add hover effects to endpoint items
+        document.querySelectorAll('.endpoint-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add hover effects to health metrics
+        document.querySelectorAll('.health-metric').forEach(metric => {
+            metric.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            metric.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        console.log('API management page initialized');
+    });
+
+    // Form submission handling
+    document.getElementById('apiTestForm').addEventListener('submit', function(e) {
+        const testButton = document.getElementById('testButton');
+        testButton.disabled = true;
+        testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        
+        // Show results section
+        document.getElementById('testResults').classList.add('show');
+        document.getElementById('resultStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing in progress...';
+        document.getElementById('resultStatus').className = 'result-status';
+        document.getElementById('resultTime').textContent = 'Started at ' + new Date().toLocaleString();
+        document.getElementById('resultContent').textContent = 'Sending request to API endpoint...';
+    });
+
+    // Auto-populate request body based on endpoint selection
+    document.getElementById('endpoint').addEventListener('change', function() {
+        const endpoint = this.value;
+        const requestBodyField = document.querySelector('textarea[name="request_body"]');
+        const methodField = document.getElementById('method');
+        
+        // Set default method and request body based on endpoint
+        switch(endpoint) {
+            case '/health':
+            case '/system/status':
+            case '/documents':
+            case '/vector-db/stats':
+            case '/embeddings/stats':
+                methodField.value = 'GET';
+                requestBodyField.value = '';
+                break;
+            case '/query':
+                methodField.value = 'POST';
+                requestBodyField.value = '{\n  "query": "Where can I find safe and affordable housing in Nairobi?",\n  "top_k": 10,\n  "include_context": true\n}';
+                break;
+            case '/intent/analyze':
+                methodField.value = 'POST';
+                requestBodyField.value = '{\n  "query": "I need help finding accommodation near University of Nairobi",\n  "include_semantic_scores": true\n}';
+                break;
+            case '/search':
+                methodField.value = 'POST';
+                requestBodyField.value = '{\n  "query": "student housing Nairobi",\n  "top_k": 5,\n  "topic_filter": "housing"\n}';
+                break;
+            default:
+                methodField.value = 'GET';
+                requestBodyField.value = '';
+        }
+    });
+
+    // Method change handler
+    document.getElementById('method').addEventListener('change', function() {
+        const method = this.value;
+        const requestBodyField = document.querySelector('textarea[name="request_body"]');
+        
+        if (method === 'GET') {
+            requestBodyField.value = '';
+            requestBodyField.disabled = true;
+            requestBodyField.style.backgroundColor = '#f8f9fa';
+        } else {
+            requestBodyField.disabled = false;
+            requestBodyField.style.backgroundColor = '';
+        }
+    });
+
+    // JSON formatting helper
+    function formatJSON(jsonString) {
+        try {
+            const parsed = JSON.parse(jsonString);
+            return JSON.stringify(parsed, null, 2);
+        } catch (e) {
+            return jsonString;
+        }
+    }
+
+    // Copy result to clipboard
+    function copyResult() {
+        const resultContent = document.getElementById('resultContent').textContent;
+        navigator.clipboard.writeText(resultContent).then(() => {
+            // Show temporary success message
+            const originalText = document.querySelector('[onclick="copyResult()"]').textContent;
+            document.querySelector('[onclick="copyResult()"]').textContent = 'Copied!';
+            setTimeout(() => {
+                document.querySelector('[onclick="copyResult()"]').textContent = originalText;
+            }, 2000);
+        });
+    }
+
+    // Add copy button to results
+    const resultHeader = document.querySelector('.result-header');
+    if (resultHeader) {
+        const copyButton = document.createElement('button');
+        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy Result';
+        copyButton.className = 'test-btn';
+        copyButton.style.fontSize = '0.8rem';
+        copyButton.style.padding = '0.5rem 1rem';
+        copyButton.style.background = 'var(--gray-600)';
+        copyButton.onclick = copyResult;
+        resultHeader.appendChild(copyButton);
+    }
+</script>
+{% endblock %}

@@ -488,6 +488,133 @@
   color: #dc2626;
 }
 
+/* NEW PROGRESS INDICATOR STYLES */
+.progress-indicator {
+  display: none;
+  margin: 10px 0;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.progress-indicator.show {
+  display: flex;
+}
+
+.progress-indicator .message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5f47 0%, #6b4423 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.progress-content {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+  position: relative;
+  min-width: 300px;
+  max-width: 85%;
+}
+
+.progress-content::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-left: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  transform: rotate(45deg);
+}
+
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active {
+  background: #fef3c7;
+}
+
+.progress-step.completed {
+  opacity: 0.6;
+}
+
+.step-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.progress-step.pending .step-icon {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.progress-step.active .step-icon {
+  background: #fbbf24;
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.progress-step.completed .step-icon {
+  background: #10b981;
+  color: white;
+}
+
+.step-text {
+  flex: 1;
+}
+
+.step-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.step-description {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.progress-timer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: right;
+}
+
+/* OLD TYPING INDICATOR - Keep for backward compatibility */
 .typing-indicator {
   display: none;
   margin: 10px 0;
@@ -753,119 +880,130 @@
   flex-shrink: 0;
 }
 
-    @media (max-width: 768px) {
-      .chat-container {
-        grid-template-columns: 1fr !important;
-        position: relative;
-      }
+@media (max-width: 768px) {
+  .chat-container {
+    grid-template-columns: 1fr !important;
+    position: relative;
+  }
 
-      .mobile-toggle {
-        display: flex !important;
-        width: 36px;
-        height: 36px;
-        border: none;
-        background: #f9fafb;
-        color: #6b7280;
-        border-radius: 8px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        margin-right: 12px;
-        font-size: 14px;
-      }
+  .mobile-toggle {
+    display: flex !important;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f9fafb;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 14px;
+  }
 
-      .chat-sidebar {
-        position: fixed;
-        left: -100%;
-        height: 100vh;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-        width: 320px;
-      }
+  .chat-sidebar {
+    position: fixed;
+    left: -100%;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    width: 320px;
+  }
 
-      .chat-sidebar.open {
-        left: 0;
-      }
+  .chat-sidebar.open {
+    left: 0;
+  }
 
-      .input-container {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-      }
+  .input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 
-      .form-actions {
-        flex-direction: column;
-      }
+  .form-actions {
+    flex-direction: column;
+  }
 
-      .btn {
-        width: 100%;
-      }
-    }
+  .btn {
+    width: 100%;
+  }
+}
 
-    .mobile-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-    }
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
 
-    .mobile-overlay.show {
-      display: block;
-    }
+.mobile-overlay.show {
+  display: block;
+}
 
-    @keyframes typingAnimation {
-      0%, 80%, 100% {
-        transform: scale(0.8);
-        opacity: 0.5;
-      }
-      40% {
-        transform: scale(1.2);
-        opacity: 1;
-      }
-    }
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
 
-    @keyframes messageSlide {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+@keyframes typingAnimation {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
 
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    .messages-container::-webkit-scrollbar,
-    .conversations-list::-webkit-scrollbar {
-      width: 6px;
-    }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
-    .messages-container::-webkit-scrollbar-track,
-    .conversations-list::-webkit-scrollbar-track {
-      background: transparent;
-    }
+.messages-container::-webkit-scrollbar,
+.conversations-list::-webkit-scrollbar {
+  width: 6px;
+}
 
-    .messages-container::-webkit-scrollbar-thumb,
-    .conversations-list::-webkit-scrollbar-thumb {
-      background: #d1d5db;
-      border-radius: 3px;
-    }
+.messages-container::-webkit-scrollbar-track,
+.conversations-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-    .messages-container::-webkit-scrollbar-thumb:hover,
-    .conversations-list::-webkit-scrollbar-thumb:hover {
-      background: #9ca3af;
-    }
+.messages-container::-webkit-scrollbar-thumb,
+.conversations-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover,
+.conversations-list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
 </style>
 {% endblock %}
 
@@ -956,6 +1094,20 @@
       {% endfor %}
     </div>
 
+    <!-- NEW Progress Indicator with live status updates -->
+    <div class="progress-indicator" id="progressIndicator">
+      <div class="message-avatar">SB</div>
+      <div class="progress-content">
+        <div class="progress-steps" id="progressSteps">
+          <!-- Steps will be dynamically added here -->
+        </div>
+        <div class="progress-timer" id="progressTimer">
+          Processing time: <span id="timerDisplay">0s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OLD Typing Indicator - kept for fallback -->
     <div class="typing-indicator" id="typingIndicator">
       <div class="message-avatar">SB</div>
       <div class="typing-content">
@@ -1059,12 +1211,43 @@
 </div>
 {% endblock %}
 
+
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 <script>
   const conversationId = {{ conversation.conversationId }};
   let conversations = [];
   let conversationToDeleteFromSidebar = null;
+  
+  // Progress tracking variables
+  let progressTimer = null;
+  let startTime = null;
+  const PROGRESS_STEPS = [
+    { 
+      message: "Analyzing your question…", 
+      icon: "fas fa-brain", 
+      description: "Understanding your needs",
+      duration: 4000  // 4 seconds
+    },
+    { 
+      message: "Searching for relevant information…", 
+      icon: "fas fa-search", 
+      description: "Checking databases and current sources",
+      duration: 10000  // 10 seconds (includes web searches)
+    },
+    { 
+      message: "Preparing your personalized response…", 
+      icon: "fas fa-list-check", 
+      description: "Organizing helpful guidance",
+      duration: 8000  // 8 seconds
+    },
+    { 
+      message: "Almost ready — finalizing your answer…", 
+      icon: "fas fa-check-circle", 
+      description: "Adding final details",
+      duration: 8000  // Remaining time
+    }
+  ];
 
   document.addEventListener('DOMContentLoaded', function() {
     loadConversations();
@@ -1151,6 +1334,116 @@
     messageInput.focus();
   }
 
+  function showProgressIndicator() {
+    const progressIndicator = document.getElementById('progressIndicator');
+    const progressSteps = document.getElementById('progressSteps');
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    // Clear previous steps
+    progressSteps.innerHTML = '';
+    
+    // Create all steps with pending state
+    PROGRESS_STEPS.forEach((step, index) => {
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'progress-step pending';
+      stepDiv.id = `progress-step-${index}`;
+      stepDiv.innerHTML = `
+        <div class="step-icon">
+          <i class="${step.icon}"></i>
+        </div>
+        <div class="step-text">
+          <div class="step-message">${step.message}</div>
+          <div class="step-description">${step.description}</div>
+        </div>
+      `;
+      progressSteps.appendChild(stepDiv);
+    });
+    
+    // Show the progress indicator
+    messagesContainer.appendChild(progressIndicator);
+    progressIndicator.classList.add('show');
+    scrollToBottom();
+    
+    // Start the timer
+    startTime = Date.now();
+    progressTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timerDisplay').textContent = `${elapsed}s`;
+    }, 1000);
+    
+    // Start progressing through steps
+    let currentStep = 0;
+    let accumulatedTime = 0;
+    
+    function progressToNextStep() {
+      if (currentStep < PROGRESS_STEPS.length) {
+        // Mark current step as active
+        const stepElement = document.getElementById(`progress-step-${currentStep}`);
+        if (stepElement) {
+          // Mark previous step as completed
+          if (currentStep > 0) {
+            const prevStep = document.getElementById(`progress-step-${currentStep - 1}`);
+            if (prevStep) {
+              prevStep.classList.remove('active');
+              prevStep.classList.add('completed');
+            }
+          }
+          
+          stepElement.classList.remove('pending');
+          stepElement.classList.add('active');
+          scrollToBottom();
+        }
+        
+        currentStep++;
+        accumulatedTime += PROGRESS_STEPS[currentStep - 1].duration;
+        
+        if (currentStep < PROGRESS_STEPS.length) {
+          setTimeout(progressToNextStep, PROGRESS_STEPS[currentStep - 1].duration);
+        }
+      }
+    }
+    
+    // Start the first step immediately
+    progressToNextStep();
+  }
+
+  function hideProgressIndicator() {
+    const progressIndicator = document.getElementById('progressIndicator');
+    
+    // Mark all steps as completed before hiding
+    PROGRESS_STEPS.forEach((step, index) => {
+      const stepElement = document.getElementById(`progress-step-${index}`);
+      if (stepElement) {
+        stepElement.classList.remove('pending', 'active');
+        stepElement.classList.add('completed');
+      }
+    });
+    
+    // Stop the timer
+    if (progressTimer) {
+      clearInterval(progressTimer);
+      progressTimer = null;
+    }
+    
+    // Hide after a short delay to show completion
+    setTimeout(() => {
+      progressIndicator.classList.remove('show');
+    }, 800);
+  }
+
+  function showTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.appendChild(typingIndicator);
+    typingIndicator.classList.add('show');
+    scrollToBottom();
+  }
+
+  function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    typingIndicator.classList.remove('show');
+  }
+
   function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
@@ -1165,7 +1458,9 @@
     addUserMessage(content);
     messageInput.value = '';
     messageInput.style.height = '48px';
-    showTypingIndicator();
+    
+    // Use the NEW progress indicator instead of typing dots
+    showProgressIndicator();
 
     fetch(`/account/api/conversation/${conversationId}/message`, {
       method: 'POST',
@@ -1179,7 +1474,7 @@
     })
       .then(response => response.json())
       .then(data => {
-        hideTypingIndicator();
+        hideProgressIndicator();
 
         if (data.assistant_message) {
           streamBotMessage(data.assistant_message.content, data.settlement_info);
@@ -1195,7 +1490,7 @@
       })
       .catch(error => {
         console.error('Error sending message:', error);
-        hideTypingIndicator();
+        hideProgressIndicator();
         addBotMessage('I apologize, but I encountered an error. Please try again.');
       })
       .finally(() => {
@@ -1292,24 +1587,11 @@
         contentElement.innerHTML = marked.parse(displayedText);
         i++;
         scrollToBottom();
-        setTimeout(typeCharacter, Math.random() * 5 + 1);
+        setTimeout(typeCharacter, 0.1);
       }
     }
 
     typeCharacter();
-  }
-
-  function showTypingIndicator() {
-    const typingIndicator = document.getElementById('typingIndicator');
-    const messagesContainer = document.getElementById('messagesContainer');
-    messagesContainer.appendChild(typingIndicator);
-    typingIndicator.classList.add('show');
-    scrollToBottom();
-  }
-
-  function hideTypingIndicator() {
-    const typingIndicator = document.getElementById('typingIndicator');
-    typingIndicator.classList.remove('show');
   }
 
   function scrollToBottom() {
@@ -1397,10 +1679,8 @@
         if (data.success) {
           closeModal('deleteModal');
           if (targetId === conversationId) {
-            // Deleting current conversation - redirect to conversations list
             window.location.href = '/account/conversations';
           } else {
-            // Deleting a different conversation - just refresh the sidebar
             loadConversations();
           }
         }
@@ -1455,32 +1735,31 @@
   function stripMarkdownAndTruncate(text, maxLength = 50) {
     if (!text) return '';
 
-    // Remove markdown formatting
     const stripped = text
-      .replace(/#{1,6}\s+/g, '') // Headers
-      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1') // Bold/italic
-      .replace(/`([^`]+)`/g, '$1') // Inline code
-            .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Links
-            .replace(/>\s+/g, '') // Blockquotes
-            .replace(/[-*+]\s+/g, '') // Lists
-            .replace(/\n+/g, ' ') // Multiple newlines
-            .trim();
+      .replace(/#{1,6}\s+/g, '')
+      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      .replace(/>\s+/g, '')
+      .replace(/[-*+]\s+/g, '')
+      .replace(/\n+/g, ' ')
+      .trim();
 
-        return stripped.length > maxLength ?
-            stripped.substring(0, maxLength) + '...' :
-            stripped;
+    return stripped.length > maxLength ?
+      stripped.substring(0, maxLength) + '...' :
+      stripped;
+  }
+
+  window.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal-backdrop')) {
+      setTimeout(() => {
+        const inputs = event.target.querySelectorAll('input[type="text"]');
+        inputs.forEach(input => {
+          if (input.id === 'newChatTitle') input.value = '';
+        });
+      }, 300);
     }
-
-    window.addEventListener('click', function(event) {
-      if (event.target.classList.contains('modal-backdrop')) {
-            setTimeout(() => {
-                const inputs = event.target.querySelectorAll('input[type="text"]');
-                inputs.forEach(input => {
-                    if (input.id === 'newChatTitle') input.value = '';
-                });
-            }, 300);
-        }
-    });
+  });
 </script>
 {% endblock %}
 

@@ -1,0 +1,120 @@
+{% extends "email/base.html" %}
+
+{% block title %}{{ notification_title }} - StrathQuery{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-block {
+        background-color: #F3F4F6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .notification-icon {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .notification-icon svg {
+        width: 60px;
+        height: 60px;
+        color: #3563E9;
+    }
+    
+    .notification-date {
+        text-align: center;
+        color: #6B7280;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .notification-priority {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .priority-low {
+        background-color: #E0F2FE;
+        color: #0369A1;
+    }
+    
+    .priority-medium {
+        background-color: #FEF3C7;
+        color: #92400E;
+    }
+    
+    .priority-high {
+        background-color: #FEE2E2;
+        color: #B91C1C;
+    }
+    
+    .notification-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="message-title">{{ notification_title }}</div>
+<p class="message-text">{{ notification_subtitle }}</p>
+
+<div class="notification-icon">
+    {% if notification_type == "update" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    {% elif notification_type == "alert" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    {% elif notification_type == "success" %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    {% else %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+    {% endif %}
+</div>
+
+<div class="notification-block">
+    <div class="notification-meta">
+        <span class="notification-priority priority-{{ notification_priority|default('medium') }}">{{ notification_priority|default('Medium')|title }} Priority</span>
+        <span class="notification-date">{{ notification_date }}</span>
+    </div>
+    
+    {{ notification_content|safe }}
+</div>
+
+{% if notification_action_url %}
+<p style="text-align: center; color: #4B5563; margin-top: 20px;">Please take the following action:</p>
+<a href="{{ notification_action_url }}" class="cta-button">{{ notification_action_text|default('Take Action') }}</a>
+{% endif %}
+
+{% if additional_info %}
+<div style="margin-top: 30px;">
+    <p style="color: #4B5563; font-weight: 600; margin-bottom: 10px;">Additional Information:</p>
+    <div class="content-block">
+        {{ additional_info|safe }}
+    </div>
+</div>
+{% endif %}
+
+<p style="text-align: center; color: #4B5563; font-size: 14px; margin-top: 30px;">If you have any questions regarding this notification, please contact our support team at <a href="mailto:benjamintait15@gmail.com" style="color: #3563E9; text-decoration: none;">benjamintait15@gmail.com</a>.</p>
+{% endblock %}

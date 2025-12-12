@@ -464,11 +464,11 @@ def list_documents(
         # Create table
         table = Table(title=f"Settlement Documents ({len(documents)})")
         table.add_column("ID", style="cyan", no_wrap=True)
-        table.add_column("Filename", style="green")
-        table.add_column("Type", style="blue")
-        table.add_column("Chunks", style="magenta", justify="right")
+        #table.add_column("Filename", style="green")
+        #table.add_column("Type", style="blue")
+        #table.add_column("Chunks", style="magenta", justify="right")
         table.add_column("Size (MB)", style="yellow", justify="right")
-        table.add_column("Settlement Score", style="red", justify="right")
+        #table.add_column("Settlement Score", style="red", justify="right")
 
         if show_details:
             table.add_column("Processed Date", style="dim")
@@ -482,12 +482,12 @@ def list_documents(
             settlement_score = doc.get("avg_settlement_score", 0)
 
             row = [
-                doc["doc_id"][:8] + "...",
-                doc["file_name"],
-                doc["doc_type"],
-                str(doc["num_chunks"]),
+                doc["doc_id"],#[:8] + "...",
+                #doc["file_name"],
+                #doc["doc_type"],
+                #str(doc["num_chunks"]),
                 f"{size_mb:.2f}",
-                f"{settlement_score:.3f}",
+                #f"{settlement_score:.3f}",
             ]
 
             if show_details:
@@ -2108,6 +2108,769 @@ def validate_urls_file(
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
+
+
+@app.command()
+def evaluate(
+    focus_area: str = typer.Option(
+        None,
+        "--focus-area",
+        "-f",
+        help="Focus area: housing, safety, university, finance, transportation, healthcare, culture",
+    ),
+    num_queries: int = typer.Option(
+        20, "--num-queries", "-n", help="Number of queries to evaluate"
+    ),
+    custom_queries_file: str = typer.Option(
+        None,
+        "--queries-file",
+        "-q",
+        help="Path to file with custom queries (one per line)",
+    ),
+    output_file: str = typer.Option(
+        None, "--output", "-o", help="Save detailed results to file"
+    ),
+    show_details: bool = typer.Option(
+        False, "--details", "-d", help="Show detailed evaluation results"
+    ),
+    interactive_mode: bool = typer.Option(
+        False,
+        "--interactive",
+        "-i",
+        help="Run evaluation interactively with progress updates",
+    ),
+    settlement_only: bool = typer.Option(
+        True,
+        "--settlement-only",
+        help="Only evaluate settlement-related queries",
+    ),
+    language_test: bool = typer.Option(
+        False, "--language-test", "-l", help="Include multilingual evaluation"
+    ),
+    confidence_threshold: float = typer.Option(
+        0.7,
+        "--confidence",
+        "-c",
+        help="Minimum confidence threshold for evaluation",
+    ),
+):
+    """Run comprehensive evaluation of the SettleBot settlement assistant."""
+    console.print("[bold blue]SettleBot Evaluation System[/bold blue]")
+    console.print("Evaluating settlement assistance quality and accuracy\n")
+
+    try:
+        # Prepare custom queries if file provided
+        custom_queries = []
+        if custom_queries_file:
+            queries_path = Path(custom_queries_file)
+            if not queries_path.exists():
+                console.print(
+                    f"[bold red]Queries file not found:[/bold red] {custom_queries_file}"
+                )
+                return
+
+            console.print(f"Loading custom queries from: {custom_queries_file}")
+            with open(queries_path, "r", encoding="utf-8") as f:
+                for line_num, line in enumerate(f, 1):
+                    query = line.strip()
+                    if query and not query.startswith("#"):
+                        custom_queries.append(query)
+
+            console.print(f"Loaded {len(custom_queries)} custom queries")
+
+        # Prepare evaluation request
+        evaluation_data = {
+            "num_queries": num_queries,
+            "focus_area": focus_area,
+            "queries": custom_queries if custom_queries else None,
+        }
+
+        # Start evaluation
+        console.print("Starting comprehensive settlement evaluation...")
+
+        if interactive_mode:
+            console.print(
+                "[dim]Running in interactive mode with progress updates[/dim]"
+            )
+
+        # Make API call to start evaluation
+        try:
+            import requests
+
+            api_config = {
+                "url": os.getenv("SETTLEBOT_API_URL", "http://localhost:8000"),
+                "key": os.getenv("SETTLEBOT_API_KEY", "your_secure_random_key_here"),
+            }
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_config['key']}"
+                if api_config["key"]
+                else "",
+            }
+
+            # Start evaluation
+            response = requests.post(
+                f"{api_config['url']}/evaluation/run",
+                json=evaluation_data,
+                headers=headers,
+                timeout=300,  # 5 minutes timeout for evaluation
+            )
+
+            if response.status_code != 200:
+                console.print(
+                    f"[bold red]Evaluation API error:[/bold red] {response.status_code}"
+                )
+                console.print(f"Response: {response.text[:200]}")
+                return
+
+            evaluation_results = response.json()
+
+        except requests.exceptions.RequestException as e:
+            console.print(f"[bold red]API request failed:[/bold red] {str(e)}")
+            console.print(
+                "Make sure the SettleBot API is running and accessible"
+            )
+            return
+        except Exception as e:
+            console.print(
+                f"[bold red]Error during evaluation:[/bold red] {str(e)}"
+            )
+            return
+
+        # Parse and display results
+        if not evaluation_results:
+            console.print("[bold red]No evaluation results received[/bold red]")
+            return
+
+        # Overall performance metrics
+        console.print("\n[bold green]Evaluation Results[/bold green]")
+
+        # Main results table
+        results_table = Table(title="Settlement Assistant Performance")
+        results_table.add_column("Metric", style="cyan")
+        results_table.add_column("Score", style="green")
+        results_table.add_column("Details", style="dim")
+
+        # Extract key metrics from results
+        overall_score = evaluation_results.get("overall_score", 0)
+        intent_accuracy = evaluation_results.get("intent_accuracy", 0)
+        response_relevance = evaluation_results.get("response_relevance", 0)
+        settlement_optimization = evaluation_results.get(
+            "settlement_optimization", 0
+        )
+        response_time_avg = evaluation_results.get("avg_response_time", 0)
+
+        results_table.add_row(
+            "Overall Performance",
+            f"{overall_score:.3f}",
+            f"{'Excellent' if overall_score >= 0.9 else 'Good' if overall_score >= 0.8 else 'Needs Improvement'}",
+        )
+
+        results_table.add_row(
+            "Intent Classification",
+            f"{intent_accuracy:.3f}",
+            f"Correctly identified {intent_accuracy*100:.1f}% of intents",
+        )
+
+        results_table.add_row(
+            "Response Relevance",
+            f"{response_relevance:.3f}",
+            "Settlement-relevant responses",
+        )
+
+        results_table.add_row(
+            "Settlement Optimization",
+            f"{settlement_optimization:.3f}",
+            "Nairobi-specific guidance quality",
+        )
+
+        results_table.add_row(
+            "Average Response Time",
+            f"{response_time_avg:.2f}s",
+            f"{'Fast' if response_time_avg < 2 else 'Acceptable' if response_time_avg < 5 else 'Slow'}",
+        )
+
+        console.print(results_table)
+
+        # Intent-specific performance
+        intent_performance = evaluation_results.get("intent_performance", {})
+        if intent_performance:
+            console.print(
+                "\n[bold yellow]Performance by Settlement Intent[/bold yellow]"
+            )
+
+            intent_table = Table(title="Intent Classification Performance")
+            intent_table.add_column("Intent Type", style="cyan")
+            intent_table.add_column("Accuracy", style="green")
+            intent_table.add_column("Avg Confidence", style="blue")
+            intent_table.add_column("Sample Count", style="magenta")
+
+            # Sort intents by performance
+            sorted_intents = sorted(
+                intent_performance.items(),
+                key=lambda x: x[1].get("accuracy", 0),
+                reverse=True,
+            )
+
+            for intent_type, metrics in sorted_intents:
+                accuracy = metrics.get("accuracy", 0)
+                confidence = metrics.get("avg_confidence", 0)
+                count = metrics.get("sample_count", 0)
+
+                intent_table.add_row(
+                    intent_type.replace("_", " ").title(),
+                    f"{accuracy:.3f}",
+                    f"{confidence:.3f}",
+                    str(count),
+                )
+
+            console.print(intent_table)
+
+        # Topic-specific analysis
+        topic_performance = evaluation_results.get("topic_performance", {})
+        if topic_performance:
+            console.print(
+                "\n[bold yellow]Performance by Settlement Topic[/bold yellow]"
+            )
+
+            topic_table = Table(title="Topic Classification Performance")
+            topic_table.add_column("Topic", style="cyan")
+            topic_table.add_column("Relevance Score", style="green")
+            topic_table.add_column("Response Quality", style="blue")
+            topic_table.add_column("Queries", style="magenta")
+
+            for topic, metrics in topic_performance.items():
+                relevance = metrics.get("relevance_score", 0)
+                quality = metrics.get("response_quality", 0)
+                count = metrics.get("query_count", 0)
+
+                topic_table.add_row(
+                    topic.replace("_", " ").title(),
+                    f"{relevance:.3f}",
+                    f"{quality:.3f}",
+                    str(count),
+                )
+
+            console.print(topic_table)
+
+        # Language performance if tested
+        if language_test and evaluation_results.get("language_performance"):
+            console.print(
+                "\n[bold yellow]Multilingual Performance[/bold yellow]"
+            )
+
+            lang_table = Table(title="Language Processing Performance")
+            lang_table.add_column("Language", style="cyan")
+            lang_table.add_column("Detection Accuracy", style="green")
+            lang_table.add_column("Translation Quality", style="blue")
+            lang_table.add_column("Response Relevance", style="magenta")
+
+            lang_performance = evaluation_results["language_performance"]
+            for language, metrics in lang_performance.items():
+                detection = metrics.get("detection_accuracy", 0)
+                translation = metrics.get("translation_quality", 0)
+                relevance = metrics.get("response_relevance", 0)
+
+                lang_table.add_row(
+                    language.title(),
+                    f"{detection:.3f}",
+                    f"{translation:.3f}",
+                    f"{relevance:.3f}",
+                )
+
+            console.print(lang_table)
+
+        # Quality insights
+        quality_insights = evaluation_results.get("quality_insights", {})
+        if quality_insights:
+            console.print("\n[bold blue]Quality Analysis Insights[/bold blue]")
+
+            strengths = quality_insights.get("strengths", [])
+            if strengths:
+                console.print("[green]Strengths:[/green]")
+                for strength in strengths[:5]:
+                    console.print(f"  ✓ {strength}")
+
+            improvements = quality_insights.get("improvement_areas", [])
+            if improvements:
+                console.print("\n[yellow]Areas for Improvement:[/yellow]")
+                for improvement in improvements[:5]:
+                    console.print(f"  • {improvement}")
+
+            recommendations = quality_insights.get("recommendations", [])
+            if recommendations:
+                console.print("\n[blue]Recommendations:[/blue]")
+                for recommendation in recommendations[:3]:
+                    console.print(f"  → {recommendation}")
+
+        # Detailed query results if requested
+        if show_details and evaluation_results.get("detailed_results"):
+            console.print("\n[bold cyan]Detailed Query Results[/bold cyan]")
+
+            detailed_results = evaluation_results["detailed_results"]
+            for i, result in enumerate(
+                detailed_results[:10], 1
+            ):  # Show first 10
+                query = result.get("query", "")
+                intent_predicted = result.get("predicted_intent", "")
+                intent_actual = result.get("actual_intent", "")
+                confidence = result.get("confidence", 0)
+                response_quality = result.get("response_quality_score", 0)
+
+                console.print(f"\n[bold]{i}. Query:[/bold] {query}")
+                console.print(
+                    f"   Intent: {intent_predicted} (confidence: {confidence:.3f})"
+                )
+                console.print(f"   Quality Score: {response_quality:.3f}")
+
+                if intent_predicted != intent_actual:
+                    console.print(f"   [red]Expected: {intent_actual}[/red]")
+
+        # Settlement-specific metrics
+        settlement_metrics = evaluation_results.get("settlement_metrics", {})
+        if settlement_metrics:
+            console.print(
+                "\n[bold green]Settlement-Specific Metrics[/bold green]"
+            )
+
+            settlement_table = Table(title="Nairobi Settlement Optimization")
+            settlement_table.add_column("Metric", style="cyan")
+            settlement_table.add_column("Score", style="green")
+            settlement_table.add_column("Description", style="dim")
+
+            location_accuracy = settlement_metrics.get("location_accuracy", 0)
+            cultural_sensitivity = settlement_metrics.get(
+                "cultural_sensitivity", 0
+            )
+            practical_utility = settlement_metrics.get("practical_utility", 0)
+            local_context = settlement_metrics.get("local_context_score", 0)
+
+            settlement_table.add_row(
+                "Location Accuracy",
+                f"{location_accuracy:.3f}",
+                "Accuracy of Nairobi location references",
+            )
+
+            settlement_table.add_row(
+                "Cultural Sensitivity",
+                f"{cultural_sensitivity:.3f}",
+                "Cultural awareness in responses",
+            )
+
+            settlement_table.add_row(
+                "Practical Utility",
+                f"{practical_utility:.3f}",
+                "Actionable settlement advice quality",
+            )
+
+            settlement_table.add_row(
+                "Local Context",
+                f"{local_context:.3f}",
+                "Kenya-specific context integration",
+            )
+
+            console.print(settlement_table)
+
+        # Save detailed results if requested
+        if output_file:
+            console.print(
+                f"\n[dim]Saving detailed results to: {output_file}[/dim]"
+            )
+
+            output_path = Path(output_file)
+
+            # Prepare comprehensive output
+            detailed_output = {
+                "evaluation_metadata": {
+                    "timestamp": datetime.now().isoformat(),
+                    "focus_area": focus_area,
+                    "num_queries": num_queries,
+                    "confidence_threshold": confidence_threshold,
+                    "settlement_only": settlement_only,
+                    "language_test": language_test,
+                },
+                "performance_summary": {
+                    "overall_score": overall_score,
+                    "intent_accuracy": intent_accuracy,
+                    "response_relevance": response_relevance,
+                    "settlement_optimization": settlement_optimization,
+                    "avg_response_time": response_time_avg,
+                },
+                "detailed_results": evaluation_results,
+            }
+
+            if output_path.suffix.lower() == ".json":
+                with open(output_path, "w", encoding="utf-8") as f:
+                    json.dump(detailed_output, f, indent=2, ensure_ascii=False)
+            else:
+                # Save as readable text report
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write("SettleBot Evaluation Report\n")
+                    f.write("=" * 50 + "\n\n")
+                    f.write(
+                        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                    )
+                    f.write(f"Focus Area: {focus_area or 'All'}\n")
+                    f.write(f"Queries Evaluated: {num_queries}\n\n")
+
+                    f.write("Performance Summary:\n")
+                    f.write(f"- Overall Score: {overall_score:.3f}\n")
+                    f.write(f"- Intent Accuracy: {intent_accuracy:.3f}\n")
+                    f.write(f"- Response Relevance: {response_relevance:.3f}\n")
+                    f.write(
+                        f"- Settlement Optimization: {settlement_optimization:.3f}\n"
+                    )
+                    f.write(
+                        f"- Average Response Time: {response_time_avg:.2f}s\n\n"
+                    )
+
+                    if quality_insights:
+                        f.write("Quality Insights:\n")
+                        if strengths:
+                            f.write("Strengths:\n")
+                            for strength in strengths:
+                                f.write(f"  - {strength}\n")
+                        if improvements:
+                            f.write("Areas for Improvement:\n")
+                            for improvement in improvements:
+                                f.write(f"  - {improvement}\n")
+
+            console.print("[green]Results saved successfully![/green]")
+
+        # Final assessment and recommendations
+        console.print("\n[bold blue]Final Assessment[/bold blue]")
+
+        if overall_score >= 0.9:
+            console.print(
+                "[bold green]Excellent performance! SettleBot is providing high-quality settlement assistance.[/bold green]"
+            )
+        elif overall_score >= 0.8:
+            console.print(
+                "[bold yellow]Good performance with room for improvement in some areas.[/bold yellow]"
+            )
+        elif overall_score >= 0.7:
+            console.print(
+                "[bold orange]Moderate performance. Consider optimization and additional training.[/bold orange]"
+            )
+        else:
+            console.print(
+                "[bold red]Performance below expectations. Significant improvements needed.[/bold red]"
+            )
+
+        # Specific recommendations based on results
+        console.print("\n[bold cyan]Recommendations:[/bold cyan]")
+
+        if intent_accuracy < 0.8:
+            console.print("  • Consider rebuilding intent recognition cache")
+            console.print("  • Review and expand intent training examples")
+
+        if response_relevance < 0.8:
+            console.print(
+                "  • Add more settlement-specific documents to knowledge base"
+            )
+            console.print("  • Review document settlement scoring criteria")
+
+        if response_time_avg > 3:
+            console.print("  • Optimize vector database performance")
+            console.print("  • Consider reducing context retrieval size")
+
+        if settlement_optimization < 0.8:
+            console.print(
+                "  • Enhance Nairobi-specific content in knowledge base"
+            )
+            console.print("  • Review settlement scoring algorithms")
+
+        console.print("\n[dim]Evaluation completed successfully![/dim]")
+        console.print(
+            "Use '--details' flag for comprehensive query-by-query analysis"
+        )
+        console.print("Use '--output filename.json' to save full results")
+
+    except Exception as e:
+        console.print(f"[bold red]Evaluation error:[/bold red] {str(e)}")
+        import traceback
+
+        console.print(f"[dim]Traceback: {traceback.format_exc()}[/dim]")
+
+
+@app.command()
+def create_test_set(
+    output_file: str = typer.Option(
+        "settlement_test_queries.txt",
+        "--output",
+        "-o",
+        help="Output file for test queries",
+    ),
+    include_multilingual: bool = typer.Option(
+        True, "--multilingual", "-m", help="Include multilingual test queries"
+    ),
+    focus_areas: str = typer.Option(
+        "all", "--focus", "-f", help="Comma-separated focus areas or 'all'"
+    ),
+):
+    """Create a comprehensive test set for SettleBot evaluation."""
+    console.print("[bold blue]Creating SettleBot Test Set[/bold blue]")
+    console.print(
+        "Generating comprehensive settlement assistance test queries\n"
+    )
+
+    try:
+        # Make API call to create test set
+        import requests
+
+        api_config = {
+            "url": os.getenv("SETTLEBOT_API_URL", "http://localhost:8000"),
+            "key": os.getenv("SETTLEBOT_API_KEY", ""),
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_config['key']}"
+            if api_config["key"]
+            else "",
+        }
+
+        # Get test set from API
+        response = requests.get(
+            f"{api_config['url']}/evaluation/create-test-set",
+            headers=headers,
+            timeout=60,
+        )
+
+        if response.status_code != 200:
+            console.print(
+                f"[bold red]API error:[/bold red] {response.status_code}"
+            )
+            console.print(f"Response: {response.text[:200]}")
+            return
+
+        test_data = response.json()
+
+        # Process and save test queries
+        output_path = Path(output_file)
+
+        console.print(f"Saving test queries to: [cyan]{output_path}[/cyan]")
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write("# SettleBot Settlement Assistance Test Queries\n")
+            f.write(
+                f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
+            f.write("# Format: Each line is a test query\n")
+            f.write("# Lines starting with # are comments\n\n")
+
+            # Organize queries by category
+            categories = test_data.get("categories", {})
+
+            for category, queries in categories.items():
+                f.write(f"\n# {category.upper()} QUERIES\n")
+                f.write(f"# {'-' * (len(category) + 8)}\n")
+
+                for query in queries:
+                    f.write(f"{query['text']}\n")
+
+        # Display summary
+        total_queries = sum(len(queries) for queries in categories.values())
+
+        summary_table = Table(title="Test Set Creation Summary")
+        summary_table.add_column("Category", style="cyan")
+        summary_table.add_column("Query Count", style="green")
+        summary_table.add_column("Sample Query", style="dim")
+
+        for category, queries in categories.items():
+            sample_query = (
+                queries[0]["text"][:50] + "..." if queries else "No queries"
+            )
+            summary_table.add_row(
+                category.replace("_", " ").title(),
+                str(len(queries)),
+                sample_query,
+            )
+
+        console.print(summary_table)
+
+        console.print(
+            "\n[bold green]Test set created successfully![/bold green]"
+        )
+        console.print(f"Total queries: {total_queries}")
+        console.print(f"File location: {output_path.absolute()}")
+        console.print(
+            f"\n[dim]Use this test set with: settlebot evaluate --queries-file {output_file}[/dim]"
+        )
+
+    except Exception as e:
+        console.print(f"[bold red]Error creating test set:[/bold red] {str(e)}")
+
+
+@app.command()
+def evaluation_status(
+    task_id: str = typer.Argument(..., help="Evaluation task ID to check")
+):
+    """Check the status of a running evaluation task."""
+    console.print(
+        f"Checking evaluation status: [bold blue]{task_id}[/bold blue]"
+    )
+
+    try:
+        import requests
+
+        api_config = {
+            "url": os.getenv("SETTLEBOT_API_URL", "http://localhost:8000"),
+            "key": os.getenv("SETTLEBOT_API_KEY", ""),
+        }
+
+        headers = {
+            "Authorization": f"Bearer {api_config['key']}"
+            if api_config["key"]
+            else ""
+        }
+
+        # Check task status
+        response = requests.get(
+            f"{api_config['url']}/evaluation/status/{task_id}",
+            headers=headers,
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            console.print(
+                f"[bold red]API error:[/bold red] {response.status_code}"
+            )
+            return
+
+        status_data = response.json()
+
+        # Display status
+        status_table = Table(title="Evaluation Task Status")
+        status_table.add_column("Property", style="cyan")
+        status_table.add_column("Value", style="green")
+
+        status_table.add_row("Task ID", task_id)
+        status_table.add_row("Status", status_data.get("status", "Unknown"))
+        status_table.add_row(
+            "Progress", f"{status_data.get('progress', 0):.1f}%"
+        )
+        status_table.add_row(
+            "Queries Processed", str(status_data.get("queries_processed", 0))
+        )
+        status_table.add_row(
+            "Total Queries", str(status_data.get("total_queries", 0))
+        )
+
+        if status_data.get("start_time"):
+            status_table.add_row("Started", status_data["start_time"])
+
+        if status_data.get("estimated_completion"):
+            status_table.add_row(
+                "Est. Completion", status_data["estimated_completion"]
+            )
+
+        console.print(status_table)
+
+        # Show current activity if available
+        if status_data.get("current_activity"):
+            console.print(
+                f"\n[dim]Current activity: {status_data['current_activity']}[/dim]"
+            )
+
+        # Show any errors
+        if status_data.get("errors"):
+            console.print(
+                f"\n[yellow]Errors encountered: {len(status_data['errors'])}[/yellow]"
+            )
+            for error in status_data["errors"][:3]:  # Show first 3 errors
+                console.print(f"  - {error}")
+
+    except Exception as e:
+        console.print(f"[bold red]Error checking status:[/bold red] {str(e)}")
+
+
+@app.command()
+def evaluation_summary():
+    """Get evaluation system summary and capabilities."""
+    console.print("[bold blue]SettleBot Evaluation System Summary[/bold blue]")
+
+    try:
+        import requests
+
+        api_config = {
+            "url": os.getenv("SETTLEBOT_API_URL", "http://localhost:8000"),
+            "key": os.getenv("SETTLEBOT_API_KEY", ""),
+        }
+
+        headers = {
+            "Authorization": f"Bearer {api_config['key']}"
+            if api_config["key"]
+            else ""
+        }
+
+        # Get evaluation summary
+        response = requests.get(
+            f"{api_config['url']}/evaluation/summary",
+            headers=headers,
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            console.print(
+                f"[bold red]API error:[/bold red] {response.status_code}"
+            )
+            return
+
+        summary_data = response.json()
+
+        # Evaluation capabilities
+        capabilities_table = Table(title="Evaluation Capabilities")
+        capabilities_table.add_column("Feature", style="cyan")
+        capabilities_table.add_column("Status", style="green")
+        capabilities_table.add_column("Description", style="dim")
+
+        capabilities = summary_data.get("capabilities", {})
+
+        for feature, info in capabilities.items():
+            status = "✓ Available" if info.get("available") else "✗ Unavailable"
+            status_style = "green" if info.get("available") else "red"
+
+            capabilities_table.add_row(
+                feature.replace("_", " ").title(),
+                f"[{status_style}]{status}[/{status_style}]",
+                info.get("description", ""),
+            )
+
+        console.print(capabilities_table)
+
+        # Evaluation metrics
+        metrics_info = summary_data.get("metrics", {})
+        if metrics_info:
+            console.print(
+                "\n[bold yellow]Available Evaluation Metrics[/bold yellow]"
+            )
+
+            for metric, description in metrics_info.items():
+                console.print(f"• [cyan]{metric}[/cyan]: {description}")
+
+        # Supported focus areas
+        focus_areas = summary_data.get("focus_areas", [])
+        if focus_areas:
+            console.print("\n[bold yellow]Supported Focus Areas[/bold yellow]")
+            console.print(", ".join(focus_areas))
+
+        # Usage examples
+        console.print("\n[bold cyan]Usage Examples[/bold cyan]")
+        examples = [
+            "settlebot evaluate --focus-area housing --num-queries 30",
+            "settlebot evaluate --queries-file custom_queries.txt --details",
+            "settlebot evaluate --interactive --language-test",
+            "settlebot create-test-set --output my_test_queries.txt",
+            "settlebot evaluate --settlement-only --output results.json",
+        ]
+
+        for example in examples:
+            console.print(f"  [dim]${example}[/dim]")
+
+    except Exception as e:
+        console.print(f"[bold red]Error getting summary:[/bold red] {str(e)}")
 
 
 if __name__ == "__main__":

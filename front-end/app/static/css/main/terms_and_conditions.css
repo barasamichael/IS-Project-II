@@ -1,0 +1,239 @@
+.terms-section {
+    padding: 5rem var(--container-padding);
+    background-color: var(--background);
+}
+
+.terms-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background-color: var(--primary);
+    border-radius: var(--border-radius-full);
+}
+
+.page-subtitle {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto;
+    margin-top: 2rem;
+}
+
+.last-updated {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    margin-top: 1rem;
+}
+
+.terms-card {
+    background-color: var(--surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.terms-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.terms-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 1.75rem 0 1rem;
+}
+
+.terms-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 1.25rem 0 0.75rem;
+}
+
+.terms-card p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+}
+
+.terms-card p:last-child {
+    margin-bottom: 0;
+}
+
+.terms-card strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.terms-card ul, .terms-card ol {
+    margin: 1rem 0 1.5rem;
+    padding-left: 2rem;
+}
+
+.terms-card li {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.terms-card li:last-child {
+    margin-bottom: 0;
+}
+
+.terms-card a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.terms-card a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.terms-toc {
+    background-color: var(--background);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+}
+
+.terms-toc h3 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.terms-toc ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.terms-toc li {
+    margin-bottom: 0.5rem;
+}
+
+.terms-toc a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+    font-size: 0.95rem;
+}
+
+.terms-toc a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.callout {
+    background-color: rgba(53, 99, 233, 0.05);
+    border-left: 4px solid var(--primary);
+    padding: 1.25rem;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    margin: 1.5rem 0;
+}
+
+.callout-warning {
+    background-color: rgba(245, 158, 11, 0.05);
+    border-left: 4px solid var(--warning);
+}
+
+.callout-info {
+    background-color: rgba(14, 165, 233, 0.05);
+    border-left: 4px solid var(--info);
+}
+
+.callout-danger {
+    background-color: rgba(239, 68, 68, 0.05);
+    border-left: 4px solid var(--error);
+}
+
+.callout p {
+    margin: 0;
+}
+
+.callout p + p {
+    margin-top: 1rem;
+}
+
+.contact-section {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.contact-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.contact-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.contact-email svg {
+    width: 20px;
+    height: 20px;
+}
+
+.contact-email:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .terms-section {
+        padding: 3rem var(--container-padding);
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .terms-card {
+        padding: 1.5rem;
+    }
+}
+
+.definition {
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    display: block;
+}

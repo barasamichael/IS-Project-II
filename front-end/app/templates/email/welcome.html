@@ -1,0 +1,43 @@
+{% extends "email/base.html" %}
+
+{% block title %}Welcome to StrathQuery!{% endblock %}
+
+{% block content %}
+<div class="message-title">Welcome to StrathQuery, {{ user.fullName }}!</div>
+<p class="message-text">Thank you for creating an account with us. We're excited to help you get quick, accurate answers to all your Strathmore University questions.</p>
+
+<div class="features">
+    <h2 class="feature-title">What You Can Do With StrathQuery</h2>
+    <ul class="feature-list">
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text"><strong>Ask Questions</strong> - Get instant answers about Strathmore University</div>
+        </li>
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text"><strong>Save Conversations</strong> - Revisit your previous chats anytime</div>
+        </li>
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text"><strong>24/7 Availability</strong> - Access information whenever you need it</div>
+        </li>
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text"><strong>Comprehensive Knowledge</strong> - From academic programs to campus resources</div>
+        </li>
+    </ul>
+</div>
+
+<p style="text-align: center; color: #4B5563;">Your account has been successfully created with the following details:</p>
+<div class="content-block">
+    <p style="margin: 5px 0;"><strong>Full Name:</strong> {{ user.fullName }}</p>
+    <p style="margin: 5px 0;"><strong>Username:</strong> {{ user.username }}</p>
+    <p style="margin: 5px 0;"><strong>Email:</strong> {{ user.emailAddress }}</p>
+</div>
+
+<p style="text-align: center; color: #4B5563;">Ready to get started? Visit your dashboard to begin asking questions and explore StrathQuery's features.</p>
+
+<a href="{{ url_for('accounts.user_conversations', _external=True) }}" class="cta-button">Start Chatting</a>
+
+<p style="text-align: center; color: #4B5563; font-size: 14px;">If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:benjamintait15@gmail.com" style="color: #3563E9; text-decoration: none;">benjamintait15@gmail.com</a>.</p>
+{% endblock %}

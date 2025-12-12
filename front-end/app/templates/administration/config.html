@@ -731,7 +731,7 @@
             <div class="settlement-grid">
                 {% for key, value in config.settlement_config.items() %}
                 <div class="settlement-metric">
-                    <div class="metric-value">{{ value }}</div>
+                    <div class="metric-value" style="font-size: 1rem !important;">{{ value }}</div>
                     <div class="metric-label">{{ key.replace('_', ' ').title() }}</div>
                     <div class="metric-description">
                         {% if 'nairobi' in key.lower() %}

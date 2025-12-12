@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}User Management - SettleBot Administration{% endblock %}
+{% block title %}User Management - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive user management interface for SettleBot settlement assistance platform with search, filtering, and bulk actions{% endblock %}
 
 {% block extra_css %}
+<style>
 .main-content {
     margin-top: 35px;
 }
@@ -43,24 +46,46 @@
 }
 
 .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     position: relative;
     z-index: 1;
 }
 
-.header-info h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--white);
+.breadcrumb {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
 }
 
-.header-subtitle {
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.users-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.users-subtitle {
     color: rgba(255, 255, 255, 0.9);
     font-size: 1.1rem;
     line-height: 1.5;
@@ -70,10 +95,9 @@
 .header-stats {
     display: flex;
     gap: 2rem;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stat-item {
@@ -81,7 +105,7 @@
 }
 
 .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
     color: var(--white);
@@ -93,8 +117,37 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
 /* Search and Filter Section */
-.search-section {
+.filter-section {
     background: var(--white);
     border-radius: 12px;
     padding: 2rem;
@@ -103,14 +156,14 @@
     border: 1px solid var(--gray-200);
 }
 
-.search-header {
+.filter-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: between;
     margin-bottom: 1.5rem;
 }
 
-.search-title {
+.filter-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--brown-900);
@@ -119,78 +172,119 @@
     gap: 0.75rem;
 }
 
-.search-form {
+.filter-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr auto;
-    gap: 1rem;
-    align-items: end;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.form-group {
-    margin-bottom: 0;
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.form-label {
-    display: block;
+.filter-label {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--gray-700);
-    margin-bottom: 0.5rem;
 }
 
-.form-input,
-.form-select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid var(--gray-300);
+.filter-input,
+.filter-select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
     border-radius: 8px;
     font-size: 0.9rem;
-    background: var(--white);
     transition: all 0.2s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
     outline: none;
 }
 
-.form-input:focus,
-.form-select:focus {
-    border-color: var(--brown-500);
-    box-shadow: 0 0 0 3px rgba(139, 95, 71, 0.1);
+.filter-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
 }
 
-.search-btn {
-    background: var(--brown-700);
-    color: var(--white);
+.btn-filter {
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
     font-weight: 600;
-    border: none;
-    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.btn-filter.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.btn-filter.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.btn-filter.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-filter.secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-900);
+}
+
+/* Applied Filters Display */
+.applied-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.filter-tag {
+    background: var(--brown-100);
+    color: var(--brown-800);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
-    height: fit-content;
 }
 
-.search-btn:hover {
-    background: var(--brown-900);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 95, 71, 0.3);
+.filter-tag .remove {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--brown-600);
+}
+
+.filter-tag .remove:hover {
+    color: var(--brown-900);
 }
 
 /* Bulk Actions */
 .bulk-actions {
-    background: linear-gradient(135deg, var(--orange-100) 0%, var(--orange-200) 100%);
-    border: 1px solid var(--orange-300);
+    background: var(--white);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem;
     margin-bottom: 2rem;
-    display: none;
-}
-
-.bulk-actions.show {
-    display: block;
-    animation: slideDown 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
 }
 
 .bulk-header {
@@ -203,49 +297,52 @@
 .bulk-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--orange-800);
+    color: var(--brown-900);
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 .selected-count {
-    background: var(--orange-600);
-    color: var(--white);
+    background: var(--brown-100);
+    color: var(--brown-800);
     padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    border-radius: 12px;
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .bulk-form {
     display: flex;
     gap: 1rem;
-    align-items: center;
+    align-items: end;
 }
 
-.bulk-select {
+.bulk-form select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
     min-width: 200px;
 }
 
-.bulk-btn {
-    background: var(--orange-600);
+.bulk-form button {
+    padding: 0.75rem 1.5rem;
+    background: var(--brown-700);
     color: var(--white);
-    padding: 0.75rem 1.25rem;
+    border: none;
     border-radius: 8px;
     font-weight: 600;
-    border: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.9rem;
 }
 
-.bulk-btn:hover {
-    background: var(--orange-700);
+.bulk-form button:hover {
+    background: var(--brown-900);
     transform: translateY(-1px);
 }
 
-.bulk-btn:disabled {
+.bulk-form button:disabled {
     background: var(--gray-400);
     cursor: not-allowed;
     transform: none;
@@ -258,27 +355,47 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--gray-200);
     overflow: hidden;
+    margin-bottom: 2rem;
 }
 
 .table-header {
     background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
     padding: 1.5rem;
     border-bottom: 1px solid var(--brown-300);
+    display: flex;
+    align-items: center;
+    justify-content: between;
 }
 
 .table-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--brown-900);
-    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-.table-subtitle {
-    color: var(--brown-700);
-    font-size: 0.9rem;
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-btn {
+    background: var(--brown-600);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.table-btn:hover {
+    background: var(--brown-700);
+    color: var(--white);
+    text-decoration: none;
 }
 
 .users-table {
@@ -286,54 +403,41 @@
     border-collapse: collapse;
 }
 
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+}
+
 .users-table th {
     background: var(--gray-50);
-    padding: 1rem 1.5rem;
-    text-align: left;
     font-weight: 600;
     color: var(--gray-700);
-    border-bottom: 1px solid var(--gray-200);
     font-size: 0.9rem;
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.users-table th.sortable {
-    cursor: pointer;
-    position: relative;
-    transition: background 0.2s ease;
+.users-table tbody tr {
+    transition: all 0.2s ease;
 }
 
-.users-table th.sortable:hover {
-    background: var(--gray-100);
-}
-
-.users-table th .sort-icon {
-    margin-left: 0.5rem;
-    opacity: 0.5;
-    font-size: 0.8rem;
-}
-
-.users-table th.sorted .sort-icon {
-    opacity: 1;
-    color: var(--brown-600);
-}
-
-.users-table td {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--gray-100);
-    vertical-align: middle;
-    font-size: 0.9rem;
-}
-
-.users-table tr:hover {
+.users-table tbody tr:hover {
     background: var(--brown-50);
 }
 
 .user-checkbox {
-    width: 18px;
-    height: 18px;
     accent-color: var(--brown-600);
-    cursor: pointer;
+    transform: scale(1.1);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gray-200);
 }
 
 .user-info {
@@ -342,79 +446,63 @@
     gap: 1rem;
 }
 
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--brown-100);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: var(--brown-700);
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
-
 .user-details {
     min-width: 0;
-    flex: 1;
 }
 
 .user-name {
     font-weight: 600;
     color: var(--gray-900);
     margin-bottom: 0.25rem;
-}
-
-.user-username {
-    color: var(--gray-600);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .user-email {
     color: var(--gray-600);
+    font-size: 0.8rem;
+}
+
+.user-meta {
     font-size: 0.85rem;
-    word-break: break-word;
+    color: var(--gray-600);
+    line-height: 1.4;
 }
 
 .role-badge {
     padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    border-radius: 12px;
     font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.role-badge.student {
-    background: var(--orange-100);
-    color: var(--orange-800);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .role-badge.admin {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #dc2626;
+    color: var(--white);
 }
 
-.role-badge.developer {
-    background: #f0f9ff;
-    color: #0369a1;
+.role-badge.student {
+    background: var(--brown-600);
+    color: var(--white);
 }
 
 .role-badge.moderator {
-    background: #f0fdf4;
-    color: #166534;
+    background: var(--orange-600);
+    color: var(--white);
+}
+
+.role-badge.developer {
+    background: #059669;
+    color: var(--white);
 }
 
 .status-badge {
     padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    border-radius: 12px;
     font-size: 0.75rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    width: fit-content;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 .status-badge.active {
@@ -427,26 +515,25 @@
     color: var(--white);
 }
 
-.status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.data-usage {
+.data-consent {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.85rem;
+    gap: 0.5rem;
+    font-size: 0.8rem;
 }
 
-.data-usage.allowed {
-    color: var(--success);
+.consent-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
 }
 
-.data-usage.restricted {
-    color: var(--error);
+.consent-icon.granted {
+    background: var(--success);
+}
+
+.consent-icon.denied {
+    background: var(--error);
 }
 
 .user-actions {
@@ -455,59 +542,43 @@
 }
 
 .action-btn {
-    width: 32px;
-    height: 32px;
+    padding: 0.5rem;
     border-radius: 6px;
-    border: none;
-    cursor: pointer;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    text-decoration: none;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    width: 32px;
+    height: 32px;
+}
+
+.action-btn:hover {
+    background: var(--brown-100);
+    color: var(--brown-700);
     text-decoration: none;
-    color: inherit;
 }
 
 .action-btn.view {
     background: var(--brown-100);
-    color: var(--brown-700);
-}
-
-.action-btn.view:hover {
-    background: var(--brown-200);
-    color: var(--brown-900);
-    text-decoration: none;
+    color: var(--brown-600);
 }
 
 .action-btn.edit {
     background: var(--orange-100);
-    color: var(--orange-700);
-}
-
-.action-btn.edit:hover {
-    background: var(--orange-200);
-    color: var(--orange-900);
-}
-
-.action-btn.delete {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.action-btn.delete:hover {
-    background: #fecaca;
-    color: #b91c1c;
+    color: var(--orange-600);
 }
 
 /* Pagination */
 .pagination-section {
-    background: var(--white);
-    padding: 1.5rem;
-    border-top: 1px solid var(--gray-200);
     display: flex;
-    align-items: center;
     justify-content: between;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
 }
 
 .pagination-info {
@@ -515,118 +586,103 @@
     font-size: 0.9rem;
 }
 
-.pagination-controls {
+.pagination {
     display: flex;
-    gap: 0.5rem;
-    margin-left: auto;
+    gap: 0.25rem;
+    align-items: center;
 }
 
-.page-btn {
+.pagination a,
+.pagination span {
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--gray-300);
-    background: var(--white);
-    color: var(--gray-700);
     border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    text-decoration: none;
     font-size: 0.9rem;
-    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 36px;
+    text-align: center;
 }
 
-.page-btn:hover {
-    background: var(--brown-50);
-    border-color: var(--brown-300);
+.pagination a {
+    background: var(--white);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+}
+
+.pagination a:hover {
+    background: var(--brown-100);
     color: var(--brown-700);
+    border-color: var(--brown-300);
     text-decoration: none;
 }
 
-.page-btn.active {
+.pagination .current {
     background: var(--brown-600);
-    border-color: var(--brown-600);
     color: var(--white);
+    border: 1px solid var(--brown-600);
+    font-weight: 600;
 }
 
-.page-btn:disabled {
+.pagination .disabled {
     background: var(--gray-100);
     color: var(--gray-400);
+    border: 1px solid var(--gray-200);
     cursor: not-allowed;
-    border-color: var(--gray-200);
 }
 
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--gray-600);
-}
-
-.empty-icon {
-    font-size: 4rem;
-    color: var(--gray-400);
-    margin-bottom: 1.5rem;
-    opacity: 0.6;
-}
-
-.empty-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    margin-bottom: 1rem;
-}
-
-.empty-description {
-    font-size: 1rem;
-    line-height: 1.6;
+/* Statistics Cards */
+.stats-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
     margin-bottom: 2rem;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
 }
 
-/* Loading States */
-.loading-row {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 4px;
-    height: 20px;
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
 }
 
-.loading-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
 }
 
-/* Animations */
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+.stat-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-    .search-form {
-        grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+    .filter-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
     }
 
-    .search-btn {
-        justify-content: center;
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
 }
 
@@ -644,30 +700,49 @@
         margin-bottom: 1.5rem;
     }
 
-    .header-content {
+    .header-main {
         flex-direction: column;
-        text-align: center;
         gap: 1.5rem;
     }
 
-    .header-info h1 {
-        font-size: 2rem;
+    .users-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
         justify-content: center;
     }
 
     .header-stats {
-        justify-content: center;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 1rem;
     }
 
-    .search-section,
-    .users-table-section {
-        margin-bottom: 1rem;
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .bulk-form {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .bulk-form select {
+        min-width: 100%;
     }
 
     .users-table {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .users-table th,
@@ -675,29 +750,13 @@
         padding: 0.75rem 0.5rem;
     }
 
-    .user-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .user-actions {
-        flex-direction: column;
-    }
-
-    .bulk-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
     .pagination-section {
         flex-direction: column;
         gap: 1rem;
     }
 
-    .pagination-controls {
-        margin-left: 0;
-        justify-content: center;
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -706,537 +765,528 @@
         padding: 1.5rem 1rem;
     }
 
-    .search-section,
-    .users-table-section {
-        padding: 1rem;
+    .filter-section,
+    .bulk-actions,
+    .stats-section {
+        padding: 1.5rem;
     }
 
-    .users-table-section {
-        overflow-x: auto;
+    .users-table th,
+    .users-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
     }
 
-    .users-table {
-        min-width: 600px;
-    }
-
-    .header-stats {
+    .user-info {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
-{% endblock extra_css %}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-1">User Management</h4>
-                            <p class="text-muted mb-0">Manage system users and their access</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <span class="badge bg-primary fs-6">{{ total_users }} Total Users</span>
-                            <span class="badge bg-success fs-6">{{ active_users }} Active</span>
-                        </div>
-                    </div>
+<div class="users-layout">
+    <div class="users-container">
+        <!-- Users Header -->
+        <header class="users-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>User Management</span>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="text-primary">{{ total_users }}</h5>
-                    <p class="mb-0">Total Users</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="text-success">{{ active_users }}</h5>
-                    <p class="mb-0">Active Users</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="text-warning">{{ total_users - active_users }}</h5>
-                    <p class="mb-0">Inactive Users</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="text-info">{{ role_stats.get('student', 0) }}</h5>
-                    <p class="mb-0">Students</p>
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="header-main">
+                    <div class="users-info">
+                        <h1>User Management</h1>
+                        <p class="users-subtitle">
+                            Comprehensive user account management for SettleBot settlement assistance platform. 
+                            Monitor user engagement, manage roles, and track settlement assistance activity.
+                        </p>
 
-    <!-- Search and Filter Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">Search & Filter Users</h6>
-                </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('administration.users') }}">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                {{ form.search_query.label(class="form-label") }}
-                                {{ form.search_query(class="form-control", value=search_query) }}
+                        <div class="header-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: white !important;">{{ "{:,}".format(total_users) }}</div>
+                                <div class="stat-label"  style="color: white !important;">Total Users</div>
                             </div>
-                            <div class="col-md-2">
-                                {{ form.role_filter.label(class="form-label") }}
-                                {{ form.role_filter(class="form-select") }}
+                            <div class="stat-item">
+                                <div class="stat-value"  style="color: white !important;">{{ "{:,}".format(active_users) }}</div>
+                                <div class="stat-label" style="color: white !important;">Active Users</div>
                             </div>
-                            <div class="col-md-2">
-                                {{ form.status_filter.label(class="form-label") }}
-                                {{ form.status_filter(class="form-select") }}
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: white !important;">{{ role_stats.get('student', 0) }}</div>
+                                <div class="stat-label" style="color: white !important;">Students</div>
                             </div>
-                            <div class="col-md-2">
-                                {{ form.data_usage_filter.label(class="form-label") }}
-                                {{ form.data_usage_filter(class="form-select") }}
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                {{ form.submit(class="btn btn-primary w-100") }}
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: white !important;">{{ role_stats.get('admin', 0) + role_stats.get('moderator', 0) }}</div>
+                                <div class="stat-label" style="color: white !important;">Staff</div>
                             </div>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+                    </div>
 
-    <!-- Role Distribution -->
-    {% if role_stats %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">Role Distribution</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for role, count in role_stats.items() %}
-                        <div class="col-md-2 col-sm-4">
-                            <div class="text-center p-3 border rounded">
-                                <h5 class="mb-1">{{ count }}</h5>
-                                <small class="text-muted text-capitalize">{{ role.replace('_', ' ') }}</small>
-                            </div>
-                        </div>
-                        {% endfor %}
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.analytics') }}" class="action-btn-header">
+                            <i class="fas fa-chart-bar"></i>
+                            User Analytics
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
+        </header>
 
-    <!-- Bulk Actions Section -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span id="selected-count" class="text-muted">0 users selected</span>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllUsers()">
-                                Select All
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
-                                Clear Selection
-                            </button>
-                            <button type="button" class="btn btn-warning btn-sm" onclick="showBulkActionModal()" disabled id="bulk-action-btn">
-                                Bulk Actions
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <!-- Search and Filter Section -->
+        <section class="filter-section">
+            <div class="filter-header">
+                <h2 class="filter-title">
+                    <i class="fas fa-search"></i>
+                    Search and Filter Users
+                </h2>
             </div>
-        </div>
-    </div>
 
-    <!-- Users Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">Users List</h6>
-                </div>
-                <div class="card-body p-0">
-                    {% if users %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="40">
-                                        <input type="checkbox" class="form-check-input" id="select-all" onchange="toggleAllUsers()">
-                                    </th>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Registered</th>
-                                    <th>Last Login</th>
-                                    <th>Data Consent</th>
-                                    <th width="120">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" class="form-check-input user-checkbox" 
-                                               value="{{ user.userId }}" onchange="updateSelection()">
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark">{{ user.userId }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <img src="{{ user.getGravatar(size=32) }}" 
-                                                 class="rounded-circle me-2" 
-                                                 width="32" height="32" 
-                                                 alt="Avatar">
-                                            <strong>{{ user.fullName }}</strong>
-                                        </div>
-                                    </td>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.emailAddress }}</td>
-                                    <td>
-                                        {% set role_colors = {
-                                            'admin': 'bg-danger',
-                                            'developer': 'bg-purple',
-                                            'moderator': 'bg-warning',
-                                            'student': 'bg-primary'
-                                        } %}
-                                        <span class="badge {{ role_colors.get(user.role, 'bg-secondary') }}">
-                                            {{ user.role.title() }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if user.isActive %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            {{ user.dateCreated.strftime('%Y-%m-%d') if user.dateCreated else 'Unknown' }}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">
-                                            {% if user.lastLogin %}
-                                                {{ user.lastLogin.strftime('%Y-%m-%d %H:%M') }}
-                                            {% else %}
-                                                Never
-                                            {% endif %}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        {% if user.allowDataUsage %}
-                                            <i class="fas fa-check-circle text-success" title="Consented"></i>
-                                        {% else %}
-                                            <i class="fas fa-times-circle text-danger" title="Not Consented"></i>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('administration.user_details', user_id=user.userId) }}" 
-                                               class="btn btn-outline-primary btn-sm" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm" 
-                                                    onclick="showUserModal({{ user.userId }}, '{{ user.fullName }}', '{{ user.isActive }}')"
-                                                    title="Quick Actions">
-                                                <i class="fas fa-cog"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <form method="GET" action="{{ url_for('administration.users') }}">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.search_query.label }}</label>
+                        {{ form.search_query(class="filter-input", value=search_query) }}
                     </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No Users Found</h5>
-                        <p class="text-muted">No users match your current search criteria.</p>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.role_filter.label }}</label>
+                        {{ form.role_filter(class="filter-select") }}
                     </div>
-                    {% endif %}
-                </div>
-
-                <!-- Pagination -->
-                {% if pagination.pages > 1 %}
-                <div class="card-footer">
-                    <nav aria-label="Users pagination">
-                        <ul class="pagination pagination-sm justify-content-center mb-0">
-                            {% if pagination.has_prev %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('administration.users', page=pagination.prev_num, 
-                                        search_query=search_query, role_filter=role_filter, 
-                                        status_filter=status_filter, data_usage_filter=data_usage_filter) }}">
-                                        Previous
-                                    </a>
-                                </li>
-                            {% endif %}
-
-                            {% for page_num in pagination.iter_pages() %}
-                                {% if page_num %}
-                                    {% if page_num != pagination.page %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('administration.users', page=page_num,
-                                                search_query=search_query, role_filter=role_filter,
-                                                status_filter=status_filter, data_usage_filter=data_usage_filter) }}">
-                                                {{ page_num }}
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li class="page-item active">
-                                            <span class="page-link">{{ page_num }}</span>
-                                        </li>
-                                    {% endif %}
-                                {% else %}
-                                    <li class="page-item disabled">
-                                        <span class="page-link">...</span>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if pagination.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('administration.users', page=pagination.next_num,
-                                        search_query=search_query, role_filter=role_filter,
-                                        status_filter=status_filter, data_usage_filter=data_usage_filter) }}">
-                                        Next
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-
-                    <div class="text-center mt-2">
-                        <small class="text-muted">
-                            Showing {{ pagination.per_page * (pagination.page - 1) + 1 }} to 
-                            {{ pagination.per_page * pagination.page if pagination.page < pagination.pages else pagination.total }} 
-                            of {{ pagination.total }} users
-                        </small>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.status_filter.label }}</label>
+                        {{ form.status_filter(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.data_usage_filter.label }}</label>
+                        {{ form.data_usage_filter(class="filter-select") }}
                     </div>
                 </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Bulk Actions Modal -->
-<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-labelledby="bulkActionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('administration.user_bulk_action') }}" id="bulk-action-form">
-                {{ bulk_form.hidden_tag() }}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bulkActionModalLabel">Bulk User Actions</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        You are about to perform a bulk action on <strong id="modal-selected-count">0</strong> users.
-                        This action cannot be undone.
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ bulk_form.action.label(class="form-label") }}
-                        {{ bulk_form.action(class="form-select") }}
-                    </div>
-                    
-                    {{ bulk_form.selected_users(id="modal-selected-users") }}
-                    
-                    <div class="mb-3">
-                        <strong>Selected Users:</strong>
-                        <div id="selected-users-preview" class="mt-2 p-2 bg-light rounded">
-                            <!-- Users will be listed here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    {{ bulk_form.submit(class="btn btn-warning", onclick="return confirm('Are you sure you want to execute this bulk action?')") }}
+                <div class="filter-actions">
+                    {{ form.submit(class="btn-filter primary") }}
+                    <a href="{{ url_for('administration.users') }}" class="btn-filter secondary">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </a>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
 
-<!-- Quick User Actions Modal -->
-<div class="modal fade" id="userActionModal" tabindex="-1" aria-labelledby="userActionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="userActionModalLabel">User Actions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <!-- Applied Filters -->
+            {% if search_query or role_filter or status_filter or data_usage_filter %}
+            <div class="applied-filters">
+                {% if search_query %}
+                <span class="filter-tag">
+                    Search: "{{ search_query }}"
+                    <span class="remove" onclick="removeFilter('search_query')">&times;</span>
+                </span>
+                {% endif %}
+                {% if role_filter %}
+                <span class="filter-tag">
+                    Role: {{ role_filter.title() }}
+                    <span class="remove" onclick="removeFilter('role_filter')">&times;</span>
+                </span>
+                {% endif %}
+                {% if status_filter %}
+                <span class="filter-tag">
+                    Status: {{ status_filter.title() }}
+                    <span class="remove" onclick="removeFilter('status_filter')">&times;</span>
+                </span>
+                {% endif %}
+                {% if data_usage_filter %}
+                <span class="filter-tag">
+                    Data Consent: {{ 'Granted' if data_usage_filter == 'true' else 'Not Granted' }}
+                    <span class="remove" onclick="removeFilter('data_usage_filter')">&times;</span>
+                </span>
+                {% endif %}
             </div>
-            <div class="modal-body">
-                <div class="d-flex align-items-center mb-3">
-                    <img id="modal-user-avatar" src="" class="rounded-circle me-3" width="48" height="48" alt="Avatar">
-                    <div>
-                        <h6 class="mb-1" id="modal-user-name">User Name</h6>
-                        <small class="text-muted">User ID: <span id="modal-user-id"></span></small>
+            {% endif %}
+        </section>
+
+        <!-- User Statistics -->
+        <section class="stats-section">
+            <h2 class="filter-title">
+                <i class="fas fa-chart-pie"></i>
+                User Statistics Overview
+            </h2>
+
+            <div class="stats-grid">
+                {% for role, count in role_stats.items() %}
+                <div class="stat-card">
+                    <div class="stat-value">{{ count }}</div>
+                    <div class="stat-label">{{ role.title() }} Users</div>
+                </div>
+                {% endfor %}
+                <div class="stat-card">
+                    <div class="stat-value">{{ "%.1f"|format((active_users / total_users * 100) if total_users > 0 else 0) }}%</div>
+                    <div class="stat-label">Active Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bulk Actions -->
+        <section class="bulk-actions">
+            <div class="bulk-header">
+                <h3 class="bulk-title">
+                    <i class="fas fa-tasks"></i>
+                    Bulk Actions
+                </h3>
+                <span class="selected-count" id="selectedCount">0 users selected</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('administration.user_bulk_action') }}" id="bulkForm">
+                {{ bulk_form.hidden_tag() }}
+                {{ bulk_form.selected_users(style="display:none;") }}
+                
+                <div class="bulk-form">
+                    {{ bulk_form.action(id="bulkAction", disabled=True) }}
+                    {{ bulk_form.submit(id="bulkSubmit", disabled=True) }}
+                </div>
+            </form>
+        </section>
+
+        <!-- Users Table -->
+        <section class="users-table-section">
+            <div class="table-header">
+                <h3 class="table-title">
+                    <i class="fas fa-users"></i>
+                    Users List ({{ pagination.total }} total)
+                </h3>
+                <div class="table-actions">
+                    <a href="{{ url_for('administration.users') }}?export=csv" class="table-btn">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </a>
+                </div>
+            </div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll" class="user-checkbox">
+                        </th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Data Consent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="user-checkbox user-select" value="{{ user.userId }}" data-user-id="{{ user.userId }}">
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <img src="{{ user.getGravatar(size=40) }}" alt="{{ user.fullName }}" class="user-avatar">
+                                <div class="user-details">
+                                    <div class="user-name">{{ user.fullName or 'Unknown User' }}</div>
+                                    <div class="user-email">{{ user.emailAddress }}</div>
+                                    <div class="user-meta">@{{ user.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="role-badge {{ user.role }}">{{ user.role }}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge {% if user.isActive %}active{% else %}inactive{% endif %}">
+                                {% if user.isActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="user-meta">{{ user.dateCreated.strftime('%m/%d/%y') if user.dateCreated else '--' }}</div>
+                        </td>
+                        <td>
+                            <div class="user-meta">
+                                {% if user.lastLogin %}
+                                    {{ user.lastLogin.strftime('%m/%d/%y') }}
+                                {% else %}
+                                    Online
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="data-consent">
+                                <div class="consent-icon {% if user.allowDataUsage %}granted{% else %}denied{% endif %}"></div>
+                                {% if user.allowDataUsage %}Granted{% else %}Not Granted{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-actions">
+                                <a href="{{ url_for('administration.user_details', user_id=user.userId) }}" class="action-btn view" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('administration.users') }}?search_query={{ user.username }}" class="action-btn edit" title="Search User">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination-section">
+                <div class="pagination-info">
+                    Showing {{ pagination.per_page * (pagination.page - 1) + 1 }} to {{ pagination.per_page * (pagination.page - 1) + users|length }} of {{ pagination.total }} users
+                </div>
+                <div class="pagination">
+                    {% if pagination.has_prev %}
+                        <a href="{{ url_for('administration.users', page=pagination.prev_num, search_query=search_query, role_filter=role_filter, status_filter=status_filter, data_usage_filter=data_usage_filter) }}">&laquo; Prev</a>
+                    {% else %}
+                        <span class="disabled">&laquo; Prev</span>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                                <a href="{{ url_for('administration.users', page=page_num, search_query=search_query, role_filter=role_filter, status_filter=status_filter, data_usage_filter=data_usage_filter) }}">{{ page_num }}</a>
+                            {% else %}
+                                <span class="current">{{ page_num }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span>…</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                        <a href="{{ url_for('administration.users', page=pagination.next_num, search_query=search_query, role_filter=role_filter, status_filter=status_filter, data_usage_filter=data_usage_filter) }}">Next &raquo;</a>
+                    {% else %}
+                        <span class="disabled">Next &raquo;</span>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- User Insights -->
+        <section class="stats-section">
+            <h2 class="filter-title">
+                <i class="fas fa-lightbulb"></i>
+                User Engagement Insights
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ "%.1f"|format((active_users / total_users * 100) if total_users > 0 else 0) }}%</div>
+                    <div class="stat-label">User Activity Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ users|selectattr('allowDataUsage')|list|length }}</div>
+                    <div class="stat-label">Data Consent Given</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ users|selectattr('lastLogin')|list|length }}</div>
+                    <div class="stat-label">Users with Login History</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ (users|selectattr('allowDataUsage')|list|length / total_users * 100)|round if total_users > 0 else 0 }}%</div>
+                    <div class="stat-label">Data Consent Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent User Activity -->
+        <section class="filter-section">
+            <h2 class="filter-title">
+                <i class="fas fa-clock"></i>
+                Recent User Activity
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ users|selectattr('role', 'equalto', 'student')|list|length }}</div>
+                    <div class="stat-label">Student Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ users|selectattr('role', 'in', ['admin', 'moderator', 'developer'])|list|length }}</div>
+                    <div class="stat-label">Administrative Users</div>
+                </div>
+            </div>
+
+            <div style="background: var(--brown-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--brown-200); margin-top: 1.5rem;">
+                <h4 style="color: var(--brown-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-info-circle"></i>
+                    User Management Summary
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Total Registered Users:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">{{ "{:,}".format(total_users) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Currently Active Users:</span>
+                        <span style="color: var(--success); font-weight: 600;">{{ "{:,}".format(active_users) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Settlement Students:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">{{ role_stats.get('student', 0) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Data Usage Consent Rate:</span>
+                        <span style="color: {% if (users|selectattr('allowDataUsage')|list|length / total_users * 100)|round >= 70 %}var(--success){% else %}var(--warning){% endif %}; font-weight: 600;">
+                            {{ (users|selectattr('allowDataUsage')|list|length / total_users * 100)|round if total_users > 0 else 0 }}%
+                        </span>
                     </div>
                 </div>
-                
-                <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-primary" id="modal-view-details">
-                        <i class="fas fa-eye me-2"></i> View Full Details
-                    </a>
-                    <button type="button" class="btn btn-outline-warning" id="modal-toggle-status">
-                        <i class="fas fa-user-slash me-2"></i> Toggle Status
-                    </button>
-                    <button type="button" class="btn btn-outline-info" id="modal-send-email">
-                        <i class="fas fa-envelope me-2"></i> Send Email
-                    </button>
-                </div>
             </div>
-        </div>
+        </section>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-let selectedUsers = new Set();
+    // Remove filter functionality
+    function removeFilter(filterType) {
+        const url = new URL(window.location);
+        url.searchParams.delete(filterType);
+        window.location.href = url.toString();
+    }
 
-function updateSelection() {
-    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
-    selectedUsers.clear();
-    
-    checkboxes.forEach(checkbox => {
-        selectedUsers.add(parseInt(checkbox.value));
-    });
-    
-    const count = selectedUsers.size;
-    document.getElementById('selected-count').textContent = `${count} users selected`;
-    document.getElementById('bulk-action-btn').disabled = count === 0;
-    
-    // Update select all checkbox
-    const selectAllCheckbox = document.getElementById('select-all');
-    const totalCheckboxes = document.querySelectorAll('.user-checkbox').length;
-    selectAllCheckbox.indeterminate = count > 0 && count < totalCheckboxes;
-    selectAllCheckbox.checked = count === totalCheckboxes && totalCheckboxes > 0;
-}
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const userCheckboxes = document.querySelectorAll('.user-select');
+        const selectedCountDisplay = document.getElementById('selectedCount');
+        const bulkActionSelect = document.getElementById('bulkAction');
+        const bulkSubmitBtn = document.getElementById('bulkSubmit');
+        const bulkForm = document.getElementById('bulkForm');
+        const selectedUsersInput = document.querySelector('input[name="selected_users"]');
 
-function toggleAllUsers() {
-    const selectAllCheckbox = document.getElementById('select-all');
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
-    
-    userCheckboxes.forEach(checkbox => {
-        checkbox.checked = selectAllCheckbox.checked;
-    });
-    
-    updateSelection();
-}
-
-function selectAllUsers() {
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
-    userCheckboxes.forEach(checkbox => {
-        checkbox.checked = true;
-    });
-    updateSelection();
-}
-
-function clearSelection() {
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
-    userCheckboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    document.getElementById('select-all').checked = false;
-    updateSelection();
-}
-
-function showBulkActionModal() {
-    if (selectedUsers.size === 0) return;
-    
-    // Update modal with selected users
-    document.getElementById('modal-selected-count').textContent = selectedUsers.size;
-    document.getElementById('modal-selected-users').value = Array.from(selectedUsers).join(',');
-    
-    // Create preview of selected users
-    const preview = document.getElementById('selected-users-preview');
-    const userRows = document.querySelectorAll('tbody tr');
-    let previewHTML = '<ul class="list-unstyled mb-0">';
-    
-    userRows.forEach(row => {
-        const checkbox = row.querySelector('.user-checkbox');
-        if (checkbox && checkbox.checked) {
-            const userName = row.cells[2].textContent.trim();
-            const userEmail = row.cells[4].textContent.trim();
-            previewHTML += `<li><strong>${userName}</strong> (${userEmail})</li>`;
+        // Update selected count and bulk action availability
+        function updateBulkActions() {
+            const selectedUsers = Array.from(userCheckboxes).filter(cb => cb.checked);
+            const count = selectedUsers.length;
+            
+            selectedCountDisplay.textContent = `${count} user${count !== 1 ? 's' : ''} selected`;
+            
+            // Enable/disable bulk actions
+            const hasSelection = count > 0;
+            bulkActionSelect.disabled = !hasSelection;
+            bulkSubmitBtn.disabled = !hasSelection;
+            
+            // Update hidden input with selected user IDs
+            const selectedIds = selectedUsers.map(cb => cb.value);
+            selectedUsersInput.value = selectedIds.join(',');
         }
+
+        // Select all functionality
+        selectAllCheckbox.addEventListener('change', function() {
+            userCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+
+        // Individual checkbox functionality
+        userCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Update select all checkbox state
+                const totalCheckboxes = userCheckboxes.length;
+                const checkedCheckboxes = Array.from(userCheckboxes).filter(cb => cb.checked).length;
+                
+                selectAllCheckbox.checked = checkedCheckboxes === totalCheckboxes;
+                selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
+                
+                updateBulkActions();
+            });
+        });
+
+        // Bulk form submission with confirmation
+        bulkForm.addEventListener('submit', function(e) {
+            const action = bulkActionSelect.value;
+            const selectedCount = Array.from(userCheckboxes).filter(cb => cb.checked).length;
+            
+            if (!action) {
+                e.preventDefault();
+                alert('Please select an action to perform.');
+                return;
+            }
+            
+            if (selectedCount === 0) {
+                e.preventDefault();
+                alert('Please select at least one user.');
+                return;
+            }
+            
+            let confirmMessage = `Are you sure you want to ${action.replace('_', ' ')} ${selectedCount} user${selectedCount !== 1 ? 's' : ''}?`;
+            
+            if (action === 'delete') {
+                confirmMessage += '\n\nThis action cannot be undone.';
+            }
+            
+            if (!confirm(confirmMessage)) {
+                e.preventDefault();
+            }
+        });
+
+        // Add hover effects to table rows
+        const tableRows = document.querySelectorAll('.users-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = 'var(--brown-50)';
+                this.style.transition = 'background-color 0.2s ease';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+
+        // Add hover effects to action buttons
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add hover effects to stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'all 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Initialize bulk actions state
+        updateBulkActions();
+
+        console.log('User management page initialized');
     });
-    
-    previewHTML += '</ul>';
-    preview.innerHTML = previewHTML;
-    
-    const modal = new bootstrap.Modal(document.getElementById('bulkActionModal'));
-    modal.show();
-}
-
-function showUserModal(userId, userName, isActive) {
-    document.getElementById('modal-user-id').textContent = userId;
-    document.getElementById('modal-user-name').textContent = userName;
-    document.getElementById('modal-view-details').href = `/administration/users/${userId}`;
-    
-    // Set avatar (simplified, would need actual gravatar URL)
-    document.getElementById('modal-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&size=48&background=random`;
-    
-    // Update toggle status button
-    const toggleBtn = document.getElementById('modal-toggle-status');
-    if (isActive === 'True') {
-        toggleBtn.innerHTML = '<i class="fas fa-user-slash me-2"></i> Deactivate User';
-        toggleBtn.className = 'btn btn-outline-warning';
-    } else {
-        toggleBtn.innerHTML = '<i class="fas fa-user-check me-2"></i> Activate User';
-        toggleBtn.className = 'btn btn-outline-success';
-    }
-    
-    const modal = new bootstrap.Modal(document.getElementById('userActionModal'));
-    modal.show();
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateSelection();
-    
-    // Set filter values from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('role_filter')) {
-        document.querySelector('select[name="role_filter"]').value = urlParams.get('role_filter');
-    }
-    if (urlParams.get('status_filter')) {
-        document.querySelector('select[name="status_filter"]').value = urlParams.get('status_filter');
-    }
-    if (urlParams.get('data_usage_filter')) {
-        document.querySelector('select[name="data_usage_filter"]').value = urlParams.get('data_usage_filter');
-    }
-});
 </script>
 {% endblock %}

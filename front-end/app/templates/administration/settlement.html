@@ -1,0 +1,1144 @@
+{% extends "base.html" %}
+
+{% block title %}Settlement Insights - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive settlement analytics and insights for international students in Nairobi, Kenya{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.settlement-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.settlement-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Settlement Header */
+.settlement-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.settlement-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.settlement-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.settlement-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.settlement-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--white);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Filter Section */
+.filter-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.filter-select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-filter {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.btn-filter.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.btn-filter.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.btn-filter.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-filter.secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-900);
+}
+
+/* Location Trends */
+.location-trends-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.trends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.location-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.location-card:hover {
+    border-color: var(--brown-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.location-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+}
+
+.location-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.location-summary {
+    font-size: 0.9rem;
+    color: var(--brown-700);
+    line-height: 1.4;
+}
+
+.location-body {
+    padding: 1.5rem;
+}
+
+.location-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.location-metric {
+    text-align: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+.location-details {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+/* University Data */
+.university-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.university-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.university-card {
+    padding: 1.5rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.university-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.university-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.university-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.uni-stat {
+    text-align: center;
+}
+
+.uni-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.25rem;
+}
+
+.uni-stat-label {
+    font-size: 0.8rem;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Crisis Analysis */
+.crisis-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.crisis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.crisis-item {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.crisis-item:hover {
+    transform: translateY(-2px);
+}
+
+.crisis-item.emergency {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.crisis-item.warning {
+    background: #fefce8;
+    border-color: #fde047;
+}
+
+.crisis-item.info {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+}
+
+.crisis-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.crisis-item.emergency .crisis-value {
+    color: #dc2626;
+}
+
+.crisis-item.warning .crisis-value {
+    color: #d97706;
+}
+
+.crisis-item.info .crisis-value {
+    color: #2563eb;
+}
+
+.crisis-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.crisis-item.emergency .crisis-label {
+    color: #b91c1c;
+}
+
+.crisis-item.warning .crisis-label {
+    color: #b45309;
+}
+
+.crisis-item.info .crisis-label {
+    color: #1d4ed8;
+}
+
+.crisis-description {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+/* Cultural Adaptation */
+.cultural-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.cultural-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.cultural-metric {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--orange-50);
+    border-radius: 8px;
+    border: 1px solid var(--orange-200);
+    transition: all 0.2s ease;
+}
+
+.cultural-metric:hover {
+    background: var(--orange-100);
+    border-color: var(--orange-300);
+    transform: translateY(-2px);
+}
+
+.cultural-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--orange-700);
+    margin-bottom: 0.5rem;
+}
+
+.cultural-label {
+    font-size: 0.9rem;
+    color: var(--orange-800);
+    font-weight: 600;
+}
+
+/* Settlement Summary */
+.summary-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.summary-card {
+    padding: 1.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+}
+
+.summary-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.summary-content {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .trends-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .settlement-layout {
+        padding: 1rem 0;
+    }
+
+    .settlement-container {
+        padding: 0 1rem;
+    }
+
+    .settlement-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .settlement-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .settlement-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .university-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .crisis-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cultural-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .settlement-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .location-trends-section,
+    .university-section,
+    .crisis-section,
+    .cultural-section,
+    .summary-section {
+        padding: 1.5rem;
+    }
+
+    .settlement-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .location-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .university-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .crisis-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cultural-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settlement-layout">
+    <div class="settlement-container">
+        <!-- Settlement Header -->
+        <header class="settlement-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Settlement Insights</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="settlement-info">
+                        <h1>Settlement Assistance Analytics</h1>
+                        <p class="settlement-subtitle">
+                            Comprehensive insights into international student settlement patterns in Nairobi, Kenya. 
+                            Monitor housing trends, university preferences, safety concerns, and cultural adaptation support.
+                        </p>
+
+                        <div class="settlement-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ insights.total_settlement_queries }}</div>
+                                <div class="stat-label">Settlement Queries</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ insights.location_trends|length }}</div>
+                                <div class="stat-label">Nairobi Locations</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ insights.university_data|length }}</div>
+                                <div class="stat-label">Universities</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ insights.most_popular_location.replace('_', ' ').title() }}</div>
+                                <div class="stat-label">Top Location</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.analytics') }}" class="action-btn-header">
+                            <i class="fas fa-chart-bar"></i>
+                            View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Settlement Filters -->
+        <section class="filter-section">
+            <h2 class="section-title">
+                <i class="fas fa-filter"></i>
+                Settlement Analytics Filters
+            </h2>
+
+            <form method="GET" action="{{ url_for('administration.settlement') }}">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.location_filter.label }}</label>
+                        {{ form.location_filter(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.university_filter.label }}</label>
+                        {{ form.university_filter(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.concern_type.label }}</label>
+                        {{ form.concern_type(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.crisis_level.label }}</label>
+                        {{ form.crisis_level(class="filter-select") }}
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    {{ form.submit(class="btn-filter primary") }}
+                    <a href="{{ url_for('administration.settlement') }}" class="btn-filter secondary">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </a>
+                </div>
+            </form>
+        </section>
+
+        <!-- Nairobi Location Trends -->
+        <section class="location-trends-section">
+            <h2 class="section-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Nairobi Location Trends & Preferences
+            </h2>
+
+            <div class="trends-grid">
+                {% for location, data in insights.location_trends.items() %}
+                <div class="location-card">
+                    <div class="location-header">
+                        <h3 class="location-name">
+                            <i class="fas fa-map-pin"></i>
+                            {{ location.replace('_', ' ').title() }}
+                        </h3>
+                        <p class="location-summary">
+                            Popular settlement area with {{ data.housing_queries }} housing inquiries and {{ data.safety_concerns }} safety discussions
+                        </p>
+                    </div>
+                    <div class="location-body">
+                        <div class="location-metrics">
+                            <div class="location-metric">
+                                <div class="metric-value">{{ data.housing_queries }}</div>
+                                <div class="metric-label">Housing Queries</div>
+                            </div>
+                            <div class="location-metric">
+                                <div class="metric-value">{{ data.safety_concerns }}</div>
+                                <div class="metric-label">Safety Concerns</div>
+                            </div>
+                            <div class="location-metric">
+                                <div class="metric-value">{{ data.transport_queries }}</div>
+                                <div class="metric-label">Transport Queries</div>
+                            </div>
+                        </div>
+
+                        <div class="location-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Housing Interest Level:</span>
+                                <span class="detail-value">
+                                    {% if data.housing_queries >= 40 %}Very High
+                                    {% elif data.housing_queries >= 30 %}High
+                                    {% elif data.housing_queries >= 20 %}Moderate
+                                    {% else %}Low{% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Safety Rating:</span>
+                                <span class="detail-value">
+                                    {% if data.safety_concerns <= 5 %}Excellent
+                                    {% elif data.safety_concerns <= 10 %}Good
+                                    {% elif data.safety_concerns <= 15 %}Fair
+                                    {% else %}Needs Attention{% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Transport Accessibility:</span>
+                                <span class="detail-value">
+                                    {% if data.transport_queries >= 30 %}High Demand
+                                    {% elif data.transport_queries >= 20 %}Moderate
+                                    {% else %}Low Demand{% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Student Preference:</span>
+                                <span class="detail-value">
+                                    {% if location == insights.most_popular_location %}Most Popular
+                                    {% elif data.housing_queries >= 25 %}Popular
+                                    {% else %}Emerging{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- University Data -->
+        <section class="university-section">
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                University Settlement Patterns
+            </h2>
+
+            <div class="university-grid">
+                {% for university, data in insights.university_data.items() %}
+                <div class="university-card">
+                    <h3 class="university-name">
+                        <i class="fas fa-university"></i>
+                        {{ university.replace('_', ' ').title() }}
+                    </h3>
+                    <div class="university-stats">
+                        <div class="uni-stat">
+                            <div class="uni-stat-value">{{ data.students }}</div>
+                            <div class="uni-stat-label">Students</div>
+                        </div>
+                        <div class="uni-stat">
+                            <div class="uni-stat-value">{{ data.housing_needs }}</div>
+                            <div class="uni-stat-label">Housing Needs</div>
+                        </div>
+                        <div class="uni-stat">
+                            <div class="uni-stat-value">KSh {{ "{:,}".format(data.avg_budget) }}</div>
+                            <div class="uni-stat-label">Avg Budget</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Crisis Interventions -->
+        <section class="crisis-section">
+            <h2 class="section-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Crisis Intervention & Support Analytics
+            </h2>
+
+            <div class="crisis-grid">
+                <div class="crisis-item emergency">
+                    <div class="crisis-value">{{ insights.crisis_interventions.emergency_help }}</div>
+                    <div class="crisis-label">Emergency Help Requests</div>
+                    <div class="crisis-description">Critical situations requiring immediate attention</div>
+                </div>
+                <div class="crisis-item warning">
+                    <div class="crisis-value">{{ insights.crisis_interventions.safety_concerns }}</div>
+                    <div class="crisis-label">Safety Concerns Raised</div>
+                    <div class="crisis-description">Security and safety-related discussions</div>
+                </div>
+                <div class="crisis-item warning">
+                    <div class="crisis-value">{{ insights.crisis_interventions.high_crisis }}</div>
+                    <div class="crisis-label">High Crisis Cases</div>
+                    <div class="crisis-description">Situations requiring specialized support</div>
+                </div>
+                <div class="crisis-item info">
+                    <div class="crisis-value">{{ insights.crisis_interventions.medium_crisis }}</div>
+                    <div class="crisis-label">Medium Crisis Cases</div>
+                    <div class="crisis-description">Moderate support and guidance needed</div>
+                </div>
+                <div class="crisis-item info">
+                    <div class="crisis-value">{{ insights.crisis_interventions.low_crisis }}</div>
+                    <div class="crisis-label">Low Crisis Cases</div>
+                    <div class="crisis-description">General guidance and information requests</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cultural Adaptation -->
+        <section class="cultural-section">
+            <h2 class="section-title">
+                <i class="fas fa-globe-africa"></i>
+                Cultural Adaptation Support Metrics
+            </h2>
+
+            <div class="cultural-metrics">
+                <div class="cultural-metric">
+                    <div class="cultural-value">{{ insights.cultural_adaptation.adaptation_queries }}</div>
+                    <div class="cultural-label">Adaptation Queries</div>
+                </div>
+                <div class="cultural-metric">
+                    <div class="cultural-value">{{ insights.cultural_adaptation.language_barriers }}</div>
+                    <div class="cultural-label">Language Barriers</div>
+                </div>
+                <div class="cultural-metric">
+                    <div class="cultural-value">{{ insights.cultural_adaptation.social_integration }}</div>
+                    <div class="cultural-label">Social Integration</div>
+                </div>
+                <div class="cultural-metric">
+                    <div class="cultural-value">{{ insights.cultural_adaptation.academic_adjustment }}</div>
+<div class="cultural-label">Academic Adjustment</div>
+                </div>
+            </div>
+
+            <div style="background: var(--orange-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--orange-200); margin-top: 1.5rem;">
+                <h4 style="color: var(--orange-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-lightbulb"></i>
+                    Cultural Integration Insights
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Primary Cultural Challenges:</span>
+                        <span style="color: var(--orange-800); font-weight: 600;">Language & Social Integration</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Adaptation Success Rate:</span>
+                        <span style="color: {% if insights.cultural_adaptation.adaptation_queries > 30 %}var(--success){% else %}var(--warning){% endif %}; font-weight: 600;">
+                            {{ "%.1f"|format((insights.cultural_adaptation.social_integration / insights.cultural_adaptation.adaptation_queries * 100) if insights.cultural_adaptation.adaptation_queries > 0 else 0) }}%
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Support Effectiveness:</span>
+                        <span style="color: var(--orange-800); font-weight: 600;">
+                            {% if insights.cultural_adaptation.adaptation_queries >= 30 %}High Demand{% elif insights.cultural_adaptation.adaptation_queries >= 15 %}Moderate Demand{% else %}Low Demand{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settlement Summary & Recommendations -->
+        <section class="summary-section">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                Settlement Insights Summary & Recommendations
+            </h2>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3 class="summary-title">
+                        <i class="fas fa-home"></i>
+                        Housing Trends
+                    </h3>
+                    <div class="summary-content">
+                        <p><strong>Most Popular Location:</strong> {{ insights.most_popular_location.replace('_', ' ').title() }}</p>
+                        <p><strong>Top University:</strong> {{ insights.highest_demand_university.replace('_', ' ').title() }}</p>
+                        <p><strong>Housing Demand:</strong> {{ insights.location_trends[insights.most_popular_location].housing_queries }} queries in {{ insights.most_popular_location.replace('_', ' ').title() }}</p>
+                        <p><strong>Recommendation:</strong> Focus housing assistance resources on {{ insights.most_popular_location.replace('_', ' ').title() }} and areas near {{ insights.highest_demand_university.replace('_', ' ').title() }}.</p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="summary-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Safety & Security
+                    </h3>
+                    <div class="summary-content">
+                        <p><strong>Total Safety Concerns:</strong> {{ insights.crisis_interventions.safety_concerns }}</p>
+                        <p><strong>Emergency Cases:</strong> {{ insights.crisis_interventions.emergency_help }}</p>
+                        <p><strong>High-Risk Areas:</strong> 
+                            {% set high_safety_locations = [] %}
+                            {% for location, data in insights.location_trends.items() %}
+                                {% if data.safety_concerns > 15 %}
+                                    {% set _ = high_safety_locations.append(location) %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if high_safety_locations %}{{ high_safety_locations|join(', ')|replace('_', ' ')|title }}{% else %}None identified{% endif %}
+                        </p>
+                        <p><strong>Recommendation:</strong> 
+                            {% if insights.crisis_interventions.emergency_help > 5 %}
+                                Increase crisis intervention resources and safety awareness programs.
+                            {% else %}
+                                Maintain current safety monitoring with continued awareness programs.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="summary-title">
+                        <i class="fas fa-graduation-cap"></i>
+                        University Support
+                    </h3>
+                    <div class="summary-content">
+                        <p><strong>Active Universities:</strong> {{ insights.university_data|length }}</p>
+                        <p><strong>Highest Demand:</strong> {{ insights.highest_demand_university.replace('_', ' ').title() }} ({{ insights.university_data[insights.highest_demand_university].students }} students)</p>
+                        <p><strong>Housing Needs:</strong> {{ insights.university_data[insights.highest_demand_university].housing_needs }} students seeking housing</p>
+                        <p><strong>Recommendation:</strong> Establish targeted settlement support programs for {{ insights.highest_demand_university.replace('_', ' ').title() }} students with focus on nearby locations.</p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="summary-title">
+                        <i class="fas fa-globe-africa"></i>
+                        Cultural Integration
+                    </h3>
+                    <div class="summary-content">
+                        <p><strong>Adaptation Queries:</strong> {{ insights.cultural_adaptation.adaptation_queries }}</p>
+                        <p><strong>Language Support Needs:</strong> {{ insights.cultural_adaptation.language_barriers }} students</p>
+                        <p><strong>Social Integration:</strong> {{ insights.cultural_adaptation.social_integration }} assistance requests</p>
+                        <p><strong>Recommendation:</strong> 
+                            {% if insights.cultural_adaptation.language_barriers > 20 %}
+                                Expand language support and cultural orientation programs.
+                            {% else %}
+                                Maintain current cultural support with focus on social integration activities.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Performance Indicators -->
+        <section class="crisis-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Settlement Success Metrics
+            </h2>
+
+            <div class="crisis-grid">
+                <div class="crisis-item info">
+                    <div class="crisis-value">{{ "%.1f"|format((insights.total_settlement_queries / 1000 * 100) if insights.total_settlement_queries > 0 else 0) }}%</div>
+                    <div class="crisis-label">Platform Utilization</div>
+                    <div class="crisis-description">Settlement queries as percentage of total platform usage</div>
+                </div>
+                <div class="crisis-item {% if insights.crisis_interventions.emergency_help > 10 %}warning{% else %}info{% endif %}">
+                    <div class="crisis-value">{{ "%.1f"|format((insights.crisis_interventions.emergency_help / insights.total_settlement_queries * 100) if insights.total_settlement_queries > 0 else 0) }}%</div>
+                    <div class="crisis-label">Crisis Intervention Rate</div>
+                    <div class="crisis-description">Emergency situations requiring immediate intervention</div>
+                </div>
+                <div class="crisis-item info">
+                    <div class="crisis-value">{{ insights.university_data|length }}</div>
+                    <div class="crisis-label">University Coverage</div>
+                    <div class="crisis-description">Number of universities with active student populations</div>
+                </div>
+                <div class="crisis-item info">
+                    <div class="crisis-value">{{ insights.location_trends|length }}</div>
+                    <div class="crisis-label">Location Coverage</div>
+                    <div class="crisis-description">Nairobi areas with settlement assistance data</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actionable Insights -->
+        <section class="filter-section">
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i>
+                Actionable Settlement Insights
+            </h2>
+
+            <div style="background: var(--brown-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--brown-200); margin-bottom: 1rem;">
+                <h4 style="color: var(--brown-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-lightbulb"></i>
+                    Immediate Action Items
+                </h4>
+                <ul style="color: var(--brown-800); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1.5rem;">
+                    {% if insights.crisis_interventions.emergency_help > 5 %}
+                    <li style="color: #dc2626; font-weight: 600;">High emergency case volume detected - review crisis intervention protocols</li>
+                    {% endif %}
+                    <li>Increase housing assistance resources for {{ insights.most_popular_location.replace('_', ' ').title() }} area</li>
+                    <li>Develop targeted settlement guides for {{ insights.highest_demand_university.replace('_', ' ').title() }} students</li>
+                    {% if insights.cultural_adaptation.language_barriers > 20 %}
+                    <li>Expand language support programs to address {{ insights.cultural_adaptation.language_barriers }} language barrier cases</li>
+                    {% endif %}
+                    <li>Monitor safety conditions in areas with high safety concern reports</li>
+                    <li>Create location-specific settlement guides for popular Nairobi areas</li>
+                </ul>
+            </div>
+
+            <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border: 1px solid #bae6fd;">
+                <h4 style="color: #0c4a6e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-chart-pie"></i>
+                    Strategic Recommendations
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="color: #0c4a6e; font-size: 0.9rem;">
+                        <strong>Partnership Opportunities:</strong> Collaborate with {{ insights.highest_demand_university.replace('_', ' ').title() }} for enhanced student settlement services
+                    </div>
+                    <div style="color: #0c4a6e; font-size: 0.9rem;">
+                        <strong>Resource Allocation:</strong> Focus 60% of housing resources on {{ insights.most_popular_location.replace('_', ' ').title() }} and surrounding areas
+                    </div>
+                    <div style="color: #0c4a6e; font-size: 0.9rem;">
+                        <strong>Program Development:</strong> Create specialized cultural integration programs for international students
+                    </div>
+                    <div style="color: #0c4a6e; font-size: 0.9rem;">
+                        <strong>Monitoring:</strong> Establish regular safety monitoring for high-concern areas and proactive outreach programs
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

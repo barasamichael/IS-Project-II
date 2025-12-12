@@ -1,0 +1,86 @@
+{% extends "email/base.html" %}
+
+{% block title %}Verify Your StrathQuery Email{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-code {
+        font-family: monospace;
+        font-size: 24px;
+        letter-spacing: 4px;
+        text-align: center;
+        background-color: #F3F4F6;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-weight: bold;
+    }
+    
+    .info-notice {
+        background-color: #EFF6FF;
+        border-left: 4px solid #3563E9;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .info-notice p {
+        margin: 0;
+        color: #1E3A8A;
+        font-size: 14px;
+    }
+    
+    .expiry-notice {
+        text-align: center;
+        color: #4B5563;
+        font-size: 14px;
+        margin-top: 15px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="message-title">Verify Your Email Address</div>
+<p class="message-text">Thank you for registering with StrathQuery! Please verify your email address to complete your account setup and start using our services.</p>
+
+<a href="{{ verification_url }}" class="cta-button">Verify Email</a>
+
+<p style="text-align: center; color: #4B5563; margin-top: 20px;">Alternatively, you can copy and paste the following URL into your browser:</p>
+<div class="content-block" style="word-break: break-all; text-align: center;">
+    <a href="{{ verification_url }}" style="color: #3563E9; font-size: 14px;">{{ verification_url }}</a>
+</div>
+
+{% if verification_code %}
+<p style="text-align: center; color: #4B5563; margin-top: 20px;">If prompted, please use this verification code:</p>
+<div class="verification-code">
+    {{ verification_code }}
+</div>
+{% endif %}
+
+<div class="info-notice">
+    <p><strong>Note:</strong> If you did not create an account with StrathQuery, please ignore this email or contact our support team.</p>
+</div>
+
+<p class="expiry-notice">This verification link will expire in 48 hours.</p>
+
+<div style="margin-top: 30px;">
+    <p style="text-align: center; color: #4B5563;">What to expect after verification:</p>
+    <ul class="feature-list" style="background-color: #F3F4F6; padding: 20px; border-radius: 8px;">
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text">Immediate access to StrathQuery's AI assistant</div>
+        </li>
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text">Ability to save and review your conversation history</div>
+        </li>
+        <li class="feature-item">
+            <div class="feature-icon">✓</div>
+            <div class="feature-text">Personalized responses based on your academic interests</div>
+        </li>
+    </ul>
+</div>
+
+<p style="text-align: center; color: #4B5563; font-size: 14px; margin-top: 30px;">For any assistance, please contact our support team at <a href="mailto:benjamintait15@gmail.com" style="color: #3563E9; text-decoration: none;">benjamintait15@gmail.com</a>.</p>
+{% endblock %}

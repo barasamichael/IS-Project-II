@@ -1,0 +1,1160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.fullName or 'Unknown User' }} - User Details - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Detailed user profile and analytics for {{ user.fullName or 'Unknown User' }} on SettleBot settlement assistance platform{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.user-details-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.user-details-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* User Header */
+.user-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.user-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.user-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.user-username {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
+}
+
+.user-badges {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.user-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-badge.role {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+}
+
+.user-badge.status.active {
+    background: var(--success);
+    color: var(--white);
+}
+
+.user-badge.status.inactive {
+    background: var(--error);
+    color: var(--white);
+}
+
+.user-badge.consent {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--white);
+}
+
+.user-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.meta-item {
+    text-align: center;
+}
+
+.meta-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--white);
+}
+
+.meta-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.action-btn-header.danger {
+    background: rgba(220, 38, 38, 0.8);
+}
+
+.action-btn-header.danger:hover {
+    background: rgba(220, 38, 38, 1);
+}
+
+/* Content Layout */
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* User Statistics */
+.stats-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Recent Conversations */
+.conversations-section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.conversations-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+}
+
+.conversations-body {
+    padding: 1.5rem;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.conversation-item:hover {
+    border-color: var(--brown-300);
+    background: var(--brown-50);
+    transform: translateX(4px);
+}
+
+.conversation-item:last-child {
+    margin-bottom: 0;
+}
+
+.conversation-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.25rem;
+    text-decoration: none;
+}
+
+.conversation-title:hover {
+    color: var(--brown-700);
+    text-decoration: none;
+}
+
+.conversation-meta {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.conversation-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.conversation-stat {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* User Details Card */
+.user-details-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-100);
+    gap: 1rem;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    color: var(--gray-900);
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+}
+
+.detail-value.success {
+    color: var(--success);
+}
+
+.detail-value.error {
+    color: var(--error);
+}
+
+/* Settlement Insights */
+.insights-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.insights-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.insight-item:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 500;
+}
+
+.insight-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-700);
+}
+
+/* Distribution Charts */
+.distribution-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.distribution-item:hover {
+    background: var(--brown-50);
+    transform: translateX(2px);
+}
+
+.distribution-item:last-child {
+    margin-bottom: 0;
+}
+
+.distribution-label {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.distribution-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    margin: 0 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.distribution-fill {
+    height: 100%;
+    background: linear-gradient(135deg, var(--brown-600) 0%, var(--brown-700) 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.distribution-count {
+    background: var(--brown-600);
+    color: var(--white);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Activity Timeline */
+.timeline-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--brown-300);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--brown-600);
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 2px var(--brown-300);
+}
+
+.timeline-content {
+    background: var(--gray-50);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.timeline-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    margin-bottom: 0.25rem;
+}
+
+.timeline-desc {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .user-details-layout {
+        padding: 1rem 0;
+    }
+
+    .user-details-container {
+        padding: 0 1rem;
+    }
+
+    .user-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-profile {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .user-info h1 {
+        font-size: 2rem;
+    }
+
+    .user-meta {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .header-actions {
+        justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .conversation-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .conversation-stats {
+        align-self: stretch;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .user-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .detail-label {
+        min-width: auto;
+    }
+
+    .detail-value {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-details-layout">
+    <div class="user-details-container">
+        <!-- User Header -->
+        <header class="user-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <a href="{{ url_for('administration.users') }}">Users</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>{{ user.fullName or 'User Details' }}</span>
+                </div>
+
+                <div class="user-profile">
+                    <img src="{{ user.getGravatar(size=120) }}" alt="{{ user.fullName }}" class="user-avatar">
+                    
+                    <div class="user-info">
+                        <h1>{{ user.fullName or 'Unknown User' }}</h1>
+                        <div class="user-username">@{{ user.username }}</div>
+                        
+                        <div class="user-badges">
+                            <span class="user-badge role">{{ user.role.title() }}</span>
+                            <span class="user-badge status {% if user.isActive %}active{% else %}inactive{% endif %}">
+                                {% if user.isActive %}Active{% else %}Inactive{% endif %}
+                            </span>
+                            <span class="user-badge consent">
+                                {% if user.allowDataUsage %}Data Consent Given{% else %}No Data Consent{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-meta">
+                    <div class="meta-item">
+                        <div class="meta-value">{{ user_stats.total_conversations }}</div>
+                        <div class="meta-label">Total Conversations</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">{{ user_stats.total_messages }}</div>
+                        <div class="meta-label">Total Messages</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">{{ user_stats.avg_messages_per_conversation }}</div>
+                        <div class="meta-label">Avg Messages/Conv</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">{{ "{:,}".format(user_stats.total_tokens) }}</div>
+                        <div class="meta-label">Total Tokens</div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <a href="{{ url_for('administration.users') }}" class="action-btn-header">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Users
+                    </a>
+                    <a href="{{ url_for('administration.conversations') }}?user_id={{ user.userId }}" class="action-btn-header">
+                        <i class="fas fa-comments"></i>
+                        View Conversations
+                    </a>
+                    <a href="mailto:{{ user.emailAddress }}" class="action-btn-header">
+                        <i class="fas fa-envelope"></i>
+                        Send Email
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Main Column -->
+            <div class="main-column">
+                <!-- User Statistics -->
+                <section class="stats-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Engagement Statistics
+                    </h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ user_stats.total_conversations }}</div>
+                            <div class="stat-label">Conversations</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ user_stats.user_messages }}</div>
+                            <div class="stat-label">User Messages</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ user_stats.assistant_messages }}</div>
+                            <div class="stat-label">Assistant Responses</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ user_stats.avg_messages_per_conversation }}</div>
+                            <div class="stat-label">Avg Depth</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ "{:,}".format(user_stats.total_tokens) }}</div>
+                            <div class="stat-label">Tokens Used</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ user_stats.crisis_interventions }}</div>
+                            <div class="stat-label">Crisis Support</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Conversations -->
+                <section class="conversations-section">
+                    <div class="conversations-header">
+                        <h3 class="section-title">
+                            <i class="fas fa-comments"></i>
+                            Recent Conversations
+                        </h3>
+                    </div>
+                    <div class="conversations-body">
+                        {% if conversations %}
+                            {% for conversation in conversations %}
+                            <div class="conversation-item">
+                                <div class="conversation-info">
+                                    <a href="{{ url_for('administration.conversation_details', conversation_id=conversation.conversationId) }}" class="conversation-title">
+                                        {{ conversation.title }}
+                                    </a>
+                                    <div class="conversation-meta">
+                                        <span>Created: {{ conversation.dateCreated.strftime('%m/%d/%y at %I:%M %p') if conversation.dateCreated else 'Unknown' }}</span>
+                                        <span>Updated: {{ conversation.lastUpdated.strftime('%m/%d/%y at %I:%M %p') if conversation.lastUpdated else 'Unknown' }}</span>
+                                    </div>
+                                </div>
+                                <div class="conversation-stats">
+                                    <div class="conversation-stat">
+                                        <i class="fas fa-comment-dots"></i>
+                                        {{ conversation.messages.count() }} messages
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div style="text-align: center; padding: 2rem; color: var(--gray-600);">
+                            <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p>No conversations found for this user.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Intent Distribution -->
+                {% if user_stats.intent_distribution %}
+                <section class="distribution-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-bullseye"></i>
+                        Intent Distribution
+                    </h2>
+                    
+                    {% for intent, count in user_stats.intent_distribution.items() %}
+                    <div class="distribution-item">
+                        <span class="distribution-label">{{ intent.replace('_', ' ').title() }}</span>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill" style="width: {{ (count / user_stats.intent_distribution.values()|list|max * 100)|round(1) }}%"></div>
+                        </div>
+                        <span class="distribution-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                <!-- Topic Distribution -->
+                {% if user_stats.topic_distribution %}
+                <section class="distribution-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Topic Distribution
+                    </h2>
+                    
+                    {% for topic, count in user_stats.topic_distribution.items() %}
+                    <div class="distribution-item">
+                        <span class="distribution-label">{{ topic.title() }}</span>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill" style="width: {{ (count / user_stats.topic_distribution.values()|list|max * 100)|round(1) }}%"></div>
+                        </div>
+                        <span class="distribution-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar Column -->
+            <div class="sidebar-column">
+                <!-- User Details Card -->
+                <section class="user-details-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-user"></i>
+                        User Information
+                    </h3>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Full Name:</span>
+                        <span class="detail-value">{{ user.fullName or 'Not provided' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Username:</span>
+                        <span class="detail-value">{{ user.username }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">{{ user.emailAddress }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Role:</span>
+                        <span class="detail-value">{{ user.role.title() }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value {% if user.isActive %}success{% else %}error{% endif %}">
+                            {% if user.isActive %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Data Consent:</span>
+                        <span class="detail-value {% if user.allowDataUsage %}success{% else %}error{% endif %}">
+                            {% if user.allowDataUsage %}Granted{% else %}Not Granted{% endif %}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Joined:</span>
+                        <span class="detail-value">{{ user.dateCreated.strftime('%B %d, %Y') if user.dateCreated else 'Unknown' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Login:</span>
+                        <span class="detail-value">
+                            {% if user.lastLogin %}
+                                {{ user.lastLogin.strftime('%B %d, %Y at %I:%M %p') }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </span>
+                    </div>
+                </section>
+
+                <!-- Settlement Insights -->
+                <section class="insights-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-home"></i>
+                        Settlement Insights
+                    </h3>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <span class="insight-label">Most Common Intent</span>
+                            <span class="insight-value">{{ user_stats.most_common_intent.replace('_', ' ').title() if user_stats.most_common_intent != 'None' else 'None' }}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Preferred Language</span>
+                            <span class="insight-value">{{ user_stats.preferred_language }}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Crisis Interventions</span>
+<span class="insight-value">{{ user_stats.crisis_interventions }}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Settlement Support Rate</span>
+                            <span class="insight-value">{{ "%.1f"|format((user_stats.total_conversations / user_stats.total_messages * 100) if user_stats.total_messages > 0 else 0) }}%</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Preferred Topics</span>
+                            <span class="insight-value">
+                                {% if user_stats.preferred_topics %}
+                                    {{ user_stats.preferred_topics|list|first|title if user_stats.preferred_topics|list else 'None' }}
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Activity Timeline -->
+                <section class="timeline-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Activity Timeline
+                    </h3>
+                    
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div class="timeline-title">Account Created</div>
+                                <div class="timeline-desc">User registered on SettleBot platform</div>
+                                <div class="timeline-time">{{ user.dateCreated.strftime('%B %d, %Y at %I:%M %p') if user.dateCreated else 'Unknown' }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if user.lastLogin %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div class="timeline-title">Last Login</div>
+                                <div class="timeline-desc">Most recent platform access</div>
+                                <div class="timeline-time">{{ user.lastLogin.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if conversations %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div class="timeline-title">Recent Conversation</div>
+                                <div class="timeline-desc">{{ conversations[0].title if conversations[0].title else 'Settlement assistance conversation' }}</div>
+                                <div class="timeline-time">{{ conversations[0].lastUpdated.strftime('%B %d, %Y at %I:%M %p') if conversations[0].lastUpdated else 'Unknown' }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user_stats.total_conversations > 0 %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <div class="timeline-title">Platform Engagement</div>
+                                <div class="timeline-desc">{{ user_stats.total_conversations }} conversations with {{ user_stats.total_messages }} total messages</div>
+                                <div class="timeline-time">Ongoing activity</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- User Preferences -->
+                <section class="insights-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        User Preferences
+                    </h3>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-item">
+                            <span class="insight-label">Account Status</span>
+                            <span class="insight-value {% if user.isActive %}success{% else %}error{% endif %}">
+                                {% if user.isActive %}Active Account{% else %}Inactive Account{% endif %}
+                            </span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Data Usage Permission</span>
+                            <span class="insight-value {% if user.allowDataUsage %}success{% else %}error{% endif %}">
+                                {% if user.allowDataUsage %}Consent Given{% else %}No Consent{% endif %}
+                            </span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">User Type</span>
+                            <span class="insight-value">{{ user.role.title() }} User</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Platform Usage</span>
+                            <span class="insight-value">
+                                {% if user_stats.total_conversations >= 10 %}
+                                    Heavy User
+                                {% elif user_stats.total_conversations >= 5 %}
+                                    Regular User
+                                {% elif user_stats.total_conversations >= 1 %}
+                                    Light User
+                                {% else %}
+                                    New User
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Actions -->
+                <section class="user-details-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-tools"></i>
+                        Quick Actions
+                    </h3>
+                    
+                    <div style="display: grid; gap: 0.75rem;">
+                        <a href="{{ url_for('administration.conversations') }}?user={{ user.username }}" 
+                           style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--brown-100); border-radius: 8px; text-decoration: none; color: var(--brown-800); transition: all 0.2s ease;">
+                            <i class="fas fa-comments"></i>
+                            <span>View All User Conversations</span>
+                        </a>
+                        
+                        <a href="mailto:{{ user.emailAddress }}?subject=SettleBot Support" 
+                           style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--orange-100); border-radius: 8px; text-decoration: none; color: var(--orange-800); transition: all 0.2s ease;">
+                            <i class="fas fa-envelope"></i>
+                            <span>Send Email to User</span>
+                        </a>
+                        
+                        <a href="{{ url_for('administration.users') }}?search_query={{ user.username }}" 
+                           style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--gray-100); border-radius: 8px; text-decoration: none; color: var(--gray-800); transition: all 0.2s ease;">
+                            <i class="fas fa-search"></i>
+                            <span>Search for Similar Users</span>
+                        </a>
+                        
+                        {% if user.role == 'student' %}
+                        <a href="{{ url_for('administration.settlement') }}?user_filter={{ user.userId }}" 
+                           style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--success); color: var(--white); border-radius: 8px; text-decoration: none; transition: all 0.2s ease;">
+                            <i class="fas fa-home"></i>
+                            <span>Settlement Insights</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- User Summary -->
+        <section class="stats-section">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                User Summary & Assessment
+            </h2>
+
+            <div style="background: var(--brown-50); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--brown-200);">
+                <h4 style="color: var(--brown-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-user-check"></i>
+                    User Profile Assessment
+                </h4>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Platform Engagement:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">
+                            {% if user_stats.total_conversations >= 10 %}
+                                Highly Engaged
+                            {% elif user_stats.total_conversations >= 5 %}
+                                Moderately Engaged
+                            {% elif user_stats.total_conversations >= 1 %}
+                                Low Engagement
+                            {% else %}
+                                No Engagement
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Settlement Focus:</span>
+                        <span style="color: var(--brown-800); font-weight: 600;">
+                            {% if user_stats.most_common_intent in ['housing_inquiry', 'university_info', 'transportation', 'safety_concern'] %}
+                                Primary Settlement User
+                            {% elif user_stats.most_common_intent in ['immigration_visa', 'banking_finance', 'healthcare'] %}
+                                Administrative Support User
+                            {% else %}
+                                General Platform User
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Support Needs:</span>
+                        <span style="color: {% if user_stats.crisis_interventions > 0 %}var(--error){% else %}var(--success){% endif %}; font-weight: 600;">
+                            {% if user_stats.crisis_interventions > 0 %}
+                                High Support Required
+                            {% else %}
+                                Standard Support Level
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <span style="color: var(--gray-700);">Data Privacy:</span>
+                        <span style="color: {% if user.allowDataUsage %}var(--success){% else %}var(--warning){% endif %}; font-weight: 600;">
+                            {% if user.allowDataUsage %}Consented for Analytics{% else %}Privacy Protected{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.role == 'student' %}
+            <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border: 1px solid #bae6fd; margin-top: 1rem;">
+                <h4 style="color: #0c4a6e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-graduation-cap"></i>
+                    International Student Profile
+                </h4>
+                <ul style="color: #0c4a6e; font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1.5rem;">
+                    <li>Student seeking settlement assistance in Nairobi, Kenya</li>
+                    <li>{{ user_stats.total_conversations }} settlement conversations initiated</li>
+                    <li>Primary concerns: {{ user_stats.most_common_intent.replace('_', ' ').title() if user_stats.most_common_intent != 'None' else 'Various topics' }}</li>
+                    {% if user_stats.crisis_interventions > 0 %}
+                    <li style="color: #dc2626; font-weight: 600;">{{ user_stats.crisis_interventions }} crisis intervention(s) provided</li>
+                    {% endif %}
+                    <li>Account created {{ user.dateCreated.strftime('%B %Y') if user.dateCreated else 'Unknown date' }}</li>
+                </ul>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

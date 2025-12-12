@@ -1,0 +1,1597 @@
+
+{% extends "base.html" %}
+
+{% block title %}Document Management - SettleBot Admin{% endblock %}
+
+{% block meta_description %}Comprehensive document management interface for SettleBot knowledge base with upload, processing, and analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+.main-content {
+    margin-top: 35px;
+}
+
+.documents-layout {
+    min-height: calc(100vh - 72px);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--brown-50) 100%);
+    padding: 2rem 0;
+}
+
+.documents-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Documents Header */
+.documents-header {
+    background: linear-gradient(135deg, var(--brown-700) 0%, var(--brown-900) 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.documents-header::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.documents-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--white);
+    line-height: 1.2;
+}
+
+.documents-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.header-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--white);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.action-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Upload Section */
+.upload-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.upload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.upload-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.upload-area {
+    border: 2px dashed var(--brown-300);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: var(--brown-50);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-area:hover {
+    border-color: var(--brown-500);
+    background: var(--brown-100);
+}
+
+.upload-area.dragover {
+    border-color: var(--brown-600);
+    background: var(--brown-100);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--brown-400);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    color: var(--brown-800);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.upload-subtext {
+    color: var(--brown-600);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.btn-upload {
+    background: var(--brown-700);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-upload:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.btn-upload:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Search and Filter Section */
+.filter-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    margin-bottom: 1.5rem;
+}
+
+.filter-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.filter-input,
+.filter-select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 2px rgba(139, 95, 71, 0.1);
+    outline: none;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-filter {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.btn-filter.primary {
+    background: var(--brown-700);
+    color: var(--white);
+}
+
+.btn-filter.primary:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.btn-filter.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-filter.secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-900);
+}
+
+/* Documents Statistics */
+.stats-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--brown-50);
+    border-radius: 8px;
+    border: 1px solid var(--brown-200);
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    background: var(--brown-100);
+    border-color: var(--brown-300);
+    transform: translateY(-2px);
+}
+
+.stat-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-700);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-label {
+    font-size: 0.9rem;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Bulk Actions */
+.bulk-actions {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+}
+
+.bulk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.bulk-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selected-count {
+    background: var(--brown-100);
+    color: var(--brown-800);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.bulk-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.bulk-form select {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 200px;
+}
+
+.bulk-form button {
+    padding: 0.75rem 1.5rem;
+    background: var(--brown-700);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bulk-form button:hover {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.bulk-form button:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Documents Table */
+.documents-table-section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.table-header {
+    background: linear-gradient(135deg, var(--brown-100) 0%, var(--brown-200) 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--brown-300);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.table-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--brown-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-btn {
+    background: var(--brown-600);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.table-btn:hover {
+    background: var(--brown-700);
+    color: var(--white);
+    text-decoration: none;
+}
+
+.documents-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.documents-table th,
+.documents-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.documents-table th {
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.documents-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.documents-table tbody tr:hover {
+    background: var(--brown-50);
+}
+
+.doc-checkbox {
+    accent-color: var(--brown-600);
+    transform: scale(1.1);
+}
+
+.doc-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.doc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.doc-icon.pdf {
+    background: #dc2626;
+}
+
+.doc-icon.docx {
+    background: #2563eb;
+}
+
+.doc-icon.txt {
+    background: var(--gray-600);
+}
+
+.doc-icon.html {
+    background: var(--orange-600);
+}
+
+.doc-icon.url {
+    background: var(--brown-600);
+}
+
+.doc-details {
+    min-width: 0;
+}
+
+.doc-name {
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.doc-meta {
+    color: var(--gray-600);
+    font-size: 0.8rem;
+}
+
+.doc-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.doc-type-badge.pdf {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.doc-type-badge.docx {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.doc-type-badge.txt {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.doc-type-badge.html {
+    background: #fff7ed;
+    color: var(--orange-600);
+}
+
+.doc-type-badge.url {
+    background: var(--brown-100);
+    color: var(--brown-700);
+}
+
+.settlement-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.score-value {
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.score-bar {
+    width: 60px;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.score-fill.high {
+    background: var(--success);
+}
+
+.score-fill.medium {
+    background: var(--warning);
+}
+
+.score-fill.low {
+    background: var(--error);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.completed {
+    background: var(--success);
+    color: var(--white);
+}
+
+.status-badge.processing {
+    background: var(--warning);
+    color: var(--white);
+}
+
+.status-badge.failed {
+    background: var(--error);
+    color: var(--white);
+}
+
+.status-badge.pending {
+    background: var(--gray-400);
+    color: var(--white);
+}
+
+.doc-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.action-btn:hover {
+    background: var(--brown-100);
+    color: var(--brown-700);
+    text-decoration: none;
+}
+
+.action-btn.view {
+    background: var(--brown-100);
+    color: var(--brown-600);
+}
+
+.action-btn.download {
+    background: var(--success);
+    color: var(--white);
+}
+
+.action-btn.download:hover {
+    background: #047857;
+}
+
+.action-btn.delete {
+    background: var(--error);
+    color: var(--white);
+}
+
+.action-btn.delete:hover {
+    background: #dc2626;
+}
+
+/* Processing Indicators */
+.processing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--brown-50);
+    border: 1px solid var(--brown-200);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.processing-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--brown-300);
+    border-top: 2px solid var(--brown-600);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.processing-text {
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* Progress Bar */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--brown-600);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .filter-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .documents-layout {
+        padding: 1rem 0;
+    }
+
+    .documents-container {
+        padding: 0 1rem;
+    }
+
+    .documents-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-main {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .documents-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-btn-header {
+        justify-content: center;
+    }
+
+    .header-stats {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .bulk-form {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .bulk-form select {
+        min-width: 100%;
+    }
+
+    .documents-table {
+        font-size: 0.85rem;
+    }
+
+    .documents-table th,
+    .documents-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .upload-area {
+        padding: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .documents-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .filter-section,
+    .bulk-actions,
+    .stats-section,
+    .upload-section {
+        padding: 1.5rem;
+    }
+
+    .documents-table th,
+    .documents-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .doc-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .doc-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .upload-area {
+        padding: 1rem;
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="documents-layout">
+    <div class="documents-container">
+        <!-- Documents Header -->
+        <header class="documents-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{{ url_for('administration.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Document Management</span>
+                </div>
+
+                <div class="header-main">
+                    <div class="documents-info">
+                        <h1>Document Management</h1>
+                        <p class="documents-subtitle">
+                            Comprehensive settlement knowledge base management. Upload, process, and analyze documents 
+                            to enhance SettleBot's assistance for international students in Nairobi.
+                        </p>
+
+                        <div class="header-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ total_documents }}</div>
+                                <div class="stat-label">Total Documents</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ total_chunks }}</div>
+                                <div class="stat-label">Content Chunks</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ "%.2f"|format(avg_settlement_score) }}</div>
+                                <div class="stat-label">Avg Settlement Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('administration.dashboard') }}" class="action-btn-header">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('administration.documents') }}#upload" class="action-btn-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Upload Documents
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Document Upload Section -->
+        <section class="upload-section" id="upload">
+            <div class="upload-header">
+                <h2 class="upload-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload Settlement Documents
+                </h2>
+            </div>
+
+            <form method="POST" action="{{ url_for('administration.upload_document') }}" enctype="multipart/form-data" id="uploadForm">
+                {{ upload_form.hidden_tag() }}
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <div class="upload-text">Drop files here or click to browse</div>
+                    <div class="upload-subtext">
+                        Supported formats: PDF, DOCX, TXT, HTML<br>
+                        Maximum file size: 50MB
+                    </div>
+                    {{ upload_form.file(class="file-input", id="fileInput") }}
+                </div>
+
+                <div class="upload-actions">
+                    {{ upload_form.submit(class="btn-upload", id="uploadBtn", disabled=True) }}
+                </div>
+
+                <div class="processing-indicator" id="processingIndicator" style="display: none;">
+                    <div class="processing-spinner"></div>
+                    <div class="processing-text">Processing document...</div>
+                </div>
+
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Document Statistics -->
+        <section class="stats-section">
+            <h2 class="filter-title">
+                <i class="fas fa-chart-pie"></i>
+                Document Analytics Overview
+            </h2>
+
+            <div class="stats-grid">
+                {% for doc_type, count in doc_type_stats.items() %}
+                <div class="stat-card">
+                    <div class="stat-card-value">{{ count }}</div>
+                    <div class="stat-card-label">{{ doc_type.upper() }} Documents</div>
+                </div>
+                {% endfor %}
+                <div class="stat-card">
+                    <div class="stat-card-value">{{ "%.1f"|format((avg_settlement_score * 100)) }}%</div>
+                    <div class="stat-card-label">Settlement Relevance</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search and Filter Section -->
+        <section class="filter-section">
+            <div class="filter-header">
+                <h2 class="filter-title">
+                    <i class="fas fa-search"></i>
+                    Search and Filter Documents
+                </h2>
+            </div>
+
+            <form method="GET" action="{{ url_for('administration.documents') }}">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.search_query.label }}</label>
+                        {{ form.search_query(class="filter-input", value=search_query) }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.doc_type_filter.label }}</label>
+                        {{ form.doc_type_filter(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.settlement_score_filter.label }}</label>
+{{ form.settlement_score_filter(class="filter-select") }}
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">{{ form.processing_status_filter.label }}</label>
+                        {{ form.processing_status_filter(class="filter-select") }}
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    {{ form.submit(class="btn-filter primary") }}
+                    <a href="{{ url_for('administration.documents') }}" class="btn-filter secondary">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </a>
+                </div>
+            </form>
+
+            <!-- Applied Filters -->
+            {% if search_query or doc_type_filter or settlement_score_filter or processing_status_filter %}
+            <div class="applied-filters">
+                {% if search_query %}
+                <span class="filter-tag">
+                    Search: "{{ search_query }}"
+                    <span class="remove" onclick="removeFilter('search_query')">&times;</span>
+                </span>
+                {% endif %}
+                {% if doc_type_filter %}
+                <span class="filter-tag">
+                    Type: {{ doc_type_filter.upper() }}
+                    <span class="remove" onclick="removeFilter('doc_type_filter')">&times;</span>
+                </span>
+                {% endif %}
+                {% if settlement_score_filter %}
+                <span class="filter-tag">
+                    Score: {{ settlement_score_filter }}+
+                    <span class="remove" onclick="removeFilter('settlement_score_filter')">&times;</span>
+                </span>
+                {% endif %}
+                {% if processing_status_filter %}
+                <span class="filter-tag">
+                    Status: {{ processing_status_filter.title() }}
+                    <span class="remove" onclick="removeFilter('processing_status_filter')">&times;</span>
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Bulk Actions -->
+        <section class="bulk-actions">
+            <div class="bulk-header">
+                <h3 class="bulk-title">
+                    <i class="fas fa-tasks"></i>
+                    Bulk Document Actions
+                </h3>
+                <span class="selected-count" id="selectedCount">0 documents selected</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('administration.user_bulk_action') }}" id="bulkForm">
+                {{ bulk_form.hidden_tag() }}
+                {{ bulk_form.selected_documents(style="display:none;") }}
+
+                <div class="bulk-form">
+                    {{ bulk_form.action(id="bulkAction", disabled=True) }}
+                    {{ bulk_form.submit(id="bulkSubmit", disabled=True) }}
+                </div>
+            </form>
+        </section>
+
+        <!-- Documents Table -->
+        <section class="documents-table-section">
+            <div class="table-header">
+                <h3 class="table-title">
+                    <i class="fas fa-file-alt"></i>
+                    Settlement Documents ({{ total_documents }} total)
+                </h3>
+                <div class="table-actions">
+                    <a href="{{ url_for('administration.documents') }}?export=metadata" class="table-btn">
+                        <i class="fas fa-download"></i>
+                        Export Metadata
+                    </a>
+                    <a href="#upload" class="table-btn">
+                        <i class="fas fa-plus"></i>
+                        Upload New
+                    </a>
+                </div>
+            </div>
+
+            {% if documents %}
+            <table class="documents-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll" class="doc-checkbox">
+                        </th>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>Settlement Score</th>
+                        <th>Status</th>
+                        <th>Processed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="doc-checkbox doc-select" value="{{ document.get('doc_id', '') }}" data-doc-id="{{ document.get('doc_id', '') }}">
+                        </td>
+                        <td>
+                            <div class="doc-info">
+                                <div class="doc-icon {{ document.get('doc_type', 'txt') }}">
+                                    {% if document.get('doc_type') == 'pdf' %}
+                                        <i class="fas fa-file-pdf"></i>
+                                    {% elif document.get('doc_type') == 'docx' %}
+                                        <i class="fas fa-file-word"></i>
+                                    {% elif document.get('doc_type') == 'html' %}
+                                        <i class="fas fa-file-code"></i>
+                                    {% elif document.get('doc_type') == 'web_url' %}
+                                        <i class="fas fa-link"></i>
+                                    {% elif document.get('doc_type') == 'web_sitemap' %}
+                                        <i class="fas fa-sitemap"></i>
+                                    {% else %}
+                                        <i class="fas fa-file-alt"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="doc-details">
+                                    <div class="doc-name">{{ document.get('file_name', 'Unknown Document') }}</div>
+                                    <div class="doc-meta">
+                                        {% if document.get('file_size') %}
+                                            Size: {{ "%.1f"|format(document.get('file_size', 0) / 1024 / 1024) }}MB • 
+                                        {% endif %}
+                                        {% if document.get('num_chunks') %}
+                                            {{ document.get('num_chunks', 0) }} chunks
+                                        {% endif %}
+                                        {% if document.get('upload_date') %}
+                                            • {{ document.get('upload_date') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="doc-type-badge {{ document.get('doc_type', 'txt') }}">
+                                {{ document.get('doc_type', 'TXT').upper() }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="settlement-score">
+                                <span class="score-value">{{ "%.2f"|format(document.get('settlement_score', 0)) }}</span>
+                                <div class="score-bar">
+                                    <div class="score-fill {% if document.get('settlement_score', 0) >= 0.8 %}high{% elif document.get('settlement_score', 0) >= 0.6 %}medium{% else %}low{% endif %}" 
+                                         style="width: {{ (document.get('settlement_score', 0) * 100)|round }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ document.get('processing_status', 'completed') }}">
+                                {{ document.get('processing_status', 'completed').title() }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="doc-meta">
+                                {% if document.get('processing_time') %}
+                                    {{ "%.1f"|format(document.get('processing_time', 0)) }}s
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="doc-actions">
+                                <a href="{{ url_for('administration.document_details', doc_id=document.get('doc_id', '')) }}" class="action-btn view" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if document.get('doc_type') in ['pdf', 'docx', 'txt', 'html'] %}
+                                <a href="{{ url_for('administration.documents') }}/download/{{ document.get('doc_id', '') }}" class="action-btn download" title="Download">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% endif %}
+                                <a href="#" onclick="confirmDelete('{{ document.get('doc_id', '') }}', '{{ document.get('file_name', '') }}')" class="action-btn delete" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--gray-600);">
+                <i class="fas fa-file-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <h3 style="margin-bottom: 0.5rem;">No Documents Found</h3>
+                <p>{% if search_query or doc_type_filter or settlement_score_filter %}Try adjusting your search filters{% else %}Upload your first settlement document to get started{% endif %}</p>
+                <a href="#upload" style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; color: var(--brown-700); text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-plus"></i>
+                    Upload Document
+                </a>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Document Processing Queue -->
+        {% if processing_queue %}
+        <section class="filter-section">
+            <h2 class="filter-title">
+                <i class="fas fa-clock"></i>
+                Processing Queue
+            </h2>
+            
+            <div class="stats-grid">
+                {% for item in processing_queue %}
+                <div class="stat-card">
+                    <div class="processing-indicator">
+                        <div class="processing-spinner"></div>
+                        <div class="processing-text">Processing {{ item.filename }}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--gray-600); margin-top: 0.5rem;">
+                        Started {{ item.started_at }} • {{ item.progress }}%
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+      <!-- Document Insights -->
+        <section class="filter-section">
+            <h2 class="filter-title">
+                <i class="fas fa-chart-bar"></i>
+                Document Collection Insights
+            </h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ total_documents }}</div>
+                    <div class="stat-label">Total Documents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ total_chunks }}</div>
+                    <div class="stat-label">Knowledge Chunks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ "%.2f"|format(avg_settlement_score) }}</div>
+                    <div class="stat-label">Avg Settlement Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ doc_type_stats|length }}</div>
+                    <div class="stat-label">Document Types</div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Document Type Breakdown -->
+        <section class="stats-section">
+            <h2 class="filter-title">
+                <i class="fas fa-pie-chart"></i>
+                Document Type Distribution
+            </h2>
+
+            <div class="stats-grid">
+                {% for doc_type, count in doc_type_stats.items() %}
+                <div class="stat-card">
+                    <div class="stat-value">{{ count }}</div>
+                    <div class="stat-label">{{ doc_type.upper() }} Files</div>
+                </div>
+                {% endfor %}
+                {% if not doc_type_stats %}
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">No Documents</div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Recent Processing Activity -->
+        <section class="filter-section">
+            <h2 class="filter-title">
+                <i class="fas fa-history"></i>
+                Recent Processing Activity
+            </h2>
+
+            <div style="background: var(--white); border-radius: 8px; border: 1px solid var(--gray-200); overflow: hidden;">
+                {% if documents %}
+                {% for document in documents[:5] %}
+                <div style="padding: 1rem; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 1rem;">
+                    <div class="doc-icon {{ document.get('doc_type', 'txt') }}" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        {% if document.get('doc_type') == 'pdf' %}
+                            <i class="fas fa-file-pdf"></i>
+                        {% elif document.get('doc_type') == 'docx' %}
+                            <i class="fas fa-file-word"></i>
+                        {% else %}
+                            <i class="fas fa-file-alt"></i>
+                        {% endif %}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; color: var(--gray-900); margin-bottom: 0.25rem; font-size: 0.9rem;">
+                            {{ document.get('file_name', 'Unknown Document') }}
+                        </div>
+                        <div style="color: var(--gray-600); font-size: 0.8rem;">
+                            Processed with {{ document.get('num_chunks', 0) }} chunks • Score: {{ "%.2f"|format(document.get('settlement_score', 0)) }}
+                        </div>
+                    </div>
+                    <div style="color: var(--gray-500); font-size: 0.75rem; text-align: right;">
+                        {{ document.get('upload_date', 'Unknown') }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div style="padding: 2rem; text-align: center; color:ar(--gray-600);">
+                    <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No recent processing activity</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Document Deletion</h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 40px; height: 40px; background: var(--error); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 0.5rem; color: var(--error);">Delete Document</h4>
+                    <p style="margin: 0; color: var(--gray-600);">This action cannot be undone.</p>
+                </div>
+            </div>
+            <p style="background: var(--gray-50); padding: 1rem; border-radius: 6px; margin: 0; font-family: monospace; font-size: 0.9rem;" id="deleteDocumentName"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
+            <button class="btn" style="background: var(--error); color: white;" id="confirmDeleteBtn">
+                <i class="fas fa-trash"></i>
+                Delete Document
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Remove filter functionality
+    function removeFilter(filterType) {
+        const url = new URL(window.location);
+        url.searchParams.delete(filterType);
+        window.location.href = url.toString();
+    }
+
+    // Delete confirmation functionality
+    function confirmDelete(docId, fileName) {
+        document.getElementById('deleteDocumentName').textContent = fileName;
+        document.getElementById('confirmDeleteBtn').onclick = function() {
+            deleteDocument(docId);
+        };
+        openModal('deleteModal');
+    }
+
+    function deleteDocument(docId) {
+        fetch(`/administration/documents/${docId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting document: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting document: ' + error);
+        })
+        .finally(() => {
+            closeModal('deleteModal');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const docCheckboxes = document.querySelectorAll('.doc-select');
+        const selectedCountDisplay = document.getElementById('selectedCount');
+        const bulkActionSelect = document.getElementById('bulkAction');
+        const bulkSubmitBtn = document.getElementById('bulkSubmit');
+        const bulkForm = document.getElementById('bulkForm');
+        const selectedDocsInput = document.querySelector('input[name="selected_documents"]');
+
+        // Update selected count and bulk action availability
+        function updateBulkActions() {
+            const selectedDocs = Array.from(docCheckboxes).filter(cb => cb.checked);
+            const count = selectedDocs.length;
+
+            selectedCountDisplay.textContent = `${count} document${count !== 1 ? 's' : ''} selected`;
+
+            // Enable/disable bulk actions
+            const hasSelection = count > 0;
+            if (bulkActionSelect) bulkActionSelect.disabled = !hasSelection;
+            if (bulkSubmitBtn) bulkSubmitBtn.disabled = !hasSelection;
+
+            // Update hidden input with selected document IDs
+            if (selectedDocsInput) {
+                const selectedIds = selectedDocs.map(cb => cb.value);
+                selectedDocsInput.value = selectedIds.join(',');
+            }
+        }
+
+        // Select all functionality
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                docCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkActions();
+            });
+        }
+
+        // Individual checkbox functionality
+        docCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Update select all checkbox state
+                const totalCheckboxes = docCheckboxes.length;
+                const checkedCheckboxes = Array.from(docCheckboxes).filter(cb => cb.checked).length;
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = checkedCheckboxes === totalCheckboxes;
+                    selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
+                }
+
+                updateBulkActions();
+            });
+        });
+
+        // Bulk form submission with confirmation
+        if (bulkForm) {
+            bulkForm.addEventListener('submit', function(e) {
+                const action = bulkActionSelect ? bulkActionSelect.value : '';
+                const selectedCount = Array.from(docCheckboxes).filter(cb => cb.checked).length;
+
+                if (!action) {
+                    e.preventDefault();
+                    alert('Please select an action to perform.');
+                    return;
+                }
+
+                if (selectedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one document.');
+                    return;
+                }
+
+                let confirmMessage = `Are you sure you want to ${action.replace('_', ' ')} ${selectedCount} document${selectedCount !== 1 ? 's' : ''}?`;
+
+                if (action === 'delete') {
+                    confirmMessage += '\n\nThis action cannot be undone.';
+                } else if (action === 'reprocess') {
+                    confirmMessage += '\n\nThis may take several minutes to complete.';
+                }
+
+                if (!confirm(confirmMessage)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // File upload drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        if (uploadArea && fileInput) {
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    if (uploadBtn) uploadBtn.disabled = false;
+                }
+            });
+
+            fileInput.addEventListener('change', function() {
+                if (uploadBtn) uploadBtn.disabled = this.files.length === 0;
+            });
+        }
+
+        // Initialize bulk actions state
+        updateBulkActions();
+
+        console.log('Document management page initialized');
+    });
+</script>
+{% endblock %}

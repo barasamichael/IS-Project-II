@@ -1,0 +1,25 @@
+site_name: SettleBot Backend Docs
+site_url: ""
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Backend:
+      - Overview: backend/overview.md
+      - API:
+          - api: backend/api.md
+          - services: backend/services.md
+          - config: backend/config.md
+          - utilities: backend/utilities.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+

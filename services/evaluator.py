@@ -18,6 +18,17 @@ from services.intent_recognizer import IntentRecognizer
 from services.response_generator import ResponseGenerator
 from services.vector_db import VectorDBService
 
+# Add BLEU score capability
+try:
+    from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
+    import nltk
+
+    nltk.download("punkt", quiet=True)
+    BLEU_AVAILABLE = True
+except ImportError:
+    BLEU_AVAILABLE = False
+    logging.warning("NLTK not available. Install with: pip install nltk")
+
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("evaluator")
@@ -32,15 +43,34 @@ class InternationalStudentRAGEvaluator:
         intent_recognizer: Optional[IntentRecognizer] = None,
         response_generator: Optional[ResponseGenerator] = None,
     ):
-        self.vector_db_service = (
-            vector_db_service or VectorDBService()
-        )
+        self.vector_db_service = vector_db_service or VectorDBService()
         self.intent_recognizer = intent_recognizer or IntentRecognizer()
         self.response_generator = response_generator or ResponseGenerator()
 
         self.eval_dir = ROOT_DIR / "tests" / "eval_data"
         if not self.eval_dir.exists():
             self.eval_dir.mkdir(parents=True)
+
+    def calculate_bleu_score(self, candidate: str, reference: str) -> float:
+        """Calculate BLEU-4 score for response evaluation."""
+        if not BLEU_AVAILABLE:
+            return 0.0
+
+        try:
+            # Tokenize
+            candidate_tokens = candidate.lower().split()
+            reference_tokens = reference.lower().split()
+
+            # Calculate BLEU-4
+            smoother = SmoothingFunction()
+            score = sentence_bleu(
+                [reference_tokens],
+                candidate_tokens,
+                smoothing_function=smoother.method1,
+            )
+            return score
+        except:
+            return 0.0
 
     def create_international_student_eval_set(
         self, output_path: Optional[Path] = None
@@ -68,6 +98,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide specific neighborhoods with safety and cost considerations",
                 "priority": "high",
+                "reference_response": "You can find safe and affordable student housing in several Nairobi neighborhoods. Kilimani is popular with students due to its proximity to universities and good security. Westlands offers modern apartments with security features. Kileleshwa is quieter and family-friendly. Expect to pay KSh 15,000-30,000 per month for a bedsitter or one-bedroom apartment in these areas. Always visit properties in person, verify landlord credentials, and ensure the area has good lighting and security presence.",
             },
             {
                 "id": "house_002",
@@ -83,6 +114,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide cost ranges in KES",
                 "priority": "high",
+                "reference_response": "In Kilimani, a one-bedroom apartment typically costs between KSh 20,000 to KSh 40,000 per month depending on the specific location and amenities. Apartments closer to Yaya Centre or along Argwings Kodhek Road are more expensive. You'll also need to budget for a deposit (usually 1-2 months rent), utilities (KSh 3,000-5,000), and connection fees. Furnished apartments cost about 20-30% more than unfurnished ones.",
             },
             {
                 "id": "house_003",
@@ -98,6 +130,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide reassurance and practical safety tips",
                 "priority": "high",
+                "reference_response": "It's completely normal to feel concerned about accommodation safety as an international student. Here's how to find secure housing: Focus on established neighborhoods like Kilimani, Westlands, and Kileleshwa which have good security and are popular with students. Always visit properties during the day and evening to assess the area. Look for apartments with security guards, CCTV, and controlled access. Ask other international students for recommendations through university groups. Trust your instincts - if something feels wrong, continue searching.",
             },
             # UNIVERSITY QUERIES
             {
@@ -114,6 +147,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should list specific required documents",
                 "priority": "high",
+                "reference_response": "For university admission in Kenya, you'll need: Academic transcripts and certificates from your previous education (officially translated if not in English), completed application form, passport-size photographs, copy of passport, student visa or permit, medical certificate, yellow fever vaccination certificate, and proof of financial support. Some universities may require additional documents like recommendation letters or a personal statement. Contact your specific university's international office for their exact requirements.",
             },
             {
                 "id": "univ_002",
@@ -128,6 +162,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide balanced comparison",
                 "priority": "medium",
+                "reference_response": "University of Nairobi is Kenya's largest public university with lower tuition fees and diverse programs, but larger class sizes. It has strong research facilities and is well-established. Strathmore University is a private institution with smaller classes, modern facilities, and strong industry connections, but higher tuition fees. Strathmore tends to have better support services for international students and more flexible programs. Both are well-recognized, so choose based on your budget, preferred class size, and specific program requirements.",
             },
             # SAFETY QUERIES
             {
@@ -144,6 +179,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide honest safety assessment with precautions",
                 "priority": "critical",
+                "reference_response": "Westlands is generally safer than many Nairobi areas, but walking alone at night isn't recommended anywhere in the city. If you must walk at night in Westlands, stick to well-lit main roads like Waiyaki Way and areas near shopping centers. Avoid quiet side streets and parks after dark. Use ride-sharing apps like Uber or Bolt instead of walking. If walking is unavoidable, stay alert, don't use your phone openly, and walk confidently. The area near Sarit Centre and Westgate Mall has good security presence.",
             },
             {
                 "id": "safe_002",
@@ -159,6 +195,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide comprehensive emergency contact list",
                 "priority": "critical",
+                "reference_response": "Essential emergency contacts: Police, Fire, Ambulance: 999 (universal emergency number), Tourist Police: +254 20 2729992, Red Cross: 0700 395 395, AA Kenya (roadside assistance): 0700 200 007. Major hospitals: Nairobi Hospital (+254 20 2845000), Aga Khan Hospital (+254 20 3740000), MP Shah Hospital (+254 20 3742763). Contact your country's embassy for assistance with passport/visa issues. Save these numbers in your phone and keep written copies in your accommodation.",
             },
             # TRANSPORTATION QUERIES
             {
@@ -176,6 +213,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide multiple transport options with safety tips",
                 "priority": "high",
+                "reference_response": "From JKIA to Westlands, use these safe options: Official airport taxis (KSh 2,500-3,500), Uber/Bolt (KSh 1,500-2,500), or airport shuttle services (KSh 1,000-2,000). Avoid unofficial taxis outside the terminal. Book Uber/Bolt from inside the airport using the designated pickup points. The journey takes 45-90 minutes depending on traffic. Keep your luggage secure and don't display expensive items. If taking a taxi, ensure the meter is working or agree on the fare beforehand.",
             },
             {
                 "id": "trans_002",
@@ -191,6 +229,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide cost ranges for different transport modes",
                 "priority": "medium",
+                "reference_response": "Nairobi transport costs vary by mode: Matatus (public buses): KSh 20-100 for most city routes, Uber/Bolt: KSh 150-800 depending on distance and time, Regular taxis: KSh 300-1,500, Boda boda (motorcycle): KSh 100-500, City buses: KSh 30-70. Budget KSh 200-500 daily for transport if using a mix of options. Matatus are cheapest but less comfortable. Uber/Bolt are safest for students, especially at night.",
             },
             # BANKING & FINANCE QUERIES
             {
@@ -206,6 +245,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide step-by-step process",
                 "priority": "high",
+                "reference_response": "To open a bank account in Kenya: Visit a bank branch with your passport, student visa/permit, admission letter from your university, passport photos, and initial deposit (usually KSh 1,000-5,000). Popular student-friendly banks include KCB, Equity, and Cooperative Bank. You'll need proof of residence (utility bill or tenancy agreement). The account opening process takes 30-60 minutes. Consider banks with campus branches for convenience. Many banks offer student accounts with reduced fees.",
             },
             {
                 "id": "bank_002",
@@ -220,6 +260,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should explain M-Pesa system clearly",
                 "priority": "medium",
+                "reference_response": "M-Pesa is Kenya's mobile money system that lets you send, receive, and store money using your phone. To start: Get a Safaricom SIM card, visit any M-Pesa agent with your ID/passport, register for the service (free), deposit money with an agent. You can then send money to others, pay bills, buy airtime, and withdraw cash at thousands of agents nationwide. Transaction fees range from KSh 1-100 depending on amount. It's widely accepted and very convenient for daily transactions in Kenya.",
             },
             # VISA & IMMIGRATION QUERIES
             {
@@ -236,6 +277,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide renewal procedure",
                 "priority": "high",
+                "reference_response": "To renew your student visa: Apply 60 days before expiry at the Immigration Department (Nyayo House, Uhuru Highway). Required documents: completed application form, current passport, current visa, letter from your university confirming enrollment, fee payment receipt (KSh 10,000 for renewal), medical certificate if required. Processing takes 2-4 weeks. Apply early to avoid overstaying penalties. Keep copies of all documents and your receipt.",
             },
             # CULTURAL ADAPTATION QUERIES
             {
@@ -252,6 +294,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide cultural guidance",
                 "priority": "medium",
+                "reference_response": "Kenyan cultural etiquette: Greet people warmly - handshakes are common, use both hands when giving or receiving items, dress modestly especially in rural areas and religious sites, respect elders and address them formally, remove shoes when entering homes, avoid pointing with fingers (use open hand), be patient as 'Kenyan time' can mean events start later, learn basic Swahili greetings (Jambo, Asante), bargaining is acceptable in markets but not in shops, and avoid discussing politics unless invited. Kenyans are generally friendly and helpful to visitors.",
             },
             # HEALTHCARE QUERIES
             {
@@ -268,6 +311,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should list major hospitals and clinics",
                 "priority": "medium",
+                "reference_response": "Top healthcare facilities in Nairobi: The Nairobi Hospital (Argwings Kodhek Road) - comprehensive services, Aga Khan Hospital (Parklands) - high-quality private care, MP Shah Hospital (Parklands) - good general services, Kenyatta National Hospital (Hospital Road) - largest public hospital, Karen Hospital (Karen) - modern private facility. For routine care, consider clinics like Meridian Medical Centre or AAR Healthcare. Many accept international insurance. Always carry your insurance documents and emergency contacts.",
             },
             # ENTERTAINMENT & SOCIAL QUERIES
             {
@@ -284,6 +328,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should suggest social venues and activities",
                 "priority": "low",
+                "reference_response": "Great places for students to socialize: Westgate Mall and Sarit Centre (shopping and dining), Karura Forest (walking and picnics), The Junction and Two Rivers Mall (entertainment and restaurants), university sports clubs and societies, international student groups on Facebook, coffee shops in Westlands and Kilimani, Uhuru Park (events and relaxation), National Museum and cultural centers, co-working spaces like iHub or Nailab, and weekend markets like Maasai Market. Join university orientation programs and student associations to meet people with similar interests.",
             },
             # SHOPPING QUERIES
             {
@@ -300,6 +345,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should suggest budget-friendly shopping options",
                 "priority": "medium",
+                "reference_response": "Affordable shopping options: Naivas, Quickmart, and Cleanshelf supermarkets for groceries, City Market (downtown) for fresh produce and bargains, local markets in your neighborhood for vegetables and fruits, Gikomba Market for household items and clothes (bargain carefully), Tuskys and Choppies supermarkets for budget options. Shop at local dukas (small shops) for daily needs. Compare prices between supermarkets and markets - markets are usually cheaper but require bargaining. Buy in bulk when possible to save money.",
             },
             # ACADEMIC CONVERSION QUERIES
             {
@@ -316,6 +362,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should explain grade conversion process",
                 "priority": "medium",
+                "reference_response": "Kenyan universities typically use different grading systems. Most use: First Class (70-100%), Second Class Upper (60-69%), Second Class Lower (50-59%), Pass (40-49%). For US GPA conversion: 4.0 GPA ≈ First Class, 3.5-3.9 ≈ Second Upper, 3.0-3.4 ≈ Second Lower, 2.5-2.9 ≈ Pass. However, each university has specific conversion formulas. Contact your university's registrar or international office for official conversion as requirements vary between institutions. Some universities may require credential evaluation from recognized agencies.",
             },
             # REASSURANCE & SUPPORT QUERIES
             {
@@ -332,6 +379,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide emotional support and reassurance",
                 "priority": "high",
+                "reference_response": "Feeling overwhelmed as a new international student is completely normal and very common. You're adjusting to a new country, culture, education system, and being away from home - that's a lot of change at once. Most students experience this during their first few months. It gets easier as you settle in and make friends. Reach out to your university's international student office for support, join student groups to meet others in similar situations, maintain contact with family and friends back home, establish routines, and don't hesitate to seek counseling services if available. Remember, this adjustment period is temporary, and thousands of students have successfully navigated this same experience.",
             },
             # LOCATION-SPECIFIC QUERIES
             {
@@ -348,6 +396,7 @@ class InternationalStudentRAGEvaluator:
                 ],
                 "notes": "Should provide comprehensive area information",
                 "priority": "medium",
+                "reference_response": "Karen is an upscale suburb popular with expatriates and middle-class families. Pros: quiet and leafy environment, good security, Karen Hospital nearby, shopping at Karen Waterfront and The Hub, close to Wilson Airport. Cons: higher rent (KSh 25,000-60,000 for student housing), farther from most universities (30-45 minutes to city center), limited nightlife, fewer public transport options. Best for students who prioritize quiet study environment and safety over proximity to campus. Consider if you have reliable transport or can afford regular taxi rides to university.",
             },
         ]
 
@@ -364,6 +413,8 @@ class InternationalStudentRAGEvaluator:
         self,
         eval_file: Optional[Path] = None,
         output_path: Optional[Path] = None,
+        include_bleu: bool = True,
+        reference_responses: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Run comprehensive evaluation on international student assistant."""
         eval_file = (
@@ -388,6 +439,17 @@ class InternationalStudentRAGEvaluator:
                 "message": f"Error loading evaluation file: {str(e)}",
             }
 
+        # Extract reference responses from eval data if not provided
+        if include_bleu and reference_responses is None:
+            reference_responses = {}
+            for _, row in eval_df.iterrows():
+                if "reference_response" in row and pd.notna(
+                    row["reference_response"]
+                ):
+                    reference_responses[row["query"]] = row[
+                        "reference_response"
+                    ]
+
         # Run evaluation on each question
         results = []
         failed_queries = 0
@@ -410,6 +472,10 @@ class InternationalStudentRAGEvaluator:
                         self.vector_db_service.search_for_students(
                             query=query, top_k=5, prioritize_practical=True
                         )
+                        if hasattr(
+                            self.vector_db_service, "search_for_students"
+                        )
+                        else self.vector_db_service.search(query=query, top_k=5)
                     )
 
                 # Generate response
@@ -418,6 +484,17 @@ class InternationalStudentRAGEvaluator:
                     retrieved_context=retrieved_chunks,
                     intent_info=intent_info,
                 )
+
+                # Calculate BLEU score if enabled and reference available
+                bleu_score = 0.0
+                if (
+                    include_bleu
+                    and reference_responses
+                    and query in reference_responses
+                ):
+                    bleu_score = self.calculate_bleu_score(
+                        response_data["response"], reference_responses[query]
+                    )
 
                 # Evaluate response quality
                 evaluation_metrics = self._evaluate_response_quality(
@@ -448,6 +525,7 @@ class InternationalStudentRAGEvaluator:
                     ],
                     "empathy_score": evaluation_metrics["empathy_score"],
                     "overall_score": evaluation_metrics["overall_score"],
+                    "bleu_score": bleu_score,
                     "priority": row.get("priority", "medium"),
                     "token_usage": response_data.get("token_usage", {}),
                     "urgency": intent_info.get("urgency", "low"),
@@ -473,13 +551,14 @@ class InternationalStudentRAGEvaluator:
                         "query": row.get("query", ""),
                         "error": str(e),
                         "overall_score": 0,
+                        "bleu_score": 0,
                         "priority": row.get("priority", "medium"),
                     }
                 )
 
         # Calculate comprehensive metrics
         evaluation_report = self._generate_evaluation_report(
-            results, failed_queries
+            results, failed_queries, include_bleu=include_bleu
         )
 
         # Save results
@@ -490,8 +569,12 @@ class InternationalStudentRAGEvaluator:
         logger.info(
             f"Overall Score: {evaluation_report['overall_metrics']['average_score']:.3f}"
         )
+        if include_bleu and "bleu_metrics" in evaluation_report:
+            logger.info(
+                f"Average BLEU Score: {evaluation_report['bleu_metrics']['average_bleu']:.3f}"
+            )
         logger.info(
-            f"High Priority Score: {evaluation_report['priority_metrics']['critical_avg_score']:.3f}"
+            f"High Priority Score: {evaluation_report['priority_metrics'].get('critical', {}).get('avg_score', 0):.3f}"
         )
 
         return evaluation_report
@@ -793,7 +876,10 @@ class InternationalStudentRAGEvaluator:
         return max(min(score, 1.0), 0.0)
 
     def _generate_evaluation_report(
-        self, results: List[Dict], failed_queries: int
+        self,
+        results: List[Dict],
+        failed_queries: int,
+        include_bleu: bool = False,
     ) -> Dict[str, Any]:
         """Generate comprehensive evaluation report."""
 
@@ -828,6 +914,25 @@ class InternationalStudentRAGEvaluator:
             )
             / len(successful_results),
         }
+
+        # BLEU metrics if enabled
+        if include_bleu:
+            bleu_scores = [
+                r.get("bleu_score", 0)
+                for r in successful_results
+                if r.get("bleu_score", 0) > 0
+            ]
+            overall_metrics["bleu_metrics"] = {
+                "average_bleu": sum(bleu_scores) / len(bleu_scores)
+                if bleu_scores
+                else 0,
+                "bleu_scores_available": len(bleu_scores),
+                "high_bleu_responses": sum(
+                    1 for score in bleu_scores if score > 0.3
+                ),
+                "max_bleu": max(bleu_scores) if bleu_scores else 0,
+                "min_bleu": min(bleu_scores) if bleu_scores else 0,
+            }
 
         # Student-specific metrics
         student_metrics = {
@@ -879,6 +984,19 @@ class InternationalStudentRAGEvaluator:
                     / len(priority_results),
                 }
 
+                # Add BLEU metrics for priority groups if enabled
+                if include_bleu:
+                    priority_bleu = [
+                        r.get("bleu_score", 0)
+                        for r in priority_results
+                        if r.get("bleu_score", 0) > 0
+                    ]
+                    priority_groups[priority]["avg_bleu"] = (
+                        sum(priority_bleu) / len(priority_bleu)
+                        if priority_bleu
+                        else 0
+                    )
+
         # Intent type performance
         intent_performance = {}
         for result in successful_results:
@@ -888,6 +1006,7 @@ class InternationalStudentRAGEvaluator:
                     "count": 0,
                     "total_score": 0,
                     "correct_intent": 0,
+                    "bleu_scores": [],
                 }
 
             intent_performance[intent]["count"] += 1
@@ -897,6 +1016,12 @@ class InternationalStudentRAGEvaluator:
             if result.get("intent_match", False):
                 intent_performance[intent]["correct_intent"] += 1
 
+            # Add BLEU scores if available
+            if include_bleu and result.get("bleu_score", 0) > 0:
+                intent_performance[intent]["bleu_scores"].append(
+                    result.get("bleu_score", 0)
+                )
+
         # Calculate averages for intent performance
         for intent, stats in intent_performance.items():
             if stats["count"] > 0:
@@ -904,6 +1029,10 @@ class InternationalStudentRAGEvaluator:
                 stats["intent_accuracy"] = (
                     stats["correct_intent"] / stats["count"]
                 )
+                if include_bleu and stats["bleu_scores"]:
+                    stats["avg_bleu"] = sum(stats["bleu_scores"]) / len(
+                        stats["bleu_scores"]
+                    )
 
         # Token usage analysis
         token_stats = {
@@ -1036,6 +1165,13 @@ class InternationalStudentRAGEvaluator:
                 f"Excellent performance on: {', '.join(strong_intents)}"
             )
 
+        # Check BLEU performance if available
+        if "bleu_metrics" in overall_metrics:
+            if overall_metrics["bleu_metrics"]["average_bleu"] >= 0.3:
+                strengths.append(
+                    "Good response similarity to reference answers"
+                )
+
         return strengths or ["System shows basic functionality"]
 
     def _identify_weaknesses(
@@ -1077,6 +1213,13 @@ class InternationalStudentRAGEvaluator:
         ]
         if weak_intents:
             weaknesses.append(f"Poor performance on: {', '.join(weak_intents)}")
+
+        # Check BLEU performance if available
+        if "bleu_metrics" in overall_metrics:
+            if overall_metrics["bleu_metrics"]["average_bleu"] < 0.2:
+                weaknesses.append(
+                    "Low response similarity to reference answers"
+                )
 
         return weaknesses or ["No significant weaknesses identified"]
 
@@ -1137,6 +1280,13 @@ class InternationalStudentRAGEvaluator:
                 f"Focus improvement efforts on these intent types: {', '.join(poor_intents)}"
             )
 
+        # BLEU-specific recommendations
+        if "bleu_metrics" in overall_metrics:
+            if overall_metrics["bleu_metrics"]["average_bleu"] < 0.2:
+                recommendations.append(
+                    "Improve response consistency and alignment with expected answers"
+                )
+
         # Knowledge base recommendations
         recommendations.extend(
             [
@@ -1148,253 +1298,6 @@ class InternationalStudentRAGEvaluator:
         )
 
         return recommendations
-
-    def generate_html_report(
-        self, eval_results: Dict[str, Any], output_path: Optional[Path] = None
-    ) -> Path:
-        """Generate comprehensive HTML report for international student evaluation."""
-        output_path = (
-            output_path
-            or self.eval_dir / "international_student_evaluation_report.html"
-        )
-
-        # Generate HTML content
-        html_content = self._create_html_report_content(eval_results)
-
-        # Save HTML report
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        logger.info(f"HTML evaluation report generated at {output_path}")
-        return output_path
-
-    def _create_html_report_content(self, eval_results: Dict[str, Any]) -> str:
-        """Create HTML content for the evaluation report."""
-        overall_score = eval_results.get("overall_metrics", {}).get(
-            "average_score", 0
-        )
-        student_relevance = eval_results.get(
-            "student_specific_metrics", {}
-        ).get("avg_student_relevance", 0)
-        empathy_score = eval_results.get("student_specific_metrics", {}).get(
-            "avg_empathy_score", 0
-        )
-
-        def get_score_class(score):
-            if score >= 0.8:
-                return "score-excellent"
-            elif score >= 0.6:
-                return "score-good"
-            elif score >= 0.4:
-                return "score-fair"
-            else:
-                return "score-poor"
-
-        html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>International Student Assistant Evaluation Report</title>
-    <style>
-        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
-        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }}
-        h1 {{ color: #2c3e50; text-align: center; margin-bottom: 30px; }}
-        h2 {{ color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
-        h3 {{ color: #7f8c8d; }}
-        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }}
-        .metric-card {{ background: #ecf0f1; padding: 20px; border-radius: 8px; text-align: center; }}
-        .metric-value {{ font-size: 2em; font-weight: bold; margin: 10px 0; }}
-        .score-excellent {{ color: #27ae60; }}
-        .score-good {{ color: #f39c12; }}
-        .score-fair {{ color: #e67e22; }}
-        .score-poor {{ color: #e74c3c; }}
-        .recommendations {{ background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }}
-        .strengths {{ background: #d1edff; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; }}
-        .weaknesses {{ background: #f8d7da; padding: 15px; border-radius: 5px; border-left: 4px solid #dc3545; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
-        th {{ background-color: #3498db; color: white; }}
-        tr:nth-child(even) {{ background-color: #f2f2f2; }}
-        .priority-critical {{ background-color: #ffebee; }}
-        .priority-high {{ background-color: #fff3e0; }}
-        .priority-medium {{ background-color: #f3e5f5; }}
-        .priority-low {{ background-color: #e8f5e8; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🌍 International Student Assistant Evaluation Report</h1>
-        
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <h3>Overall Score</h3>
-                <div class="metric-value {get_score_class(overall_score)}">{overall_score:.2%}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Student Relevance</h3>
-                <div class="metric-value {get_score_class(student_relevance)}">{student_relevance:.2%}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Empathy Score</h3>
-                <div class="metric-value {get_score_class(empathy_score)}">{empathy_score:.2%}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Success Rate</h3>
-                <div class="metric-value {get_score_class(eval_results.get('overall_metrics', {}).get('success_rate', 0))}">{eval_results.get('overall_metrics', {}).get('success_rate', 0):.2%}</div>
-            </div>
-        </div>
-
-        <h2>📊 Key Insights</h2>
-        <div class="strengths">
-            <h3>💪 Strengths</h3>
-            <ul>
-        """
-
-        for strength in eval_results.get("evaluation_summary", {}).get(
-            "key_strengths", []
-        ):
-            html_content += f"<li>{strength}</li>"
-
-        html_content += """
-            </ul>
-        </div>
-        
-        <div class="weaknesses">
-            <h3>⚠️ Areas for Improvement</h3>
-            <ul>
-        """
-
-        for weakness in eval_results.get("evaluation_summary", {}).get(
-            "key_weaknesses", []
-        ):
-            html_content += f"<li>{weakness}</li>"
-
-        html_content += """
-            </ul>
-        </div>
-        
-        <div class="recommendations">
-            <h3>🎯 Recommendations</h3>
-            <ul>
-        """
-
-        for recommendation in eval_results.get("recommendations", []):
-            html_content += f"<li>{recommendation}</li>"
-
-        html_content += """
-            </ul>
-        </div>
-
-        <h2>📈 Performance by Intent Type</h2>
-        <table>
-            <tr>
-                <th>Intent Type</th>
-                <th>Count</th>
-                <th>Average Score</th>
-                <th>Intent Accuracy</th>
-            </tr>
-        """
-
-        intent_performance = eval_results.get("intent_performance", {})
-        for intent, stats in sorted(
-            intent_performance.items(),
-            key=lambda x: x[1].get("avg_score", 0),
-            reverse=True,
-        ):
-            score_class = get_score_class(stats.get("avg_score", 0))
-            html_content += f"""
-            <tr>
-                <td>{intent.replace('_', ' ').title()}</td>
-                <td>{stats.get('count', 0)}</td>
-                <td class="{score_class}">{stats.get('avg_score', 0):.2%}</td>
-                <td>{stats.get('intent_accuracy', 0):.2%}</td>
-            </tr>
-            """
-
-        html_content += """
-        </table>
-
-        <h2>🎯 Performance by Priority</h2>
-        <table>
-            <tr>
-                <th>Priority Level</th>
-                <th>Count</th>
-                <th>Average Score</th>
-                <th>Intent Accuracy</th>
-                <th>Student Relevance</th>
-            </tr>
-        """
-
-        priority_metrics = eval_results.get("priority_metrics", {})
-        for priority in ["critical", "high", "medium", "low"]:
-            if priority in priority_metrics:
-                stats = priority_metrics[priority]
-                score_class = get_score_class(stats.get("avg_score", 0))
-                html_content += f"""
-                <tr class="priority-{priority}">
-                    <td>{priority.title()}</td>
-                    <td>{stats.get('count', 0)}</td>
-                    <td class="{score_class}">{stats.get('avg_score', 0):.2%}</td>
-                    <td>{stats.get('intent_accuracy', 0):.2%}</td>
-                    <td>{stats.get('avg_student_relevance', 0):.2%}</td>
-                </tr>
-                """
-
-        html_content += f"""
-        </table>
-
-        <h2>💰 Resource Usage</h2>
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <h3>Total Tokens</h3>
-                <div class="metric-value">{eval_results.get('token_usage', {}).get('total_tokens', 0):,}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Avg Tokens/Query</h3>
-                <div class="metric-value">{eval_results.get('token_usage', {}).get('avg_tokens_per_query', 0):.0f}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Avg Chunks Retrieved</h3>
-                <div class="metric-value">{eval_results.get('retrieval_analysis', {}).get('avg_chunks_retrieved', 0):.1f}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Chunk Relevance</h3>
-                <div class="metric-value">{eval_results.get('retrieval_analysis', {}).get('avg_chunk_relevance', 0):.2%}</div>
-            </div>
-        </div>
-
-        <h2>📝 Detailed Results Summary</h2>
-        <p><strong>Total Queries Evaluated:</strong> {eval_results.get('overall_metrics', {}).get('total_queries', 0)}</p>
-        <p><strong>Successful Evaluations:</strong> {eval_results.get('overall_metrics', {}).get('successful_queries', 0)}</p>
-        <p><strong>Failed Evaluations:</strong> {eval_results.get('overall_metrics', {}).get('failed_queries', 0)}</p>
-        
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <h3>Excellent Responses</h3>
-                <div class="metric-value score-excellent">{eval_results.get('quality_distribution', {}).get('excellent_responses', 0)}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Good Responses</h3>
-                <div class="metric-value score-good">{eval_results.get('quality_distribution', {}).get('good_responses', 0)}</div>
-            </div>
-            <div class="metric-card">
-                <h3>Poor Responses</h3>
-                <div class="metric-value score-poor">{eval_results.get('quality_distribution', {}).get('poor_responses', 0)}</div>
-            </div>
-        </div>
-
-        <footer style="margin-top: 40px; text-align: center; color: #7f8c8d; border-top: 1px solid #ecf0f1; padding-top: 20px;">
-            <p>Report generated on {eval_results.get('timestamp', 'Unknown')}</p>
-            <p>International Student Assistant Evaluation Framework v1.0</p>
-        </footer>
-    </div>
-</body>
-</html>
-        """
-
-        return html_content
 
     def run_focused_evaluation(
         self,
@@ -1447,8 +1350,10 @@ class InternationalStudentRAGEvaluator:
             try:
                 # Process query
                 intent_info = self.intent_recognizer.recognize_intent(query)
-                retrieved_chunks = self.vector_db_service.search_for_students(
-                    query, top_k=5
+                retrieved_chunks = (
+                    self.vector_db_service.search_for_students(query, top_k=5)
+                    if hasattr(self.vector_db_service, "search_for_students")
+                    else self.vector_db_service.search(query, top_k=5)
                 )
                 response_data = self.response_generator.generate_response(
                     query, retrieved_chunks, intent_info
@@ -1575,185 +1480,6 @@ class InternationalStudentRAGEvaluator:
 
         return min((content_score * 0.7) + (quality_score * 0.3), 1.0)
 
-    def benchmark_against_baseline(
-        self, baseline_file: Optional[Path] = None
-    ) -> Dict[str, Any]:
-        """Benchmark current system against baseline performance."""
-
-        if not baseline_file or not baseline_file.exists():
-            logger.warning(
-                "No baseline file found. Running current evaluation as new baseline."
-            )
-            return self.run_comprehensive_evaluation()
-
-        try:
-            # Load baseline results
-            with open(baseline_file, "r") as f:
-                baseline_results = json.load(f)
-
-            # Run current evaluation
-            current_results = self.run_comprehensive_evaluation()
-
-            # Compare metrics
-            comparison = {
-                "baseline_date": baseline_results.get("timestamp", "Unknown"),
-                "current_date": current_results.get(
-                    "timestamp", str(datetime.now())
-                ),
-                "improvements": [],
-                "regressions": [],
-                "metric_comparison": {},
-            }
-
-            # Compare key metrics
-            baseline_metrics = baseline_results.get("overall_metrics", {})
-            current_metrics = current_results.get("overall_metrics", {})
-
-            key_metrics = [
-                "average_score",
-                "intent_accuracy",
-                "content_accuracy",
-            ]
-
-            for metric in key_metrics:
-                baseline_val = baseline_metrics.get(metric, 0)
-                current_val = current_metrics.get(metric, 0)
-                change = current_val - baseline_val
-
-                comparison["metric_comparison"][metric] = {
-                    "baseline": baseline_val,
-                    "current": current_val,
-                    "change": change,
-                    "change_percentage": (change / baseline_val * 100)
-                    if baseline_val > 0
-                    else 0,
-                }
-
-                if change > 0.05:  # Significant improvement
-                    comparison["improvements"].append(
-                        f"{metric}: +{change:.2%}"
-                    )
-                elif change < -0.05:  # Significant regression
-                    comparison["regressions"].append(f"{metric}: {change:.2%}")
-
-            # Add student-specific metric comparisons
-            baseline_student = baseline_results.get(
-                "student_specific_metrics", {}
-            )
-            current_student = current_results.get(
-                "student_specific_metrics", {}
-            )
-
-            student_metrics = [
-                "avg_student_relevance",
-                "avg_empathy_score",
-                "avg_practical_info_score",
-            ]
-
-            for metric in student_metrics:
-                baseline_val = baseline_student.get(metric, 0)
-                current_val = current_student.get(metric, 0)
-                change = current_val - baseline_val
-
-                comparison["metric_comparison"][f"student_{metric}"] = {
-                    "baseline": baseline_val,
-                    "current": current_val,
-                    "change": change,
-                    "change_percentage": (change / baseline_val * 100)
-                    if baseline_val > 0
-                    else 0,
-                }
-
-            # Overall assessment
-            overall_baseline = baseline_metrics.get("average_score", 0)
-            overall_current = current_metrics.get("average_score", 0)
-
-            if overall_current > overall_baseline + 0.05:
-                comparison["overall_assessment"] = "IMPROVED"
-            elif overall_current < overall_baseline - 0.05:
-                comparison["overall_assessment"] = "REGRESSED"
-            else:
-                comparison["overall_assessment"] = "STABLE"
-
-            return {
-                "comparison": comparison,
-                "current_results": current_results,
-                "baseline_results": baseline_results,
-            }
-
-        except Exception as e:
-            logger.error(f"Error in baseline comparison: {str(e)}")
-            return {"error": str(e)}
-
-    def export_performance_trends(
-        self, results_history: List[Dict], output_path: Optional[Path] = None
-    ) -> Path:
-        """Export performance trends over multiple evaluation runs."""
-
-        output_path = output_path or self.eval_dir / "performance_trends.json"
-
-        trends = {
-            "evaluation_dates": [],
-            "overall_scores": [],
-            "intent_accuracy": [],
-            "student_relevance": [],
-            "empathy_scores": [],
-            "recommendations_timeline": [],
-        }
-
-        for result in results_history:
-            if result.get("status") == "success":
-                # Extract date
-                trends["evaluation_dates"].append(
-                    result.get("timestamp", "Unknown")
-                )
-
-                # Extract metrics
-                overall_metrics = result.get("overall_metrics", {})
-                student_metrics = result.get("student_specific_metrics", {})
-
-                trends["overall_scores"].append(
-                    overall_metrics.get("average_score", 0)
-                )
-                trends["intent_accuracy"].append(
-                    overall_metrics.get("intent_accuracy", 0)
-                )
-                trends["student_relevance"].append(
-                    student_metrics.get("avg_student_relevance", 0)
-                )
-                trends["empathy_scores"].append(
-                    student_metrics.get("avg_empathy_score", 0)
-                )
-
-                # Track recommendations
-                recommendations = result.get("recommendations", [])
-                trends["recommendations_timeline"].append(
-                    {
-                        "date": result.get("timestamp", "Unknown"),
-                        "recommendations": recommendations,
-                    }
-                )
-
-        # Calculate trends
-        if len(trends["overall_scores"]) >= 2:
-            recent_trend = (
-                trends["overall_scores"][-1] - trends["overall_scores"][-2]
-            )
-            trends["recent_trend"] = (
-                "improving"
-                if recent_trend > 0
-                else "declining"
-                if recent_trend < 0
-                else "stable"
-            )
-
-        # Save trends
-        with open(output_path, "w") as f:
-            json.dump(trends, f, indent=2)
-
-        logger.info(f"Performance trends exported to {output_path}")
-        return output_path
-
     def get_evaluation_summary(self) -> Dict[str, Any]:
         """Get a quick summary of the evaluation system capabilities."""
 
@@ -1776,8 +1502,7 @@ class InternationalStudentRAGEvaluator:
             "evaluation_types": {
                 "comprehensive": "Full evaluation across all student needs",
                 "focused": "Targeted evaluation for specific areas",
-                "baseline_comparison": "Performance comparison against previous results",
-                "trend_analysis": "Performance tracking over time",
+                "bleu_scoring": "Response similarity to reference answers",
             },
             "metrics_tracked": {
                 "intent_recognition": "Accuracy of understanding user intentions",
@@ -1785,6 +1510,7 @@ class InternationalStudentRAGEvaluator:
                 "empathy_scoring": "Emotional support and understanding",
                 "practical_information": "Actionable and useful content delivery",
                 "safety_prioritization": "Appropriate handling of safety concerns",
+                "bleu_score": "Response quality compared to reference answers",
             },
             "output_formats": ["JSON", "HTML", "CSV"],
             "integration_ready": True,

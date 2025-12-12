@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 from typing import Any
 from typing import Dict
@@ -383,6 +384,7 @@ I'm here to assist you with questions about:
             for search_query in search_queries[:2]:
                 try:
                     # Perform Tavily search - optimized for AI/RAG applications
+                    start_time = time.perf_counter()
                     search_result = tavily_client.search(
                         query=search_query,
                         search_depth="basic",  # Fast and cost-efficient
@@ -391,6 +393,8 @@ I'm here to assist you with questions about:
                         include_raw_content=False,  # Don't need full HTML
                         include_images=False,  # No images needed
                     )
+                    end_time = time.perf_counter()
+                    print(f"Elapsed time is { end_time - start_time } seconds")
 
                     # Tavily returns structured data perfect for AI consumption
                     if search_result and search_result.get("results"):
@@ -1091,6 +1095,7 @@ CRITICAL REQUIREMENTS:
 - Focus on practical, actionable guidance they can use right away"""
 
         try:
+            start_time = time.perf_counter()
             response = self.client.chat.completions.create(
                 model=self.model,  # gpt-4.1-mini for speed and cost
                 messages=[
@@ -1100,6 +1105,8 @@ CRITICAL REQUIREMENTS:
                 temperature=0.2,
                 max_tokens=self.max_tokens,
             )
+            end_time = time.perf_counter()
+            print(f"Elapsed time is { end_time - start_time } seconds")
 
             response_content = response.choices[0].message.content
             return self._ensure_comprehensive_structure(response_content)

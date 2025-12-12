@@ -63,6 +63,7 @@ def create_app(config_name="default"):
 
     from .main import main as main_blueprint
     from .accounts import accounts as accounts_blueprint
+    from .anonymous import anonymous as anonymous_blueprint
     from .administration import administration as administration_blueprint
     from .authentication import authentication as authentication_blueprint
 
@@ -74,5 +75,6 @@ def create_app(config_name="default"):
     app.register_blueprint(
         authentication_blueprint, url_prefix="/authentication"
     )
+    app.register_blueprint(anonymous_blueprint, url_prefix='/anonymous')
 
     return app
