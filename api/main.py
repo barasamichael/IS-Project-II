@@ -70,7 +70,7 @@ if settings.api.cors_enabled:
     )
 
 # API Key security
-API_KEY = settings.api.api_key
+API_KEY = os.getenv("SETTLEBOT_API_KEY")
 API_KEY_NAME = "Authorization"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
@@ -105,9 +105,7 @@ background_tasks_status = {}
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(
-        ..., description="User query about settlement in Nairobi"
-    )
+    query: str = Field(..., description="User query about settlement in Nairobi")
     top_k: int = Field(
         default=15,
         ge=1,
@@ -216,9 +214,7 @@ class EvaluationRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str = Field(..., description="Search query")
     top_k: int = Field(default=10, ge=1, le=50)
-    topic_filter: Optional[str] = Field(
-        default=None, description="Filter by topic"
-    )
+    topic_filter: Optional[str] = Field(default=None, description="Filter by topic")
     location_filter: Optional[str] = Field(
         default=None, description="Filter by location"
     )
@@ -392,9 +388,7 @@ async def health_check():
 
         # Overall health
         unhealthy_services = [
-            k
-            for k, v in services_health.items()
-            if v.get("status") != "healthy"
+            k for k, v in services_health.items() if v.get("status") != "healthy"
         ]
         health_status["overall_healthy"] = len(unhealthy_services) == 0
         health_status["unhealthy_services"] = unhealthy_services
@@ -524,9 +518,7 @@ async def get_system_status(api_key: str = Depends(get_api_key)):
             / len(documents)
             if documents
             else 0,
-            "supported_file_types": len(
-                document_processor.get_supported_extensions()
-            ),
+            "supported_file_types": len(document_processor.get_supported_extensions()),
             "supported_languages": len(language_processor.supported_languages),
             "intent_types": len(intent_recognizer.intent_patterns),
             "uptime_hours": 0,  # Would need to track this
@@ -534,14 +526,10 @@ async def get_system_status(api_key: str = Depends(get_api_key)):
 
         # Overall status
         healthy_services = sum(
-            1
-            for service in services.values()
-            if service.get("status") == "healthy"
+            1 for service in services.values() if service.get("status") == "healthy"
         )
         total_services = len(services)
-        overall_status = (
-            "healthy" if healthy_services == total_services else "degraded"
-        )
+        overall_status = "healthy" if healthy_services == total_services else "degraded"
 
         return SystemStatusResponse(
             status=overall_status,
@@ -564,43 +552,24 @@ async def get_system_status(api_key: str = Depends(get_api_key)):
 
 
 @app.post("/query", response_model=QueryResponse)
-async def process_query(
-    request: QueryRequest, api_key: str = Depends(get_api_key)
-):
+async def process_query(request: QueryRequest, api_key: str = Depends(get_api_key)):
     """Process settlement query with comprehensive response generation."""
     try:
-        logger.info(f"Processing query: {request.query[:100]}...")
+        logger.info("query_received", query_preview=request.query[:100])
         start_time = time.time()
 
-        print(f"Query processing: {request.query[:100]}")
-        # Language detection and processing
-        if request.language_detection:
-            language_result = language_processor.detect_and_process_query(
-                request.query
-            )
-            english_query = language_result["english_query"]
-        else:
-            language_result = {
-                "detected_language": "english",
-                "original_query": request.query,
-                "english_query": request.query,
-                "needs_translation": False,
-                "confidence": 1.0,
-            }
-            english_query = request.query
-
         # Intent recognition
-        intent_info = intent_recognizer.get_intent_info(english_query)
+        intent_info = intent_recognizer.get_intent_info(request.query)
         logger.info(f"Recognized intent: {intent_info['intent_type'].value}")
 
         # Retrieve relevant context
         retrieved_chunks = []
         if intent_info["intent_type"] != IntentType.OFF_TOPIC:
             retrieved_chunks = vector_db_service.search(
-                query=english_query, top_k=request.top_k
+                query=request.query, top_k=request.top_k
             )
 
-        # Generate comprehensive response
+        # Generate comprehensive response (language detection runs here)
         response_data = response_generator.generate_response(
             query=request.query,
             retrieved_context=retrieved_chunks,
@@ -609,15 +578,15 @@ async def process_query(
             user_preferences=request.user_preferences,
         )
 
-        # Create language info
+        # Create language info from response_data (single detection source of truth)
         language_info = LanguageInfo(
-            detected_language=language_result["detected_language"],
-            original_query=language_result["original_query"],
-            english_query=language_result["english_query"],
-            translation_needed=language_result["needs_translation"],
-            confidence=language_result.get("confidence", 0.0),
+            detected_language=response_data.get("language_detected", "english"),
+            original_query=request.query,
+            english_query=request.query,
+            translation_needed=response_data.get("translation_needed", False),
+            confidence=1.0,
         )
-        print("processed")
+        logger.debug("query_processed")
 
         # Processing time
         processing_time = time.time() - start_time
@@ -634,15 +603,12 @@ async def process_query(
             token_usage=response_data.get("token_usage"),
             current_time=response_data.get("current_time"),
             empathy_applied=response_data.get("empathy_applied", False),
-            safety_protocols_added=response_data.get(
-                "safety_protocols_added", False
-            ),
+            safety_protocols_added=response_data.get("safety_protocols_added", False),
             crisis_level=response_data.get("crisis_level", "none"),
             emotional_state=response_data.get("emotional_state"),
             web_search_used=response_data.get("web_search_used", False),
         )
 
-        print(query_response)
         # Include debug information if requested
         if request.include_context:
             query_response.retrieved_chunks = retrieved_chunks
@@ -651,9 +617,7 @@ async def process_query(
 
     except Exception as e:
         logger.error(f"Error processing query: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error processing query: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
 
 
 @app.post("/intent/analyze")
@@ -685,9 +649,7 @@ async def analyze_intent(
 
     except Exception as e:
         logger.error(f"Error analyzing intent: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error analyzing intent: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error analyzing intent: {str(e)}")
 
 
 @app.post("/search")
@@ -719,9 +681,7 @@ async def search_knowledge_base(
 
     except Exception as e:
         logger.error(f"Error in search: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in search: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error in search: {str(e)}")
 
 
 @app.get("/search/topics")
@@ -743,9 +703,7 @@ async def search_by_topic(
 
     except Exception as e:
         logger.error(f"Error in topic search: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in topic search: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error in topic search: {str(e)}")
 
 
 @app.get("/search/locations")
@@ -787,8 +745,22 @@ async def upload_document(
     try:
         start_time = time.time()
 
+        # Sanitise filename to prevent path traversal
+        safe_name = Path(file.filename).name
+        if safe_name != file.filename:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "success": False,
+                    "error": {
+                        "code": "INVALID_FILENAME",
+                        "message": "Filename must not contain path components.",
+                    },
+                },
+            )
+
         # Validate file type
-        file_path = Path(file.filename)
+        file_path = Path(safe_name)
         if not document_processor.is_file_supported(file_path):
             supported = ", ".join(document_processor.get_supported_extensions())
             raise HTTPException(
@@ -797,7 +769,7 @@ async def upload_document(
             )
 
         # Save uploaded file
-        temp_file_path = UPLOAD_DIR / file.filename
+        temp_file_path = UPLOAD_DIR / safe_name
         with open(temp_file_path, "wb") as f:
             content = await file.read()
             f.write(content)
@@ -854,9 +826,7 @@ async def upload_document(
 
 @app.get("/documents")
 async def list_documents(
-    doc_type: Optional[str] = Query(
-        None, description="Filter by document type"
-    ),
+    doc_type: Optional[str] = Query(None, description="Filter by document type"),
     settlement_score_min: Optional[float] = Query(
         None, description="Minimum settlement score"
     ),
@@ -868,9 +838,7 @@ async def list_documents(
 
         # Apply filters
         if doc_type:
-            documents = [
-                doc for doc in documents if doc.get("doc_type") == doc_type
-            ]
+            documents = [doc for doc in documents if doc.get("doc_type") == doc_type]
 
         if settlement_score_min is not None:
             documents = [
@@ -924,9 +892,7 @@ async def get_document_info(doc_id: str, api_key: str = Depends(get_api_key)):
         doc_info = document_processor.get_document_info(doc_id)
 
         if not doc_info:
-            raise HTTPException(
-                status_code=404, detail=f"Document {doc_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
 
         # Add file existence checks
         file_checks = {}
@@ -1002,9 +968,7 @@ async def delete_document(doc_id: str, api_key: str = Depends(get_api_key)):
 
 
 @app.post("/documents/process-url")
-async def process_url(
-    request: URLProcessRequest, api_key: str = Depends(get_api_key)
-):
+async def process_url(request: URLProcessRequest, api_key: str = Depends(get_api_key)):
     """Process content from a URL for settlement information."""
     try:
         start_time = time.time()
@@ -1016,9 +980,7 @@ async def process_url(
             raise HTTPException(status_code=400, detail="Invalid URL format")
 
         # Process the URL
-        metadata = document_processor.process_url(
-            request.url, request.output_name
-        )
+        metadata = document_processor.process_url(request.url, request.output_name)
 
         if not metadata:
             return {
@@ -1048,9 +1010,7 @@ async def process_url(
 
     except Exception as e:
         logger.error(f"Error processing URL: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error processing URL: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error processing URL: {str(e)}")
 
 
 @app.post("/documents/process-sitemap")
@@ -1065,9 +1025,7 @@ async def process_sitemap(
         # Validate sitemap URL
         parsed_url = urlparse(request.sitemap_url)
         if not parsed_url.scheme or not parsed_url.netloc:
-            raise HTTPException(
-                status_code=400, detail="Invalid sitemap URL format"
-            )
+            raise HTTPException(status_code=400, detail="Invalid sitemap URL format")
 
         # Process sitemap
         results = document_processor.process_sitemap(
@@ -1156,17 +1114,14 @@ async def get_web_processing_stats(api_key: str = Depends(get_api_key)):
             }
 
         # Calculate statistics
-        url_docs = [
-            doc for doc in web_docs if doc.get("source_type") == "web_url"
-        ]
+        url_docs = [doc for doc in web_docs if doc.get("source_type") == "web_url"]
         sitemap_docs = [
             doc for doc in web_docs if doc.get("source_type") == "web_sitemap"
         ]
 
         total_chunks = sum(doc["num_chunks"] for doc in web_docs)
         avg_settlement_score = (
-            sum(doc.get("avg_settlement_score", 0) for doc in web_docs)
-            / len(web_docs)
+            sum(doc.get("avg_settlement_score", 0) for doc in web_docs) / len(web_docs)
             if web_docs
             else 0
         )
@@ -1251,8 +1206,7 @@ async def process_text_chunking(
             "strategy": request.strategy,
             "total_chunks": len(chunks),
             "total_words": sum(chunk.word_count for chunk in chunks),
-            "avg_chunk_size": sum(chunk.word_count for chunk in chunks)
-            / len(chunks)
+            "avg_chunk_size": sum(chunk.word_count for chunk in chunks) / len(chunks)
             if chunks
             else 0,
             "chunks": chunk_data,
@@ -1260,9 +1214,7 @@ async def process_text_chunking(
 
     except Exception as e:
         logger.error(f"Error in text chunking: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in text chunking: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error in text chunking: {str(e)}")
 
 
 @app.get("/chunking/strategies")
@@ -1307,9 +1259,7 @@ async def get_embedding_stats(api_key: str = Depends(get_api_key)):
 
 @app.post("/embeddings/generate")
 async def generate_embeddings(
-    doc_id: Optional[str] = Query(
-        None, description="Specific document ID to embed"
-    ),
+    doc_id: Optional[str] = Query(None, description="Specific document ID to embed"),
     api_key: str = Depends(get_api_key),
 ):
     """Generate embeddings for documents."""
@@ -1398,9 +1348,7 @@ async def rebuild_index(api_key: str = Depends(get_api_key)):
                 vector_db_service.index_chunks(doc["chunks_path"])
                 indexed_count += 1
             except Exception as e:
-                logger.error(
-                    f"Failed to index document {doc['doc_id']}: {str(e)}"
-                )
+                logger.error(f"Failed to index document {doc['doc_id']}: {str(e)}")
                 failed_count += 1
 
         # Get final statistics
@@ -1418,9 +1366,7 @@ async def rebuild_index(api_key: str = Depends(get_api_key)):
 
     except Exception as e:
         logger.error(f"Error rebuilding index: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error rebuilding index: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error rebuilding index: {str(e)}")
 
 
 @app.post("/vector-db/optimize")
@@ -1465,9 +1411,7 @@ async def translate_text(
 ):
     """Translate text to target language with settlement optimization."""
     try:
-        translated = language_processor.translate_response(
-            text, target_language
-        )
+        translated = language_processor.translate_response(text, target_language)
         quality = language_processor.validate_translation_quality(
             text, translated, target_language
         )
@@ -1481,9 +1425,7 @@ async def translate_text(
         }
     except Exception as e:
         logger.error(f"Error in translation: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in translation: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error in translation: {str(e)}")
 
 
 @app.get("/language/supported")
@@ -1495,9 +1437,7 @@ async def get_supported_languages():
             "supported_languages": list(
                 language_processor.supported_languages.values()
             ),
-            "language_codes": list(
-                language_processor.supported_languages.keys()
-            ),
+            "language_codes": list(language_processor.supported_languages.keys()),
             "total_languages": len(language_processor.supported_languages),
             "processor_stats": stats,
         }
@@ -1515,9 +1455,7 @@ async def test_language_processing(
 ):
     """Test language processing with predefined test cases."""
     try:
-        results = language_processor.test_translation_quality(
-            request.test_cases
-        )
+        results = language_processor.test_translation_quality(request.test_cases)
         return {"success": True, "test_results": results}
     except Exception as e:
         logger.error(f"Error testing language processing: {str(e)}")
@@ -1584,9 +1522,7 @@ async def run_evaluation(
 
 
 @app.get("/evaluation/status/{task_id}")
-async def get_evaluation_status(
-    task_id: str, api_key: str = Depends(get_api_key)
-):
+async def get_evaluation_status(task_id: str, api_key: str = Depends(get_api_key)):
     """Get status of evaluation task."""
     if task_id not in background_tasks_status:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -1615,9 +1551,7 @@ async def create_evaluation_test_set(api_key: str = Depends(get_api_key)):
             "priorities": df["priority"].value_counts().to_dict()
             if "priority" in df.columns
             else {},
-            "sample_questions": df.head(5).to_dict("records")
-            if len(df) > 0
-            else [],
+            "sample_questions": df.head(5).to_dict("records") if len(df) > 0 else [],
         }
 
     except Exception as e:
@@ -1657,9 +1591,7 @@ async def get_document_insights(api_key: str = Depends(get_api_key)):
             return {"message": "No documents available for analysis"}
 
         # Settlement score distribution
-        settlement_scores = [
-            doc.get("avg_settlement_score", 0) for doc in documents
-        ]
+        settlement_scores = [doc.get("avg_settlement_score", 0) for doc in documents]
         score_distribution = {
             "excellent": sum(1 for score in settlement_scores if score >= 0.8),
             "good": sum(1 for score in settlement_scores if 0.6 <= score < 0.8),
@@ -1685,18 +1617,14 @@ async def get_document_insights(api_key: str = Depends(get_api_key)):
 
         # Calculate averages
         for doc_type, stats in type_analysis.items():
-            type_docs = [
-                doc for doc in documents if doc.get("doc_type") == doc_type
-            ]
+            type_docs = [doc for doc in documents if doc.get("doc_type") == doc_type]
             avg_score = (
                 sum(doc.get("avg_settlement_score", 0) for doc in type_docs)
                 / len(type_docs)
                 if type_docs
                 else 0
             )
-            type_analysis[doc_type]["avg_settlement_score"] = round(
-                avg_score, 3
-            )
+            type_analysis[doc_type]["avg_settlement_score"] = round(avg_score, 3)
 
         # Processing timeline
         processing_dates = [
@@ -1710,9 +1638,7 @@ async def get_document_insights(api_key: str = Depends(get_api_key)):
             timeline = {
                 "earliest": datetime.fromtimestamp(earliest).isoformat(),
                 "latest": datetime.fromtimestamp(latest).isoformat(),
-                "span_days": (latest - earliest) / 86400
-                if latest != earliest
-                else 0,
+                "span_days": (latest - earliest) / 86400 if latest != earliest else 0,
             }
         else:
             timeline = {"message": "No processing dates available"}
@@ -1759,8 +1685,7 @@ async def get_document_insights(api_key: str = Depends(get_api_key)):
                 if type_analysis
                 else None,
                 "total_content_size_mb": round(
-                    sum(doc.get("file_size", 0) for doc in documents)
-                    / (1024 * 1024),
+                    sum(doc.get("file_size", 0) for doc in documents) / (1024 * 1024),
                     2,
                 ),
             },
@@ -1805,9 +1730,7 @@ async def get_performance_analytics(api_key: str = Depends(get_api_key)):
             "vector_database": {
                 "total_vectors": vdb_stats.get("count", 0),
                 "collection_name": vdb_stats.get("name", "unknown"),
-                "settlement_optimized": vdb_stats.get(
-                    "settlement_optimized", False
-                ),
+                "settlement_optimized": vdb_stats.get("settlement_optimized", False),
             },
             "embedding_service": embedding_service.get_embedding_stats(),
             "language_processor": language_processor.get_language_stats(),
@@ -2002,9 +1925,7 @@ async def clear_system_cache(api_key: str = Depends(get_api_key)):
 
     except Exception as e:
         logger.error(f"Error clearing cache: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error clearing cache: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error clearing cache: {str(e)}")
 
 
 @app.post("/admin/rebuild-intent-cache")
@@ -2025,9 +1946,7 @@ async def rebuild_intent_cache(api_key: str = Depends(get_api_key)):
 
 @app.get("/admin/system-logs")
 async def get_system_logs(
-    lines: int = Query(
-        default=100, description="Number of log lines to retrieve"
-    ),
+    lines: int = Query(default=100, description="Number of log lines to retrieve"),
     api_key: str = Depends(get_api_key),
 ):
     """Get recent system logs (if log file exists)."""
@@ -2043,9 +1962,7 @@ async def get_system_logs(
         # Read last N lines
         with open(log_file, "r") as f:
             all_lines = f.readlines()
-            recent_lines = (
-                all_lines[-lines:] if len(all_lines) > lines else all_lines
-            )
+            recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
 
         return {
             "success": True,
@@ -2089,9 +2006,7 @@ async def get_system_configuration(api_key: str = Depends(get_api_key)):
             "language_settings": {
                 "detection_enabled": settings.language.detection_enabled,
                 "primary_language": settings.language.primary_language,
-                "supported_languages": len(
-                    language_processor.supported_languages
-                ),
+                "supported_languages": len(language_processor.supported_languages),
             },
             "vector_db_settings": {
                 "collection_name": settings.vector_db.collection_name
@@ -2127,11 +2042,7 @@ async def export_documents_metadata(
             import pandas as pd
 
             df = pd.DataFrame(documents)
-            csv_path = (
-                ROOT_DIR
-                / "exports"
-                / f"documents_export_{int(time.time())}.csv"
-            )
+            csv_path = ROOT_DIR / "exports" / f"documents_export_{int(time.time())}.csv"
             csv_path.parent.mkdir(exist_ok=True)
             df.to_csv(csv_path, index=False)
 
@@ -2229,9 +2140,7 @@ async def document_processed_webhook(
 
     except Exception as e:
         logger.error(f"Error in webhook: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error in webhook: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error in webhook: {str(e)}")
 
 
 # ===============================

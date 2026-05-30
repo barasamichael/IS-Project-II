@@ -167,7 +167,10 @@ Respond with JSON only:
                 max_tokens=300,
             )
             end_time = time.perf_counter()
-            print(f"Elapsed time is { end_time - start_time } seconds")
+            logger.info(
+                "language_detection_completed",
+                elapsed_seconds=round(end_time - start_time, 3),
+            )
 
             result = json.loads(response.choices[0].message.content.strip())
 
@@ -218,9 +221,7 @@ Respond with JSON only:
             if target_code == "en":
                 return response
 
-            return self._translate_response_llm(
-                response, target_code, target_language
-            )
+            return self._translate_response_llm(response, target_code, target_language)
 
         except Exception as e:
             logger.error(f"Response translation failed: {str(e)}")
@@ -233,9 +234,7 @@ Respond with JSON only:
         Translate response using LLM with settlement context preservation.
         """
         try:
-            language_name = self.supported_languages.get(
-                target_code, target_language
-            )
+            language_name = self.supported_languages.get(target_code, target_language)
 
             prompt = f"""Translate this settlement response for international students in Nairobi to {language_name}.
 
@@ -286,9 +285,7 @@ Translate to {language_name}:"""
             return language.lower()
 
         # Reverse mapping
-        name_to_code = {
-            name: code for code, name in self.supported_languages.items()
-        }
+        name_to_code = {name: code for code, name in self.supported_languages.items()}
         return name_to_code.get(language.lower(), "en")
 
     def validate_translation_quality(
@@ -452,9 +449,7 @@ Translate to {language_name}:"""
 
         return None
 
-    def test_translation_quality(
-        self, test_cases: List[Dict]
-    ) -> Dict[str, any]:
+    def test_translation_quality(self, test_cases: List[Dict]) -> Dict[str, any]:
         """
         Test translation quality with predefined settlement queries.
 
@@ -474,9 +469,7 @@ Translate to {language_name}:"""
                 # Check if expected terms are preserved
                 expected_terms = test_case.get("expected_terms", [])
                 preserved_terms = [
-                    term
-                    for term in expected_terms
-                    if term in result["english_query"]
+                    term for term in expected_terms if term in result["english_query"]
                 ]
 
                 quality_metrics = {
@@ -488,8 +481,7 @@ Translate to {language_name}:"""
                     "english_query": result["english_query"],
                     "expected_terms": expected_terms,
                     "preserved_terms": preserved_terms,
-                    "preservation_rate": len(preserved_terms)
-                    / len(expected_terms)
+                    "preservation_rate": len(preserved_terms) / len(expected_terms)
                     if expected_terms
                     else 1.0,
                     "confidence": result["confidence"],
@@ -515,8 +507,7 @@ Translate to {language_name}:"""
             else 0
         )
         avg_confidence = (
-            sum(r["confidence"] for r in successful_tests)
-            / len(successful_tests)
+            sum(r["confidence"] for r in successful_tests) / len(successful_tests)
             if successful_tests
             else 0
         )

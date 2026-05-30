@@ -69,16 +69,14 @@ class InternationalStudentRAGEvaluator:
                 smoothing_function=smoother.method1,
             )
             return score
-        except:
+        except Exception:
             return 0.0
 
     def create_international_student_eval_set(
         self, output_path: Optional[Path] = None
     ) -> Path:
         """Create evaluation set tailored for international students in Nairobi."""
-        output_path = (
-            output_path or self.eval_dir / "international_student_eval.csv"
-        )
+        output_path = output_path or self.eval_dir / "international_student_eval.csv"
 
         # Comprehensive evaluation questions covering international student needs
         eval_questions = [
@@ -417,9 +415,7 @@ class InternationalStudentRAGEvaluator:
         reference_responses: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Run comprehensive evaluation on international student assistant."""
-        eval_file = (
-            eval_file or self.eval_dir / "international_student_eval.csv"
-        )
+        eval_file = eval_file or self.eval_dir / "international_student_eval.csv"
         output_path = output_path or self.eval_dir / "evaluation_results.json"
 
         if not eval_file.exists():
@@ -429,9 +425,7 @@ class InternationalStudentRAGEvaluator:
 
         try:
             eval_df = pd.read_csv(eval_file)
-            logger.info(
-                f"Loaded {len(eval_df)} evaluation questions from {eval_file}"
-            )
+            logger.info(f"Loaded {len(eval_df)} evaluation questions from {eval_file}")
         except Exception as e:
             logger.error(f"Error loading evaluation file: {str(e)}")
             return {
@@ -443,12 +437,8 @@ class InternationalStudentRAGEvaluator:
         if include_bleu and reference_responses is None:
             reference_responses = {}
             for _, row in eval_df.iterrows():
-                if "reference_response" in row and pd.notna(
-                    row["reference_response"]
-                ):
-                    reference_responses[row["query"]] = row[
-                        "reference_response"
-                    ]
+                if "reference_response" in row and pd.notna(row["reference_response"]):
+                    reference_responses[row["query"]] = row["reference_response"]
 
         # Run evaluation on each question
         results = []
@@ -463,7 +453,7 @@ class InternationalStudentRAGEvaluator:
                 query = row["query"]
 
                 # Recognize intent
-                intent_info = self.intent_recognizer.recognize_intent(query)
+                intent_info = self.intent_recognizer.get_intent_info(query)
 
                 # Retrieve relevant context with student-focused search
                 retrieved_chunks = []
@@ -472,9 +462,7 @@ class InternationalStudentRAGEvaluator:
                         self.vector_db_service.search_for_students(
                             query=query, top_k=5, prioritize_practical=True
                         )
-                        if hasattr(
-                            self.vector_db_service, "search_for_students"
-                        )
+                        if hasattr(self.vector_db_service, "search_for_students")
                         else self.vector_db_service.search(query=query, top_k=5)
                     )
 
@@ -511,18 +499,12 @@ class InternationalStudentRAGEvaluator:
                     "expected_topic": row.get("expected_topic", ""),
                     "actual_topic": intent_info["topic"].value,
                     "topic_match": evaluation_metrics["topic_match"],
-                    "expected_answer_contains": evaluation_metrics[
-                        "expected_contains"
-                    ],
-                    "contains_expected": evaluation_metrics[
-                        "contains_expected"
-                    ],
+                    "expected_answer_contains": evaluation_metrics["expected_contains"],
+                    "contains_expected": evaluation_metrics["contains_expected"],
                     "student_relevance_score": evaluation_metrics[
                         "student_relevance_score"
                     ],
-                    "practical_info_score": evaluation_metrics[
-                        "practical_info_score"
-                    ],
+                    "practical_info_score": evaluation_metrics["practical_info_score"],
                     "empathy_score": evaluation_metrics["empathy_score"],
                     "overall_score": evaluation_metrics["overall_score"],
                     "bleu_score": bleu_score,
@@ -613,14 +595,11 @@ class InternationalStudentRAGEvaluator:
         if isinstance(expected_contains, str):
             try:
                 expected_contains = eval(expected_contains)
-            except:
+            except Exception:
                 expected_contains = [expected_contains]
 
         contains_expected = (
-            all(
-                term.lower() in response_text.lower()
-                for term in expected_contains
-            )
+            all(term.lower() in response_text.lower() for term in expected_contains)
             if expected_contains
             else True
         )
@@ -720,9 +699,7 @@ class InternationalStudentRAGEvaluator:
         score = 0.0
 
         # Score based on student-specific content
-        student_mentions = sum(
-            1 for term in student_terms if term in response_lower
-        )
+        student_mentions = sum(1 for term in student_terms if term in response_lower)
         score += min(student_mentions / len(student_terms), 0.4)
 
         # Score based on practical information
@@ -732,9 +709,7 @@ class InternationalStudentRAGEvaluator:
         score += min(practical_mentions / len(practical_terms), 0.4)
 
         # Score based on location specificity
-        location_mentions = sum(
-            1 for term in location_terms if term in response_lower
-        )
+        location_mentions = sum(1 for term in location_terms if term in response_lower)
         score += min(location_mentions / len(location_terms), 0.2)
 
         return min(score, 1.0)
@@ -783,10 +758,7 @@ class InternationalStudentRAGEvaluator:
                 score += 0.15
 
         # Bonus for structured information (lists, numbered steps)
-        if any(
-            pattern in response_text
-            for pattern in ["1.", "2.", "•", "-", "Step"]
-        ):
+        if any(pattern in response_text for pattern in ["1.", "2.", "•", "-", "Step"]):
             score += 0.1
 
         # Check if retrieved chunks had practical info
@@ -800,9 +772,7 @@ class InternationalStudentRAGEvaluator:
 
         return min(score, 1.0)
 
-    def _calculate_empathy_score(
-        self, response_text: str, intent_type: str
-    ) -> float:
+    def _calculate_empathy_score(self, response_text: str, intent_type: str) -> float:
         """Calculate empathy and supportiveness of the response."""
         response_lower = response_text.lower()
 
@@ -851,9 +821,7 @@ class InternationalStudentRAGEvaluator:
         score = 0.0
 
         # Positive scoring for empathy
-        empathy_count = sum(
-            1 for term in empathy_terms if term in response_lower
-        )
+        empathy_count = sum(1 for term in empathy_terms if term in response_lower)
         score += min(empathy_count / len(empathy_terms), 0.5)
 
         reassurance_count = sum(
@@ -864,8 +832,7 @@ class InternationalStudentRAGEvaluator:
         # Special boost for reassurance-seeking queries
         if "reassurance" in str(intent_type).lower():
             if any(
-                term in response_lower
-                for term in empathy_terms + reassurance_terms
+                term in response_lower for term in empathy_terms + reassurance_terms
             ):
                 score += 0.2
 
@@ -895,9 +862,7 @@ class InternationalStudentRAGEvaluator:
             "successful_queries": len(successful_results),
             "failed_queries": failed_queries,
             "success_rate": len(successful_results) / len(results),
-            "average_score": sum(
-                r.get("overall_score", 0) for r in successful_results
-            )
+            "average_score": sum(r.get("overall_score", 0) for r in successful_results)
             / len(successful_results),
             "intent_accuracy": sum(
                 1 for r in successful_results if r.get("intent_match", False)
@@ -908,9 +873,7 @@ class InternationalStudentRAGEvaluator:
             )
             / len(successful_results),
             "content_accuracy": sum(
-                1
-                for r in successful_results
-                if r.get("contains_expected", False)
+                1 for r in successful_results if r.get("contains_expected", False)
             )
             / len(successful_results),
         }
@@ -927,9 +890,7 @@ class InternationalStudentRAGEvaluator:
                 if bleu_scores
                 else 0,
                 "bleu_scores_available": len(bleu_scores),
-                "high_bleu_responses": sum(
-                    1 for score in bleu_scores if score > 0.3
-                ),
+                "high_bleu_responses": sum(1 for score in bleu_scores if score > 0.3),
                 "max_bleu": max(bleu_scores) if bleu_scores else 0,
                 "min_bleu": min(bleu_scores) if bleu_scores else 0,
             }
@@ -972,14 +933,11 @@ class InternationalStudentRAGEvaluator:
                     )
                     / len(priority_results),
                     "intent_accuracy": sum(
-                        1
-                        for r in priority_results
-                        if r.get("intent_match", False)
+                        1 for r in priority_results if r.get("intent_match", False)
                     )
                     / len(priority_results),
                     "avg_student_relevance": sum(
-                        r.get("student_relevance_score", 0)
-                        for r in priority_results
+                        r.get("student_relevance_score", 0) for r in priority_results
                     )
                     / len(priority_results),
                 }
@@ -992,9 +950,7 @@ class InternationalStudentRAGEvaluator:
                         if r.get("bleu_score", 0) > 0
                     ]
                     priority_groups[priority]["avg_bleu"] = (
-                        sum(priority_bleu) / len(priority_bleu)
-                        if priority_bleu
-                        else 0
+                        sum(priority_bleu) / len(priority_bleu) if priority_bleu else 0
                     )
 
         # Intent type performance
@@ -1010,9 +966,7 @@ class InternationalStudentRAGEvaluator:
                 }
 
             intent_performance[intent]["count"] += 1
-            intent_performance[intent]["total_score"] += result.get(
-                "overall_score", 0
-            )
+            intent_performance[intent]["total_score"] += result.get("overall_score", 0)
             if result.get("intent_match", False):
                 intent_performance[intent]["correct_intent"] += 1
 
@@ -1026,9 +980,7 @@ class InternationalStudentRAGEvaluator:
         for intent, stats in intent_performance.items():
             if stats["count"] > 0:
                 stats["avg_score"] = stats["total_score"] / stats["count"]
-                stats["intent_accuracy"] = (
-                    stats["correct_intent"] / stats["count"]
-                )
+                stats["intent_accuracy"] = stats["correct_intent"] / stats["count"]
                 if include_bleu and stats["bleu_scores"]:
                     stats["avg_bleu"] = sum(stats["bleu_scores"]) / len(
                         stats["bleu_scores"]
@@ -1074,23 +1026,17 @@ class InternationalStudentRAGEvaluator:
             )
             / len(successful_results),
             "queries_with_no_chunks": sum(
-                1
-                for r in successful_results
-                if r.get("chunks_retrieved", 0) == 0
+                1 for r in successful_results if r.get("chunks_retrieved", 0) == 0
             ),
         }
 
         # Quality thresholds
         quality_analysis = {
             "excellent_responses": sum(
-                1
-                for r in successful_results
-                if r.get("overall_score", 0) >= 0.8
+                1 for r in successful_results if r.get("overall_score", 0) >= 0.8
             ),
             "good_responses": sum(
-                1
-                for r in successful_results
-                if 0.6 <= r.get("overall_score", 0) < 0.8
+                1 for r in successful_results if 0.6 <= r.get("overall_score", 0) < 0.8
             ),
             "poor_responses": sum(
                 1 for r in successful_results if r.get("overall_score", 0) < 0.4
@@ -1144,9 +1090,7 @@ class InternationalStudentRAGEvaluator:
             strengths.append("Excellent intent recognition accuracy")
 
         if student_metrics["avg_student_relevance"] >= 0.7:
-            strengths.append(
-                "Strong international student context understanding"
-            )
+            strengths.append("Strong international student context understanding")
 
         if student_metrics["avg_empathy_score"] >= 0.6:
             strengths.append("Good empathetic and supportive responses")
@@ -1161,16 +1105,12 @@ class InternationalStudentRAGEvaluator:
             if stats.get("avg_score", 0) >= 0.8 and stats.get("count", 0) >= 2
         ]
         if strong_intents:
-            strengths.append(
-                f"Excellent performance on: {', '.join(strong_intents)}"
-            )
+            strengths.append(f"Excellent performance on: {', '.join(strong_intents)}")
 
         # Check BLEU performance if available
         if "bleu_metrics" in overall_metrics:
             if overall_metrics["bleu_metrics"]["average_bleu"] >= 0.3:
-                strengths.append(
-                    "Good response similarity to reference answers"
-                )
+                strengths.append("Good response similarity to reference answers")
 
         return strengths or ["System shows basic functionality"]
 
@@ -1195,9 +1135,7 @@ class InternationalStudentRAGEvaluator:
             )
 
         if student_metrics["avg_student_relevance"] < 0.5:
-            weaknesses.append(
-                "Insufficient focus on international student needs"
-            )
+            weaknesses.append("Insufficient focus on international student needs")
 
         if student_metrics["avg_empathy_score"] < 0.4:
             weaknesses.append("Responses lack empathy and emotional support")
@@ -1217,9 +1155,7 @@ class InternationalStudentRAGEvaluator:
         # Check BLEU performance if available
         if "bleu_metrics" in overall_metrics:
             if overall_metrics["bleu_metrics"]["average_bleu"] < 0.2:
-                weaknesses.append(
-                    "Low response similarity to reference answers"
-                )
+                weaknesses.append("Low response similarity to reference answers")
 
         return weaknesses or ["No significant weaknesses identified"]
 
@@ -1261,9 +1197,7 @@ class InternationalStudentRAGEvaluator:
             )
 
         # Priority-specific recommendations
-        critical_performance = priority_groups.get("critical", {}).get(
-            "avg_score", 1.0
-        )
+        critical_performance = priority_groups.get("critical", {}).get("avg_score", 1.0)
         if critical_performance < 0.8:
             recommendations.append(
                 "URGENT: Improve handling of critical queries (safety, emergencies)"
@@ -1349,7 +1283,7 @@ class InternationalStudentRAGEvaluator:
         for i, query in enumerate(queries):
             try:
                 # Process query
-                intent_info = self.intent_recognizer.recognize_intent(query)
+                intent_info = self.intent_recognizer.get_intent_info(query)
                 retrieved_chunks = (
                     self.vector_db_service.search_for_students(query, top_k=5)
                     if hasattr(self.vector_db_service, "search_for_students")
@@ -1360,13 +1294,11 @@ class InternationalStudentRAGEvaluator:
                 )
 
                 # Simple scoring for focused evaluation
-                score = self._calculate_focus_score(
-                    response_data, focus_area, query
-                )
+                score = self._calculate_focus_score(response_data, focus_area, query)
 
                 results.append(
                     {
-                        "query_id": f"{focus_area}_{i+1:02d}",
+                        "query_id": f"{focus_area}_{i + 1:02d}",
                         "query": query,
                         "response": response_data["response"],
                         "intent_type": intent_info["intent_type"].value,
@@ -1377,12 +1309,10 @@ class InternationalStudentRAGEvaluator:
                 )
 
             except Exception as e:
-                logger.error(
-                    f"Error in focused evaluation query '{query}': {str(e)}"
-                )
+                logger.error(f"Error in focused evaluation query '{query}': {str(e)}")
                 results.append(
                     {
-                        "query_id": f"{focus_area}_{i+1:02d}",
+                        "query_id": f"{focus_area}_{i + 1:02d}",
                         "query": query,
                         "error": str(e),
                         "score": 0,
@@ -1393,8 +1323,7 @@ class InternationalStudentRAGEvaluator:
         # Calculate focused metrics
         successful_results = [r for r in results if "error" not in r]
         avg_score = (
-            sum(r["score"] for r in successful_results)
-            / len(successful_results)
+            sum(r["score"] for r in successful_results) / len(successful_results)
             if successful_results
             else 0
         )
@@ -1468,8 +1397,7 @@ class InternationalStudentRAGEvaluator:
         if len(response_text) > 100:  # Adequate length
             quality_score += 0.2
         if any(
-            indicator in response_text
-            for indicator in ["kes", "ksh", "cost", "price"]
+            indicator in response_text for indicator in ["kes", "ksh", "cost", "price"]
         ):  # Cost info
             quality_score += 0.1
         if any(

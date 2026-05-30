@@ -57,7 +57,6 @@ class APIConfig(BaseModel):
     host: str
     port: int
     debug: bool
-    api_key: str
     cors_enabled: bool
     max_request_size: int
 
@@ -97,4 +96,14 @@ if os.getenv("CHUNKING_STRATEGY"):
 if os.getenv("DEDUPLICATION_ENABLED"):
     settings.deduplication.enabled = (
         os.getenv("DEDUPLICATION_ENABLED").lower() == "true"
+    )
+
+_PLACEHOLDER_KEY = "your_secure_random_key_here"
+_settlebot_api_key = os.getenv("SETTLEBOT_API_KEY")
+if not _settlebot_api_key or _settlebot_api_key == _PLACEHOLDER_KEY:
+    raise ValueError(
+        "SETTLEBOT_API_KEY environment variable is not set or uses the insecure "
+        "placeholder value. Generate with: "
+        'python -c \'import secrets; sys=__import__("sys"); '
+        "sys.stdout.write(secrets.token_urlsafe(32))'"
     )

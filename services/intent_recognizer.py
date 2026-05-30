@@ -611,13 +611,15 @@ class IntentRecognizer:
             return False
 
         try:
-            with open(self.metadata_file, 'r') as f:
+            with open(self.metadata_file, "r") as f:
                 metadata = json.load(f)
-            
+
             # Check if all intent types are present
-            cached_intents = set(metadata.get('intent_types', []))
-            current_intents = set(intent.value for intent in IntentType if intent != IntentType.OFF_TOPIC)
-            
+            cached_intents = set(metadata.get("intent_types", []))
+            current_intents = set(
+                intent.value for intent in IntentType if intent != IntentType.OFF_TOPIC
+            )
+
             return cached_intents == current_intents
         except Exception as e:
             logger.warning(f"Cache validation failed: {str(e)}")
@@ -628,7 +630,7 @@ class IntentRecognizer:
         try:
             data = np.load(self.cache_file, allow_pickle=True)
             embeddings = {}
-            
+
             for intent_type in IntentType:
                 if intent_type != IntentType.OFF_TOPIC:
                     key = intent_type.value
@@ -637,7 +639,7 @@ class IntentRecognizer:
                     else:
                         logger.warning(f"Missing embedding for {intent_type} in cache")
                         embeddings[intent_type] = np.zeros(1536)
-            
+
             return embeddings
         except Exception as e:
             logger.error(f"Failed to load embeddings from cache: {str(e)}")
@@ -647,18 +649,20 @@ class IntentRecognizer:
         """Save embeddings to cache file."""
         try:
             # Prepare data for numpy savez
-            save_dict = {intent.value: embedding for intent, embedding in embeddings.items()}
+            save_dict = {
+                intent.value: embedding for intent, embedding in embeddings.items()
+            }
             np.savez(self.cache_file, **save_dict)
-            
+
             # Save metadata
             metadata = {
-                'intent_types': [intent.value for intent in embeddings.keys()],
-                'embedding_model': 'text-embedding-ada-002',
-                'embedding_dim': 1536
+                "intent_types": [intent.value for intent in embeddings.keys()],
+                "embedding_model": "text-embedding-ada-002",
+                "embedding_dim": 1536,
             }
-            with open(self.metadata_file, 'w') as f:
+            with open(self.metadata_file, "w") as f:
                 json.dump(metadata, f, indent=2)
-            
+
             logger.info(f"Embeddings cached to {self.cache_file}")
         except Exception as e:
             logger.error(f"Failed to save embeddings to cache: {str(e)}")
@@ -763,7 +767,10 @@ class IntentRecognizer:
                 input=[query], model="text-embedding-ada-002"
             )
             end_time = time.perf_counter()
-            print(f"Elapsed time is { end_time - start_time } seconds")
+            logger.info(
+                "intent_classification_completed",
+                elapsed_seconds=round(end_time - start_time, 3),
+            )
             return np.array(response.data[0].embedding)
         except Exception as e:
             logger.error(f"Failed to get query embedding: {str(e)}")
@@ -827,10 +834,7 @@ class IntentRecognizer:
                 relevance_score += 0.15
 
         # Nairobi/Kenya specific boost
-        if any(
-            location in query_lower
-            for location in ["nairobi", "kenya", "kenyan"]
-        ):
+        if any(location in query_lower for location in ["nairobi", "kenya", "kenyan"]):
             relevance_score += 0.2
 
         return min(relevance_score, 1.0)  # Cap at 1.0
@@ -841,8 +845,7 @@ class IntentRecognizer:
         query_lower = query.lower()
 
         if any(
-            word in query_lower
-            for word in ["house", "room", "accommodation", "live"]
+            word in query_lower for word in ["house", "room", "accommodation", "live"]
         ):
             return IntentResult(
                 intent_type=IntentType.HOUSING_INQUIRY,
@@ -852,10 +855,7 @@ class IntentRecognizer:
                 off_topic_indicators=[],
                 settlement_relevance=0.5,
             )
-        elif any(
-            word in query_lower
-            for word in ["university", "college", "academic"]
-        ):
+        elif any(word in query_lower for word in ["university", "college", "academic"]):
             return IntentResult(
                 intent_type=IntentType.UNIVERSITY_INFO,
                 topic=TopicType.ACADEMICS,
@@ -934,9 +934,7 @@ class IntentRecognizer:
                 validation_results["pattern_details"][intent_type.value] = {
                     "status": "valid",
                     "embedding_shape": embedding.shape,
-                    "example_count": len(
-                        self.intent_patterns[intent_type]["examples"]
-                    ),
+                    "example_count": len(self.intent_patterns[intent_type]["examples"]),
                 }
             else:
                 validation_results["invalid_patterns"] += 1

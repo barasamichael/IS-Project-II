@@ -11,9 +11,11 @@ from concurrent.futures import ThreadPoolExecutor
 import pytz
 from openai import OpenAI
 
+from config.constants import GROUNDING_RULE
 from config.settings import settings
 from services.intent_recognizer import IntentType
 from services.language_processor import LanguageProcessor
+from utilities.sanitisation import sanitise_web_content
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("response_generator")
@@ -394,7 +396,10 @@ I'm here to assist you with questions about:
                         include_images=False,  # No images needed
                     )
                     end_time = time.perf_counter()
-                    print(f"Elapsed time is { end_time - start_time } seconds")
+                    logger.info(
+                        "tavily_search_completed",
+                        elapsed_seconds=round(end_time - start_time, 3),
+                    )
 
                     # Tavily returns structured data perfect for AI consumption
                     if search_result and search_result.get("results"):
@@ -457,9 +462,7 @@ I'm here to assist you with questions about:
                     f"Tavily search completed successfully with {len(web_results)} result sets"
                 )
             else:
-                logger.info(
-                    "Tavily search completed but no results were retrieved"
-                )
+                logger.info("Tavily search completed but no results were retrieved")
 
             return {
                 "results": web_results,
@@ -470,9 +473,7 @@ I'm here to assist you with questions about:
             logger.error(f"Tavily search orchestration failed: {str(e)}")
             return None
 
-    def _build_search_queries(
-        self, query: str, intent_type: IntentType
-    ) -> List[str]:
+    def _build_search_queries(self, query: str, intent_type: IntentType) -> List[str]:
         """Build targeted search queries based on intent type."""
         base_query = f"{query} Nairobi Kenya international students 2024"
 
@@ -617,21 +618,15 @@ I'm here to assist you with questions about:
         ]
 
         query_lower = query.lower()
-        crisis_indicators = [
-            word for word in crisis_keywords if word in query_lower
-        ]
+        crisis_indicators = [word for word in crisis_keywords if word in query_lower]
 
         # Determine crisis level
         crisis_level = "none"
         if len(crisis_indicators) >= 3 or any(
-            word in query_lower
-            for word in ["emergency", "help", "urgent", "danger"]
+            word in query_lower for word in ["emergency", "help", "urgent", "danger"]
         ):
             crisis_level = "high"
-        elif (
-            len(crisis_indicators) >= 2
-            or emotional_state.get("intensity") == "high"
-        ):
+        elif len(crisis_indicators) >= 2 or emotional_state.get("intensity") == "high":
             crisis_level = "medium"
         elif len(crisis_indicators) >= 1:
             crisis_level = "low"
@@ -657,18 +652,14 @@ I'm here to assist you with questions about:
         """
         try:
             # Process language detection and translation
-            language_result = self.language_processor.detect_and_process_query(
-                query
-            )
+            language_result = self.language_processor.detect_and_process_query(query)
             english_query = language_result["english_query"]
             original_language = language_result["detected_language"]
             needs_translation = language_result["needs_translation"]
 
             # Handle off-topic queries immediately
             if intent_info["intent_type"] == IntentType.OFF_TOPIC:
-                logger.info(
-                    "Off-topic query detected, returning standard response"
-                )
+                logger.info("Off-topic query detected, returning standard response")
 
                 response_content = self.off_topic_response
 
@@ -679,7 +670,8 @@ I'm here to assist you with questions about:
                                 response_content, original_language
                             )
                         )
-                    except:
+                    except Exception as exc:
+                        logger.warning("off_topic_translation_failed", error=str(exc))
                         translated_response = response_content
                 else:
                     translated_response = response_content
@@ -763,10 +755,8 @@ I'm here to assist you with questions about:
             # Translate if needed
             if needs_translation and original_language != "english":
                 try:
-                    translated_response = (
-                        self.language_processor.translate_response(
-                            validated_response, original_language
-                        )
+                    translated_response = self.language_processor.translate_response(
+                        validated_response, original_language
                     )
                     translation_quality = (
                         self.language_processor.validate_translation_quality(
@@ -788,17 +778,14 @@ I'm here to assist you with questions about:
             token_usage = {
                 "prompt_tokens": len(english_query.split()) * 4,
                 "completion_tokens": len(validated_response.split()) * 4,
-                "total_tokens": (len(english_query) + len(validated_response))
-                * 4,
+                "total_tokens": (len(english_query) + len(validated_response)) * 4,
             }
 
             logger.info("Generated comprehensive response with optimizations")
 
             return {
                 "response": translated_response,
-                "original_response": validated_response
-                if needs_translation
-                else None,
+                "original_response": validated_response if needs_translation else None,
                 "intent_type": intent_info["intent_type"],
                 "topic": intent_info["topic"],
                 "confidence": intent_info["confidence"],
@@ -809,12 +796,8 @@ I'm here to assist you with questions about:
                 "current_time": current_time_full,
                 "settlement_optimized": True,
                 "response_style": "comprehensive_empathetic",
-                "empathy_applied": emotional_state.get(
-                    "needs_validation", False
-                ),
-                "safety_protocols_added": self._safety_protocols_applied(
-                    intent_info
-                ),
+                "empathy_applied": emotional_state.get("needs_validation", False),
+                "safety_protocols_added": self._safety_protocols_applied(intent_info),
                 "crisis_level": crisis_assessment["crisis_level"],
                 "emotional_state": emotional_state["primary_emotion"],
                 "web_search_used": web_info is not None
@@ -829,9 +812,7 @@ I'm here to assist you with questions about:
             logger.error(f"Error generating comprehensive response: {str(e)}")
             return self._generate_error_response(
                 intent_info,
-                original_language
-                if "original_language" in locals()
-                else "english",
+                original_language if "original_language" in locals() else "english",
             )
 
     def _evaluate_and_enhance_context(
@@ -892,9 +873,7 @@ I'm here to assist you with questions about:
 
         # Intent-specific information
         if intent_type == IntentType.HOUSING_INQUIRY:
-            needed_info.extend(
-                ["housing_areas", "rental_process", "safety_tips"]
-            )
+            needed_info.extend(["housing_areas", "rental_process", "safety_tips"])
             if any(word in query_lower for word in ["cost", "price", "budget"]):
                 needed_info.append("housing_costs")
 
@@ -910,9 +889,7 @@ I'm here to assist you with questions about:
             needed_info.extend(["transport_options", "safety_transport"])
 
         elif intent_type == IntentType.SAFETY_CONCERN:
-            needed_info.extend(
-                ["safety_protocols", "emergency_numbers", "safe_areas"]
-            )
+            needed_info.extend(["safety_protocols", "emergency_numbers", "safe_areas"])
 
         elif intent_type == IntentType.BANKING_FINANCE:
             needed_info.extend(["banking_info", "mpesa_guide"])
@@ -968,7 +945,7 @@ I'm here to assist you with questions about:
             context_parts.append("CURRENT WEB INFORMATION:")
             for result in web_info["results"]:
                 context_parts.append(f"Recent Information - {result.get('query')}:")
-                context_parts.append(result["content"])
+                context_parts.append(sanitise_web_content(result["content"]))
                 context_parts.append("")
 
         # Add essential information
@@ -989,9 +966,7 @@ I'm here to assist you with questions about:
 
                 elif info_type == "immigration_office":
                     context_parts.append("IMMIGRATION OFFICE:")
-                    for key, value in self.essential_info[
-                        "immigration_office"
-                    ].items():
+                    for key, value in self.essential_info["immigration_office"].items():
                         context_parts.append(
                             f"- {key.replace('_', ' ').title()}: {value}"
                         )
@@ -1041,7 +1016,9 @@ I'm here to assist you with questions about:
         if emotional_state.get("needs_validation", False):
             emotion = emotional_state.get("primary_emotion", "neutral")
             if emotion in self.empathy_responses:
-                empathy_component = f"EMPATHY_VALIDATION: {self.empathy_responses[emotion][0]}\n\n"
+                empathy_component = (
+                    f"EMPATHY_VALIDATION: {self.empathy_responses[emotion][0]}\n\n"
+                )
 
         # Build crisis component
         crisis_component = ""
@@ -1078,18 +1055,16 @@ Create a comprehensive, empathetic response that achieves 100/100 performance by
 - Include safety considerations, cost information, and practical tips
 - Add information about alternatives, options, and considerations
 - Cover related topics they might need to know
-- Include specific contacts, websites, and resources
+- Include only specific details and contact information that appear verbatim in the RETRIEVED SETTLEMENT INFORMATION or ESSENTIAL SETTLEMENT INFORMATION sections provided.
 
 3. NEXT STEPS (Must be actionable and complete):
 - Give detailed, sequential steps they can take immediately
-- Include specific contact information, websites, and locations
 - Provide timeline expectations and preparation requirements
 - Offer multiple pathways and backup options
 
 CRITICAL REQUIREMENTS:
 - Be genuinely helpful and comprehensive, not bureaucratic
 - Include safety protocols relevant to their situation
-- Provide specific Nairobi locations, contacts, and current information
 - Use encouraging, supportive language appropriate to their emotional state
 - Make sure each section is substantial and complete
 - Focus on practical, actionable guidance they can use right away"""
@@ -1106,7 +1081,10 @@ CRITICAL REQUIREMENTS:
                 max_tokens=self.max_tokens,
             )
             end_time = time.perf_counter()
-            print(f"Elapsed time is { end_time - start_time } seconds")
+            logger.info(
+                "llm_call_completed",
+                elapsed_seconds=round(end_time - start_time, 3),
+            )
 
             response_content = response.choices[0].message.content
             return self._ensure_comprehensive_structure(response_content)
@@ -1124,7 +1102,11 @@ CRITICAL REQUIREMENTS:
         crisis_assessment: Dict,
     ) -> str:
         """Get comprehensive system prompt optimized for 100/100 performance."""
-        base_prompt = """You are SettleBot, an expert assistant for international students settling in Nairobi, Kenya. Your goal is to achieve 100/100 performance by being genuinely comprehensive, empathetic, and helpful.
+        base_prompt = (
+            GROUNDING_RULE
+            + """
+
+You are SettleBot, an expert assistant for international students settling in Nairobi, Kenya. Your goal is to achieve 100/100 performance by being genuinely comprehensive, empathetic, and helpful.
 
 RESPONSE STRUCTURE (Always use exactly these sections):
 ## DIRECT ANSWER
@@ -1134,15 +1116,15 @@ RESPONSE STRUCTURE (Always use exactly these sections):
 [Provide comprehensive background, context, safety considerations, alternatives, and everything else they should know. This should be extensive and valuable.]
 
 ## NEXT STEPS
-[Give detailed, actionable steps they can take immediately. Include specific contacts, locations, timelines, and multiple options.]
+[Give detailed, actionable steps they can take immediately. Include only contacts, locations, and timelines that appear in the provided context sections above.]
 
 CORE PRINCIPLES:
 1. Be genuinely comprehensive - give them everything they need to know
-2. Include specific Nairobi details - locations, costs in KSh, contact numbers, current information
+2. Include only specific details and contact information that appear verbatim in the RETRIEVED SETTLEMENT INFORMATION or ESSENTIAL SETTLEMENT INFORMATION sections provided.
 3. Add safety considerations systematically - this is critical for student wellbeing
 4. Use empathetic, supportive language that validates their concerns
 5. Provide multiple options and alternatives when possible
-6. Include practical details like operating hours, required documents, costs
+6. Include practical details like operating hours and required documents where available in the provided context
 7. Make each section substantial and complete - never give superficial answers
 
 EMPATHY REQUIREMENTS:
@@ -1150,6 +1132,7 @@ EMPATHY REQUIREMENTS:
 - Use validating language that shows understanding
 - Frame challenges as navigable rather than overwhelming
 - Provide confidence-building statements"""
+        )
 
         # Add intent-specific guidance
         intent_specific = {
@@ -1242,16 +1225,13 @@ CRISIS RESPONSE MODE:
         )
 
         # Add empathy if emotional state detected but not addressed
-        if emotional_state.get(
-            "needs_validation"
-        ) and not self._has_empathy_language(response):
+        if emotional_state.get("needs_validation") and not self._has_empathy_language(
+            response
+        ):
             response = self._add_empathy_validation(response, emotional_state)
 
         # Ensure crisis information if needed
-        if (
-            crisis_assessment["needs_immediate_support"]
-            and "999" not in response
-        ):
+        if crisis_assessment["needs_immediate_support"] and "999" not in response:
             response = self._add_crisis_information(response)
 
         return response
@@ -1315,13 +1295,9 @@ CRISIS RESPONSE MODE:
             "difficult",
         ]
         response_lower = response.lower()
-        return any(
-            indicator in response_lower for indicator in empathy_indicators
-        )
+        return any(indicator in response_lower for indicator in empathy_indicators)
 
-    def _add_empathy_validation(
-        self, response: str, emotional_state: Dict
-    ) -> str:
+    def _add_empathy_validation(self, response: str, emotional_state: Dict) -> str:
         """Add empathy validation to response."""
         emotion = emotional_state.get("primary_emotion", "neutral")
 
@@ -1429,9 +1405,7 @@ CRISIS RESPONSE MODE:
 
         fallback += "## ADDITIONAL INFORMATION\n"
         fallback += f"For comprehensive assistance with {intent_name.lower()}, your best resources include:\n\n"
-        fallback += (
-            "- Your university's international student services office\n"
-        )
+        fallback += "- Your university's international student services office\n"
         fallback += "- Relevant Kenyan government departments and offices\n"
         fallback += "- Fellow international students who have experience with similar situations\n"
         fallback += "- Official websites and documentation for current requirements and procedures\n\n"
@@ -1442,9 +1416,7 @@ CRISIS RESPONSE MODE:
             IntentType.EMERGENCY_HELP,
         ]:
             fallback += "**EMERGENCY CONTACTS:**\n"
-            for service, number in self.essential_info[
-                "emergency_numbers"
-            ].items():
+            for service, number in self.essential_info["emergency_numbers"].items():
                 fallback += f"- {service.replace('_', ' ').title()}: {number}\n"
             fallback += "\n"
 
@@ -1528,8 +1500,8 @@ I apologize for this interruption and am designed to provide comprehensive settl
                 error_response = self.language_processor.translate_response(
                     error_response, language
                 )
-            except:
-                pass
+            except Exception as exc:
+                logger.warning("error_response_translation_failed", error=str(exc))
 
         return {
             "response": error_response,
@@ -1613,11 +1585,7 @@ I apologize for this interruption and am designed to provide comprehensive settl
                 "number",
             ]
             metrics["contains_specific_details"] = (
-                sum(
-                    1
-                    for indicator in detail_indicators
-                    if indicator in response_lower
-                )
+                sum(1 for indicator in detail_indicators if indicator in response_lower)
                 >= 3
             )
 
@@ -1681,28 +1649,20 @@ I apologize for this interruption and am designed to provide comprehensive settl
                 "is_comprehensive": False,
             }
 
-    def _get_quality_recommendations(
-        self, metrics: Dict[str, bool]
-    ) -> List[str]:
+    def _get_quality_recommendations(self, metrics: Dict[str, bool]) -> List[str]:
         """Get recommendations for improving response quality."""
         recommendations = []
 
         if not metrics["has_three_sections"]:
-            recommendations.append(
-                "Ensure response has all three required sections"
-            )
+            recommendations.append("Ensure response has all three required sections")
         if not metrics["direct_answer_comprehensive"]:
-            recommendations.append(
-                "Make direct answer more comprehensive and detailed"
-            )
+            recommendations.append("Make direct answer more comprehensive and detailed")
         if not metrics["additional_info_substantial"]:
             recommendations.append(
                 "Expand additional information section with more context"
             )
         if not metrics["next_steps_actionable"]:
-            recommendations.append(
-                "Include more specific, actionable next steps"
-            )
+            recommendations.append("Include more specific, actionable next steps")
         if not metrics["contains_specific_details"]:
             recommendations.append(
                 "Add specific details like costs, phone numbers, addresses"
@@ -1716,9 +1676,7 @@ I apologize for this interruption and am designed to provide comprehensive settl
                 "Add empathetic language that validates student concerns"
             )
         if not metrics["provides_contacts"]:
-            recommendations.append(
-                "Include specific contact information and resources"
-            )
+            recommendations.append("Include specific contact information and resources")
 
         return recommendations
 
