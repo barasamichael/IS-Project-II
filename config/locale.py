@@ -98,12 +98,16 @@ class LocaleFactStore(BaseModel):
     :field hospitals: List[HospitalEntry] - Verified hospital records.
     :field universities: List[UniversityEntry] - Verified university contact records.
     :field government_offices: List[GovernmentOfficeEntry] - Verified government office records.
+    :field trusted_domains: List[str] - Domain suffixes whose Tavily results are
+        trusted for LLM injection. Results from domains not on this list are
+        discarded before context assembly.
     """
 
     emergency_contacts: Dict[str, EmergencyContact]
     hospitals: List[HospitalEntry]
     universities: List[UniversityEntry]
     government_offices: List[GovernmentOfficeEntry]
+    trusted_domains: List[str]
 
 
 def load_fact_store(locale_name: str) -> LocaleFactStore:

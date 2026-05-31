@@ -31,6 +31,7 @@ from config.constants import LLM_TAVILY_TIMEOUT_SECONDS
 from config.constants import PHONE_RE
 from config.constants import TAVILY_CACHE_MAXSIZE
 from config.constants import TAVILY_CACHE_TTL
+from config.constants import WEB_SEARCH_CONFIDENCE_THRESHOLD
 from config.locale import LocaleFactStore
 from config.settings import settings
 from services.intent_recognizer import IntentType
@@ -44,6 +45,17 @@ _tavily_cache: TTLCache = TTLCache(maxsize=TAVILY_CACHE_MAXSIZE, ttl=TAVILY_CACH
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("response_generator")
+
+# Intent routing sets for Tavily web search gating.
+# Defined here (not in config/constants.py) because they reference IntentType.
+_WEB_SEARCH_ALWAYS: set = {
+    IntentType.IMMIGRATION_VISA,
+    IntentType.COST_INQUIRY,
+}
+_WEB_SEARCH_NEVER: set = {
+    IntentType.CULTURAL_ADAPTATION,
+    IntentType.EMERGENCY_HELP,
+}
 
 
 class ResponseGenerator:
@@ -160,6 +172,29 @@ I'm here to assist you with questions about:
         time_only = current_time.strftime("%H:%M")
         return formatted_time, time_only
 
+    def _should_search_web(
+        self,
+        intent_type: IntentType,
+        retrieved_context: List[Dict[str, Any]],
+    ) -> bool:
+        """
+        Determine whether a Tavily web search should be performed for this request.
+        Intent types in _WEB_SEARCH_NEVER always return False (CULTURAL_ADAPTATION,
+        EMERGENCY_HELP). Intent types in _WEB_SEARCH_ALWAYS always return True
+        (IMMIGRATION_VISA, COST_INQUIRY). All other intents search only when the
+        top retrieved chunk relevance score is below WEB_SEARCH_CONFIDENCE_THRESHOLD,
+        indicating insufficient knowledge-base coverage.
+        :param intent_type: IntentType - The classified intent for this query.
+        :param retrieved_context: List[Dict] - RAG chunks from vector search.
+        :return: bool - True when a web search should be submitted, False otherwise.
+        """
+        if intent_type in _WEB_SEARCH_NEVER:
+            return False
+        if intent_type in _WEB_SEARCH_ALWAYS:
+            return True
+        top_score = max((c.get("score", 0) for c in retrieved_context), default=0)
+        return top_score < WEB_SEARCH_CONFIDENCE_THRESHOLD
+
     def search_web_for_current_info(
         self,
         query: str,
@@ -237,6 +272,21 @@ I'm here to assist you with questions about:
 
                         # Extract individual results with clean content
                         results_list = search_result.get("results", [])
+
+                        # Domain allowlist filtering: discard results from untrusted sources
+                        trusted = self.fact_store.trusted_domains
+                        filtered_list = []
+                        for r in results_list:
+                            if any(d in r.get("url", "") for d in trusted):
+                                filtered_list.append(r)
+                            else:
+                                logger.debug(
+                                    "tavily_result_filtered_untrusted_domain url=%s",
+                                    r.get("url", ""),
+                                )
+                        results_list = filtered_list
+                        if not results_list:
+                            continue
 
                         # Build comprehensive content from results
                         content_parts = []
@@ -545,11 +595,16 @@ I'm here to assist you with questions about:
             # Get current time
             current_time_full, current_time = self.get_current_nairobi_time()
 
-            # OPTIMIZATION: Run emotion detection and web search in parallel.
+            # Intent-based Tavily routing: skip executor entirely when search is not warranted.
+            _run_web_search = self._should_search_web(
+                intent_info["intent_type"], retrieved_context
+            )
+
+            # Run emotion detection and (optionally) web search in parallel.
             # When web_info is pre-fetched by the caller, skip the Tavily call.
             if web_info is not None:
                 emotional_state = self.detect_emotional_state(english_query)
-            else:
+            elif _run_web_search:
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     emotion_future = executor.submit(
                         self.detect_emotional_state, english_query
@@ -561,6 +616,8 @@ I'm here to assist you with questions about:
                     )
                     emotional_state = emotion_future.result()
                     web_info = web_future.result()
+            else:
+                emotional_state = self.detect_emotional_state(english_query)
 
             # Assess crisis indicators
             crisis_assessment = self.assess_crisis_indicators(
