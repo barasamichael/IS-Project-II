@@ -1,6 +1,6 @@
 import os
 import time
-import logging
+import uuid
 from typing import Any
 from typing import Dict
 from typing import List
@@ -10,18 +10,25 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 import uvicorn
+import structlog
 
 from pydantic import Field
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from fastapi import File
 from fastapi import Query
+from fastapi import Request
 from fastapi import Security
 from fastapi import UploadFile
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import BackgroundTasks
+from fastapi.responses import Response
 from fastapi.security import APIKeyHeader
 from fastapi.responses import FileResponse
 from fastapi.responses import HTMLResponse
@@ -30,6 +37,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import ROOT_DIR
 from config.settings import settings
+from config.constants import ERROR_CODE_RATE_LIMIT_EXCEEDED
 from services.vector_db import VectorDBService
 from services.embeddings import EmbeddingService
 from services.intent_recognizer import TopicType
@@ -42,9 +50,9 @@ from services.language_processor import LanguageProcessor
 from services.response_generator import ResponseGenerator
 from services.evaluator import InternationalStudentRAGEvaluator
 
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("settlebot_api")
+logger = structlog.get_logger("settlebot_api")
+
+startup_time: Optional[datetime] = None
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -58,6 +66,47 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """
+    Returns a structured 429 response matching the project error format.
+    :param request: Request - The incoming HTTP request.
+    :param exc: RateLimitExceeded - The rate limit exception.
+    :return: JSONResponse - Structured 429 error response.
+    """
+    return JSONResponse(
+        status_code=429,
+        content={
+            "success": False,
+            "error": {
+                "code": ERROR_CODE_RATE_LIMIT_EXCEEDED,
+                "message": "Too many requests — please wait before sending another query.",
+            },
+        },
+    )
+
+
+@app.middleware("http")
+async def add_correlation_id(request: Request, call_next) -> Response:
+    """
+    Injects a correlation ID into the request context and response headers.
+    :param request: Request - The incoming HTTP request.
+    :param call_next: Callable - The next middleware or route handler.
+    :return: Response - The response with X-Request-ID header attached.
+    """
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
 
 # Add CORS middleware
 if settings.api.cors_enabled:
@@ -105,7 +154,12 @@ background_tasks_status = {}
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., description="User query about settlement in Nairobi")
+    query: str = Field(
+        ...,
+        min_length=3,
+        max_length=2000,
+        description="User query about settlement in Nairobi",
+    )
     top_k: int = Field(
         default=15,
         ge=1,
@@ -521,7 +575,11 @@ async def get_system_status(api_key: str = Depends(get_api_key)):
             "supported_file_types": len(document_processor.get_supported_extensions()),
             "supported_languages": len(language_processor.supported_languages),
             "intent_types": len(intent_recognizer.intent_patterns),
-            "uptime_hours": 0,  # Would need to track this
+            "uptime_hours": (
+                (datetime.now() - startup_time).total_seconds() / 3600
+                if startup_time is not None
+                else 0.0
+            ),
         }
 
         # Overall status
@@ -552,37 +610,40 @@ async def get_system_status(api_key: str = Depends(get_api_key)):
 
 
 @app.post("/query", response_model=QueryResponse)
-async def process_query(request: QueryRequest, api_key: str = Depends(get_api_key)):
+@limiter.limit("30/minute")
+async def process_query(
+    request: Request, query_request: QueryRequest, api_key: str = Depends(get_api_key)
+):
     """Process settlement query with comprehensive response generation."""
     try:
-        logger.info("query_received", query_preview=request.query[:100])
+        logger.info("query_received", query_preview=query_request.query[:100])
         start_time = time.time()
 
         # Intent recognition
-        intent_info = intent_recognizer.get_intent_info(request.query)
+        intent_info = intent_recognizer.get_intent_info(query_request.query)
         logger.info(f"Recognized intent: {intent_info['intent_type'].value}")
 
         # Retrieve relevant context
         retrieved_chunks = []
         if intent_info["intent_type"] != IntentType.OFF_TOPIC:
             retrieved_chunks = vector_db_service.search(
-                query=request.query, top_k=request.top_k
+                query=query_request.query, top_k=query_request.top_k
             )
 
         # Generate comprehensive response (language detection runs here)
         response_data = response_generator.generate_response(
-            query=request.query,
+            query=query_request.query,
             retrieved_context=retrieved_chunks,
             intent_info=intent_info,
-            conversation_context=request.conversation_context,
-            user_preferences=request.user_preferences,
+            conversation_context=query_request.conversation_context,
+            user_preferences=query_request.user_preferences,
         )
 
         # Create language info from response_data (single detection source of truth)
         language_info = LanguageInfo(
             detected_language=response_data.get("language_detected", "english"),
-            original_query=request.query,
-            english_query=request.query,
+            original_query=query_request.query,
+            english_query=query_request.query,
             translation_needed=response_data.get("translation_needed", False),
             confidence=1.0,
         )
@@ -610,7 +671,7 @@ async def process_query(request: QueryRequest, api_key: str = Depends(get_api_ke
         )
 
         # Include debug information if requested
-        if request.include_context:
+        if query_request.include_context:
             query_response.retrieved_chunks = retrieved_chunks
 
         return query_response
@@ -738,8 +799,11 @@ async def search_by_location(
 
 
 @app.post("/documents/upload", response_model=DocumentUploadResponse)
+@limiter.limit("10/minute")
 async def upload_document(
-    file: UploadFile = File(...), api_key: str = Depends(get_api_key)
+    request: Request,
+    file: UploadFile = File(...),
+    api_key: str = Depends(get_api_key),
 ):
     """Upload and process settlement document."""
     try:
@@ -1371,15 +1435,16 @@ async def rebuild_index(api_key: str = Depends(get_api_key)):
 
 @app.post("/vector-db/optimize")
 async def optimize_collection(api_key: str = Depends(get_api_key)):
-    """Optimize vector database collection for settlement queries."""
-    try:
-        optimization_result = vector_db_service.optimize_collection()
-        return optimization_result
-    except Exception as e:
-        logger.error(f"Error optimizing collection: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error optimizing collection: {str(e)}"
-        )
+    """Vector database optimisation — no active optimisations are applied at this time."""
+    stats = vector_db_service.get_collection_stats()
+    return {
+        "status": "no_op",
+        "collection_stats": stats,
+        "optimizations_available": [
+            "BM25 sparse retrieval with Reciprocal Rank Fusion (Milestone 7)",
+            "Cross-encoder reranker using ms-marco-MiniLM-L-6-v2 (Milestone 7)",
+        ],
+    }
 
 
 # ===============================
@@ -1703,19 +1768,14 @@ async def get_search_patterns(
     days: int = Query(default=7, description="Number of days to analyze"),
     api_key: str = Depends(get_api_key),
 ):
-    """Get search pattern analytics (would require search logging)."""
-    return {
-        "message": "Search pattern analytics would require implementing search logging",
-        "recommendation": "Implement search query logging to track user behavior and popular queries",
-        "suggested_metrics": [
-            "Most frequent queries",
-            "Popular topics (housing, transport, etc.)",
-            "Peak usage times",
-            "Average query length",
-            "Success rate by intent type",
-            "User satisfaction scores",
-        ],
-    }
+    """Search pattern analytics — not yet implemented."""
+    return JSONResponse(
+        status_code=501,
+        content={
+            "status": "not_implemented",
+            "message": "Search pattern analytics require query logging infrastructure not yet implemented.",
+        },
+    )
 
 
 @app.get("/analytics/performance")
@@ -2130,11 +2190,14 @@ async def document_processed_webhook(
             "processing_status": "completed",
         }
 
-        # If callback URL provided, send notification (in real implementation)
         if callback_url:
-            # Would implement HTTP POST to callback_url with webhook_data
-            webhook_data["callback_sent"] = True
-            webhook_data["callback_url"] = callback_url
+            return JSONResponse(
+                status_code=501,
+                content={
+                    "status": "not_implemented",
+                    "message": "Webhook delivery is not yet implemented.",
+                },
+            )
 
         return webhook_data
 
@@ -2196,6 +2259,8 @@ async def internal_error_handler(request, exc):
 @app.on_event("startup")
 async def startup_event():
     """Application startup tasks."""
+    global startup_time
+    startup_time = datetime.now()
     logger.info("Starting SettleBot API...")
 
     # Verify OpenAI API key

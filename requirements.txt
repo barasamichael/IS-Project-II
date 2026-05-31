@@ -55,7 +55,8 @@ fsspec==2025.10.0
 ghp-import==2.1.0
 google-auth==2.43.0
 googleapis-common-protos==1.72.0
-googletrans==4.0.2
+slowapi==0.1.9
+structlog==25.5.0
 greenlet==3.2.4
 griffe==1.15.0
 grpcio==1.76.0

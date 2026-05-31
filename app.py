@@ -1,22 +1,21 @@
-import logging
 import uvicorn
+import structlog
+
 from config.settings import settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer(),
+    ],
+    wrapper_class=structlog.stdlib.BoundLogger,
+    logger_factory=structlog.stdlib.LoggerFactory(),
 )
-logger = logging.getLogger("settlebot_app")
 
 if __name__ == "__main__":
-    logger.info(
-        f"Starting SettleBot API on {settings.api.host}:{settings.api.port}"
-    )
-    logger.info(
-        "Settlement Assistant for International Students in Nairobi, Kenya"
-    )
-
     uvicorn.run(
         "api.main:app",
         host=settings.api.host,

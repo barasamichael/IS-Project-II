@@ -10,8 +10,18 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytz
 from openai import OpenAI
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+from tenacity import retry_if_exception_type
 
+import openai as openai_errors
 from config.constants import GROUNDING_RULE
+from config.constants import LLM_CALL_TIMEOUT_SECONDS
+from config.constants import LLM_RETRY_ATTEMPTS
+from config.constants import LLM_RETRY_WAIT_MAX
+from config.constants import LLM_RETRY_WAIT_MIN
+from config.constants import LLM_TAVILY_TIMEOUT_SECONDS
 from config.settings import settings
 from services.intent_recognizer import IntentType
 from services.language_processor import LanguageProcessor
@@ -389,11 +399,12 @@ I'm here to assist you with questions about:
                     start_time = time.perf_counter()
                     search_result = tavily_client.search(
                         query=search_query,
-                        search_depth="basic",  # Fast and cost-efficient
-                        max_results=3,  # Top 3 most relevant results
-                        include_answer=True,  # Get AI-generated summary
-                        include_raw_content=False,  # Don't need full HTML
-                        include_images=False,  # No images needed
+                        search_depth="basic",
+                        max_results=3,
+                        include_answer=True,
+                        include_raw_content=False,
+                        include_images=False,
+                        timeout=LLM_TAVILY_TIMEOUT_SECONDS,
                     )
                     end_time = time.perf_counter()
                     logger.info(
@@ -999,6 +1010,32 @@ I'm here to assist you with questions about:
 
         return "\n".join(context_parts)
 
+    @retry(
+        stop=stop_after_attempt(LLM_RETRY_ATTEMPTS),
+        wait=wait_exponential(
+            multiplier=1, min=LLM_RETRY_WAIT_MIN, max=LLM_RETRY_WAIT_MAX
+        ),
+        retry=retry_if_exception_type(
+            (openai_errors.RateLimitError, openai_errors.APITimeoutError)
+        ),
+        reraise=True,
+    )
+    def _call_generation_llm(self, messages: List[Dict], max_tokens: int) -> str:
+        """
+        Calls the OpenAI chat completion API for response generation with retry on transient errors.
+        :param messages: List[Dict] - The system and user message list to send.
+        :param max_tokens: int - Maximum tokens in the response.
+        :return: str - The assistant's response content.
+        """
+        response = self.client.chat.completions.create(
+            model=settings.llm.model,
+            messages=messages,
+            temperature=settings.llm.temperature,
+            max_tokens=max_tokens,
+            timeout=LLM_CALL_TIMEOUT_SECONDS,
+        )
+        return response.choices[0].message.content
+
     def _generate_comprehensive_response(
         self,
         query: str,
@@ -1069,26 +1106,22 @@ CRITICAL REQUIREMENTS:
 - Make sure each section is substantial and complete
 - Focus on practical, actionable guidance they can use right away"""
 
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
         try:
             start_time = time.perf_counter()
-            response = self.client.chat.completions.create(
-                model=self.model,  # gpt-4.1-mini for speed and cost
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.2,
-                max_tokens=self.max_tokens,
-            )
+            response_content = self._call_generation_llm(messages, self.max_tokens)
             end_time = time.perf_counter()
             logger.info(
                 "llm_call_completed",
                 elapsed_seconds=round(end_time - start_time, 3),
             )
-
-            response_content = response.choices[0].message.content
             return self._ensure_comprehensive_structure(response_content)
 
+        except (openai_errors.RateLimitError, openai_errors.APITimeoutError):
+            raise
         except Exception as e:
             logger.error(f"Error generating comprehensive response: {str(e)}")
             return self._generate_comprehensive_fallback(

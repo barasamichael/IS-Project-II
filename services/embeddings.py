@@ -46,9 +46,7 @@ class EmbeddingService:
         try:
             self.client = OpenAI(api_key=api_key)
         except Exception as e:
-            raise EmbeddingError(
-                f"Failed to initialize OpenAI client: {str(e)}"
-            )
+            raise EmbeddingError(f"Failed to initialize OpenAI client: {str(e)}")
 
         # Configuration
         self.model_name = model_name or settings.embedding.model
@@ -59,13 +57,10 @@ class EmbeddingService:
             Path(chunks_dir) if chunks_dir else ROOT_DIR / "data" / "chunks"
         )
         self.embeddings_dir = (
-            Path(embeddings_dir)
-            if embeddings_dir
-            else ROOT_DIR / "data" / "embeddings"
+            Path(embeddings_dir) if embeddings_dir else ROOT_DIR / "data" / "embeddings"
         )
         self.dedup_dir = (
-            Path(dedup_dir) if dedup_dir else ROOT_DIR /
-            "data" / "deduplicated"
+            Path(dedup_dir) if dedup_dir else ROOT_DIR / "data" / "deduplicated"
         )
 
         # Create directories
@@ -94,9 +89,7 @@ class EmbeddingService:
             "hospital",
         ]
 
-        logger.info(
-            f"EmbeddingService initialized with model: {self.model_name}"
-        )
+        logger.info(f"EmbeddingService initialized with model: {self.model_name}")
 
     def embed_chunks(
         self, chunks_file: Optional[Union[str, Path]] = None
@@ -116,9 +109,7 @@ class EmbeddingService:
                 if chunks_file.exists():
                     return self._embed_chunks_file(chunks_file)
                 else:
-                    raise EmbeddingError(
-                        f"Chunks file not found: {chunks_file}"
-                    )
+                    raise EmbeddingError(f"Chunks file not found: {chunks_file}")
 
             # Check for deduplicated chunks first
             dedup_file = self.dedup_dir / "deduplicated_chunks.jsonl"
@@ -131,9 +122,7 @@ class EmbeddingService:
             chunk_files = list(self.chunks_dir.glob("*_chunks.jsonl"))
 
             if not chunk_files:
-                raise EmbeddingError(
-                    f"No chunk files found in {self.chunks_dir}"
-                )
+                raise EmbeddingError(f"No chunk files found in {self.chunks_dir}")
 
             for file_path in tqdm(chunk_files, desc="Embedding files"):
                 try:
@@ -158,9 +147,7 @@ class EmbeddingService:
 
             # Determine output path
             if is_deduplicated:
-                output_path = (
-                    self.embeddings_dir / "deduplicated_embeddings.npz"
-                )
+                output_path = self.embeddings_dir / "deduplicated_embeddings.npz"
             else:
                 output_path = (
                     self.embeddings_dir
@@ -187,17 +174,12 @@ class EmbeddingService:
                         chunks.append(optimized_text)
                         chunk_ids.append(chunk["chunk_id"])
                     except json.JSONDecodeError as e:
-                        logger.warning(
-                            f"Line {line_num}: Invalid JSON - {str(e)}"
-                        )
+                        logger.warning(f"Line {line_num}: Invalid JSON - {str(e)}")
                     except KeyError as e:
-                        logger.warning(
-                            f"Line {line_num}: Missing key {str(e)}")
+                        logger.warning(f"Line {line_num}: Missing key {str(e)}")
 
             if not chunks:
-                raise EmbeddingError(
-                    f"No valid chunks found in {chunks_file.name}"
-                )
+                raise EmbeddingError(f"No valid chunks found in {chunks_file.name}")
 
             logger.info(f"Generating embeddings for {len(chunks)} chunks")
 
@@ -234,12 +216,8 @@ class EmbeddingService:
             return embeddings_dict
 
         except Exception as e:
-            logger.error(
-                f"Error embedding chunks file {chunks_file.name}: {str(e)}"
-            )
-            raise EmbeddingError(
-                f"Failed to embed {chunks_file.name}: {str(e)}"
-            )
+            logger.error(f"Error embedding chunks file {chunks_file.name}: {str(e)}")
+            raise EmbeddingError(f"Failed to embed {chunks_file.name}: {str(e)}")
 
     def _optimize_text_for_embedding(self, text: str) -> str:
         """Optimize text for settlement-specific embeddings."""
@@ -255,9 +233,7 @@ class EmbeddingService:
         # Enhance settlement topic context
         for keyword in self.settlement_keywords:
             if keyword.lower() in text.lower():
-                optimized_text = (
-                    "International student settlement: " + optimized_text
-                )
+                optimized_text = "International student settlement: " + optimized_text
                 break
 
         # Limit length for optimal embedding performance
@@ -290,7 +266,7 @@ class EmbeddingService:
             total=total_batches,
             desc="Generating embeddings",
         ):
-            batch_texts = texts[i: i + batch_size]
+            batch_texts = texts[i : i + batch_size]
 
             # Retry logic with exponential backoff
             max_retries = 3
@@ -302,9 +278,7 @@ class EmbeddingService:
                         encoding_format="float",
                     )
 
-                    batch_embeddings = [
-                        item.embedding for item in response.data
-                    ]
+                    batch_embeddings = [item.embedding for item in response.data]
                     all_embeddings.extend(batch_embeddings)
                     break
 
@@ -345,9 +319,7 @@ class EmbeddingService:
                     input=[optimized_query],
                     encoding_format="float",
                 )
-                embedding = np.array(
-                    response.data[0].embedding, dtype=np.float32
-                )
+                embedding = np.array(response.data[0].embedding, dtype=np.float32)
                 return embedding
 
             except Exception as e:
@@ -357,9 +329,7 @@ class EmbeddingService:
                     )
                     continue
                 else:
-                    logger.error(
-                        f"Failed to generate query embedding: {str(e)}"
-                    )
+                    logger.error(f"Failed to generate query embedding: {str(e)}")
                     return None
 
     def _optimize_query_for_embedding(self, query: str) -> str:
@@ -373,9 +343,7 @@ class EmbeddingService:
             "university",
         ]
 
-        if not any(
-            indicator in query.lower() for indicator in settlement_indicators
-        ):
+        if not any(indicator in query.lower() for indicator in settlement_indicators):
             # Add settlement context
             return f"International student in Nairobi Kenya: {query}"
 
@@ -387,27 +355,19 @@ class EmbeddingService:
             dedup_file = self.dedup_dir / "deduplicated_chunks.jsonl"
 
             if not dedup_file.exists():
-                raise EmbeddingError(
-                    f"Deduplicated chunks not found: {dedup_file}"
-                )
+                raise EmbeddingError(f"Deduplicated chunks not found: {dedup_file}")
 
             return self._embed_chunks_file(dedup_file, is_deduplicated=True)
 
         except Exception as e:
             logger.error(f"Error embedding deduplicated chunks: {str(e)}")
-            raise EmbeddingError(
-                f"Failed to embed deduplicated chunks: {str(e)}"
-            )
+            raise EmbeddingError(f"Failed to embed deduplicated chunks: {str(e)}")
 
-    def _needs_regeneration(
-        self, chunks_file: Path, embeddings_file: Path
-    ) -> bool:
+    def _needs_regeneration(self, chunks_file: Path, embeddings_file: Path) -> bool:
         """Check if embeddings need regeneration based on file changes."""
         # Check if embeddings file exists
         if not embeddings_file.exists():
-            logger.info(
-                f"Embeddings file doesn't exist: {embeddings_file.name}"
-            )
+            logger.info(f"Embeddings file doesn't exist: {embeddings_file.name}")
             return True
 
         # Calculate current hash
@@ -435,9 +395,7 @@ class EmbeddingService:
         try:
             data = np.load(embeddings_file)
             if "embeddings" not in data or "chunk_ids" not in data:
-                logger.warning(
-                    f"Corrupted embeddings file: {embeddings_file.name}"
-                )
+                logger.warning(f"Corrupted embeddings file: {embeddings_file.name}")
                 return True
         except Exception as e:
             logger.warning(f"Failed to load embeddings: {str(e)}")
@@ -477,9 +435,7 @@ class EmbeddingService:
 
             # Verify temp file
             if not temp_path.exists():
-                raise EmbeddingError(
-                    f"Temporary file was not created: {temp_path}"
-                )
+                raise EmbeddingError(f"Temporary file was not created: {temp_path}")
 
             # Atomic rename
             import os
@@ -492,13 +448,11 @@ class EmbeddingService:
             if temp_path and temp_path.exists():
                 try:
                     temp_path.unlink()
-                except:
+                except OSError:
                     pass
             raise EmbeddingError(f"Failed to save embeddings: {str(e)}")
 
-    def _load_existing_embeddings(
-        self, embeddings_file: Path
-    ) -> Dict[str, np.ndarray]:
+    def _load_existing_embeddings(self, embeddings_file: Path) -> Dict[str, np.ndarray]:
         """Load existing embeddings file."""
         try:
             data = np.load(embeddings_file)
@@ -510,9 +464,7 @@ class EmbeddingService:
                 for chunk_id, embedding in zip(chunk_ids, embeddings)
             }
         except Exception as e:
-            logger.error(
-                f"Failed to load embeddings from {embeddings_file}: {str(e)}"
-            )
+            logger.error(f"Failed to load embeddings from {embeddings_file}: {str(e)}")
             raise EmbeddingError(f"Cannot load embeddings: {str(e)}")
 
     def load_embeddings(
@@ -528,9 +480,7 @@ class EmbeddingService:
 
             # Validate structure
             if "embeddings" not in data or "chunk_ids" not in data:
-                logger.error(
-                    f"Invalid embeddings file structure: {embeddings_file}"
-                )
+                logger.error(f"Invalid embeddings file structure: {embeddings_file}")
                 return None
 
             logger.info(
@@ -542,9 +492,7 @@ class EmbeddingService:
             }
 
         except Exception as e:
-            logger.error(
-                f"Error loading embeddings from {embeddings_file}: {str(e)}"
-            )
+            logger.error(f"Error loading embeddings from {embeddings_file}: {str(e)}")
             return None
 
     def _load_metadata(self) -> Dict:
@@ -601,7 +549,7 @@ class EmbeddingService:
                     data = np.load(npz_file)
                     total_embeddings += len(data["embeddings"])
                     total_size_mb += npz_file.stat().st_size / (1024 * 1024)
-                except:
+                except Exception:
                     continue
 
             stats["total_embeddings"] = total_embeddings
@@ -613,9 +561,7 @@ class EmbeddingService:
             logger.error(f"Error getting stats: {str(e)}")
             return {"error": str(e)}
 
-    def validate_embeddings_quality(
-        self, sample_size: int = 100
-    ) -> Dict[str, Any]:
+    def validate_embeddings_quality(self, sample_size: int = 100) -> Dict[str, Any]:
         """Validate embedding quality with settlement-specific tests."""
         try:
             # Load a sample of embeddings
@@ -632,24 +578,14 @@ class EmbeddingService:
                 "cost of living",
             ]
 
-            quality_scores = []
-            for query in test_queries:
-                query_embedding = self.embed_query(query)
-                if query_embedding is not None:
-                    # This is a simplified quality test
-                    # In production, you'd compare against known good matches
-                    quality_scores.append(0.8)  # Placeholder score
-
-            avg_quality = (
-                sum(quality_scores) / len(quality_scores)
-                if quality_scores
-                else 0
+            embedded_count = sum(
+                1 for query in test_queries if self.embed_query(query) is not None
             )
 
             return {
                 "embedding_files": len(embedding_files),
                 "test_queries": len(test_queries),
-                "avg_quality_score": avg_quality,
+                "queries_embedded_successfully": embedded_count,
                 "settlement_optimized": True,
                 "model": self.model_name,
             }

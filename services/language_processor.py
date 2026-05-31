@@ -6,7 +6,16 @@ from typing import List
 from typing import Optional
 
 import openai
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+from tenacity import retry_if_exception_type
+
 from config.settings import settings
+from config.constants import LLM_CALL_TIMEOUT_SECONDS
+from config.constants import LLM_RETRY_ATTEMPTS
+from config.constants import LLM_RETRY_WAIT_MAX
+from config.constants import LLM_RETRY_WAIT_MIN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("language_processor")
@@ -119,6 +128,29 @@ class LanguageProcessor:
                 "error": str(e),
             }
 
+    @retry(
+        stop=stop_after_attempt(LLM_RETRY_ATTEMPTS),
+        wait=wait_exponential(
+            multiplier=1, min=LLM_RETRY_WAIT_MIN, max=LLM_RETRY_WAIT_MAX
+        ),
+        retry=retry_if_exception_type((openai.RateLimitError, openai.APITimeoutError)),
+        reraise=True,
+    )
+    def _call_language_detection_llm(self, messages: List[Dict]) -> str:
+        """
+        Calls the OpenAI chat completion API for language detection with retry on transient errors.
+        :param messages: List[Dict] - The message list to send to the API.
+        :return: str - The assistant's response content.
+        """
+        response = self.openai_client.chat.completions.create(
+            model=settings.llm.model,
+            messages=messages,
+            temperature=0.1,
+            max_tokens=300,
+            timeout=LLM_CALL_TIMEOUT_SECONDS,
+        )
+        return response.choices[0].message.content
+
     def _detect_and_translate_llm(self, query: str) -> Dict[str, any]:
         """
         Combined detection and translation using LLM with settlement context.
@@ -146,33 +178,30 @@ Respond with JSON only:
 {{
     "detected_language": "language_name",
     "language_code": "2-letter code",
-    "english_query": "translated text or original if English", 
+    "english_query": "translated text or original if English",
     "needs_translation": true/false,
     "confidence": 0.0-1.0,
     "preserved_terms": ["term1", "term2"]
 }}"""
 
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an expert language processor specializing in international student settlement queries for Nairobi, Kenya. Provide accurate language detection and context-preserving translation.",
+            },
+            {"role": "user", "content": prompt},
+        ]
+
         try:
             start_time = time.perf_counter()
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4.1-nano",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert language processor specializing in international student settlement queries for Nairobi, Kenya. Provide accurate language detection and context-preserving translation.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.1,
-                max_tokens=300,
-            )
+            raw_content = self._call_language_detection_llm(messages)
             end_time = time.perf_counter()
             logger.info(
                 "language_detection_completed",
                 elapsed_seconds=round(end_time - start_time, 3),
             )
 
-            result = json.loads(response.choices[0].message.content.strip())
+            result = json.loads(raw_content.strip())
 
             # Validate and normalize result
             detected_lang = result.get("detected_language", "english").lower()
