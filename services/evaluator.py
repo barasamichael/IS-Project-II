@@ -120,8 +120,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "house_003",
                 "query": "I'm worried about finding safe accommodation as an international student. Any advice?",
-                "expected_intent": "reassurance_seeking",
-                "expected_topic": "housing",
+                "expected_intent": "safety_concern",
+                "expected_topic": "safety",
                 "expected_answer_contains": [
                     "safe",
                     "security",
@@ -138,7 +138,7 @@ class InternationalStudentRAGEvaluator:
                 "id": "univ_001",
                 "query": "What documents do I need for university admission in Kenya?",
                 "expected_intent": "procedural_query",
-                "expected_topic": "education",
+                "expected_topic": "academics",
                 "expected_answer_contains": [
                     "documents",
                     "admission",
@@ -153,8 +153,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "univ_002",
                 "query": "Compare University of Nairobi and Strathmore University for international students",
-                "expected_intent": "comparison_query",
-                "expected_topic": "education",
+                "expected_intent": "university_info",
+                "expected_topic": "academics",
                 "expected_answer_contains": [
                     "University of Nairobi",
                     "Strathmore",
@@ -251,7 +251,7 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "bank_002",
                 "query": "What is M-Pesa and how do I use it?",
-                "expected_intent": "explanation_query",
+                "expected_intent": "banking_finance",
                 "expected_topic": "finance",
                 "expected_answer_contains": [
                     "M-Pesa",
@@ -318,8 +318,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "social_001",
                 "query": "What are good places for international students to socialize in Nairobi?",
-                "expected_intent": "entertainment_social",
-                "expected_topic": "lifestyle",
+                "expected_intent": "cultural_adaptation",
+                "expected_topic": "culture",
                 "expected_answer_contains": [
                     "socialize",
                     "students",
@@ -335,8 +335,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "shop_001",
                 "query": "Where can I buy affordable groceries and household items?",
-                "expected_intent": "shopping_markets",
-                "expected_topic": "shopping",
+                "expected_intent": "cultural_adaptation",
+                "expected_topic": "culture",
                 "expected_answer_contains": [
                     "groceries",
                     "affordable",
@@ -352,7 +352,7 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "acad_001",
                 "query": "How do I convert my GPA to the Kenyan grading system?",
-                "expected_intent": "academic_conversion",
+                "expected_intent": "university_info",
                 "expected_topic": "academics",
                 "expected_answer_contains": [
                     "GPA",
@@ -369,8 +369,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "support_001",
                 "query": "I'm feeling overwhelmed as a new international student. Is this normal?",
-                "expected_intent": "reassurance_seeking",
-                "expected_topic": "general",
+                "expected_intent": "cultural_adaptation",
+                "expected_topic": "culture",
                 "expected_answer_contains": [
                     "normal",
                     "overwhelmed",
@@ -386,8 +386,8 @@ class InternationalStudentRAGEvaluator:
             {
                 "id": "loc_001",
                 "query": "Tell me about living in Karen area as a student",
-                "expected_intent": "neighborhood_guide",
-                "expected_topic": "location",
+                "expected_intent": "housing_inquiry",
+                "expected_topic": "housing",
                 "expected_answer_contains": [
                     "Karen",
                     "living",
@@ -415,7 +415,7 @@ class InternationalStudentRAGEvaluator:
                 "id": "phone_002",
                 "query": "How do I contact Kenyatta National Hospital?",
                 "expected_intent": "healthcare",
-                "expected_topic": "healthcare",
+                "expected_topic": "health",
                 "expected_answer_contains": ["Kenyatta National Hospital"],
                 "notes": "Response must use only verified KNH phone number +254 20 2726300.",
                 "priority": "high",
@@ -437,7 +437,7 @@ class InternationalStudentRAGEvaluator:
                 "id": "phone_004",
                 "query": "Which hospital should I go to for specialist care in Nairobi?",
                 "expected_intent": "healthcare",
-                "expected_topic": "healthcare",
+                "expected_topic": "health",
                 "expected_answer_contains": ["hospital", "Nairobi"],
                 "notes": "Any phone numbers cited must match the fact store entries exactly.",
                 "priority": "high",
@@ -448,7 +448,7 @@ class InternationalStudentRAGEvaluator:
                 "id": "phone_005",
                 "query": "Is there a children's hospital in Nairobi?",
                 "expected_intent": "healthcare",
-                "expected_topic": "healthcare",
+                "expected_topic": "health",
                 "expected_answer_contains": ["children", "hospital"],
                 "notes": "Gertrude's verified number is +254 20 7206000; no other number should appear.",
                 "priority": "medium",

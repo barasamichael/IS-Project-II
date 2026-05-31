@@ -592,6 +592,47 @@ I'm here to assist you with questions about:
                     "crisis_level": "none",
                 }
 
+            # Ambiguity guard: return clarification without calling the LLM
+            if intent_info.get("is_ambiguous"):
+                secondary = intent_info.get("secondary_intent")
+                primary_label = intent_info["intent_type"].value.replace("_", " ")
+                secondary_label = (
+                    secondary.value.replace("_", " ")
+                    if secondary is not None
+                    else "another topic"
+                )
+                clarification = (
+                    f"## DIRECT ANSWER\n"
+                    f"Are you asking about {primary_label} or {secondary_label}? "
+                    f"Please choose one or rephrase your question.\n\n"
+                    f"## ADDITIONAL INFORMATION\n"
+                    f"Your question could relate to either topic. A more specific "
+                    f"question will let me give you a precise, useful answer.\n\n"
+                    f"## NEXT STEPS\n"
+                    f"1. Reply with the topic that best matches your question.\n"
+                    f"2. Or rephrase your question with more specific details."
+                )
+                return {
+                    "response": clarification,
+                    "intent_type": intent_info["intent_type"],
+                    "topic": intent_info["topic"],
+                    "confidence": intent_info["confidence"],
+                    "language_detected": original_language,
+                    "translation_needed": needs_translation,
+                    "is_ambiguous": True,
+                    "token_usage": {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 0,
+                        "total_tokens": 0,
+                    },
+                    "current_time": None,
+                    "settlement_optimized": True,
+                    "response_style": "clarification",
+                    "empathy_applied": False,
+                    "safety_protocols_added": False,
+                    "crisis_level": "none",
+                }
+
             # Get current time
             current_time_full, current_time = self.get_current_nairobi_time()
 

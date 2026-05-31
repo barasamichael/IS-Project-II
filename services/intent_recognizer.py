@@ -14,6 +14,22 @@ import numpy as np
 from openai import OpenAI
 from sklearn.metrics.pairwise import cosine_similarity
 
+import openai as openai_errors
+from tenacity import retry
+from tenacity import retry_if_exception_type
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+
+from config.constants import INTENT_AMBIGUITY_GAP
+from config.constants import INTENT_FALLBACK_LLM_LOWER
+from config.constants import INTENT_FALLBACK_LLM_MODEL
+from config.constants import INTENT_FALLBACK_LLM_UPPER
+from config.constants import INTENT_OFF_TOPIC_THRESHOLD
+from config.constants import INTENT_THRESHOLDS
+from config.constants import LLM_CALL_TIMEOUT_SECONDS
+from config.constants import LLM_RETRY_ATTEMPTS
+from config.constants import LLM_RETRY_WAIT_MAX
+from config.constants import LLM_RETRY_WAIT_MIN
 from config.settings import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +79,8 @@ class IntentResult:
     semantic_scores: Dict[str, float]
     off_topic_indicators: List[str]
     settlement_relevance: float
+    is_ambiguous: bool = False
+    secondary_intent: Optional[IntentType] = None
 
 
 class IntentRecognizer:
@@ -735,11 +753,14 @@ class IntentRecognizer:
             # Step 3: Calculate settlement relevance
             settlement_relevance = self._calculate_settlement_relevance(query)
 
-            # Step 4: Apply semantic threshold for off-topic detection
+            # Step 4: Per-intent threshold off-topic detection
             max_similarity = max(similarities.values()) if similarities else 0.0
+            best_intent_candidate = max(similarities, key=similarities.get)
+            threshold = INTENT_THRESHOLDS.get(
+                best_intent_candidate.value, INTENT_OFF_TOPIC_THRESHOLD
+            )
 
-            # Much more permissive - only reject if clearly no semantic match
-            if max_similarity < self.off_topic_threshold:
+            if max_similarity < threshold:
                 return IntentResult(
                     intent_type=IntentType.OFF_TOPIC,
                     topic=TopicType.OFF_TOPIC,
@@ -751,13 +772,35 @@ class IntentRecognizer:
                     settlement_relevance=settlement_relevance,
                 )
 
-            # Step 5: Get best intent match
-            best_intent = max(similarities, key=similarities.get)
-            best_confidence = similarities[best_intent]
+            # Step 4b: LLM fallback for uncertain in-domain queries
+            best_intent = best_intent_candidate
+            if INTENT_FALLBACK_LLM_LOWER <= max_similarity <= INTENT_FALLBACK_LLM_UPPER:
+                fallback_intent = self._llm_fallback_classify(query)
+                if fallback_intent is not None:
+                    best_intent = fallback_intent
+                    logger.info(
+                        "intent_llm_fallback_used",
+                        original=best_intent_candidate.value,
+                        fallback=best_intent.value,
+                    )
+
+            # Step 5: Determine best confidence
+            best_confidence = similarities.get(best_intent, max_similarity)
 
             # Step 6: Boost confidence if settlement-relevant
             if settlement_relevance > 0.5:
                 best_confidence = min(best_confidence + 0.1, 1.0)
+
+            # Step 6b: Ambiguity detection
+            sorted_sims = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+            is_ambiguous = False
+            secondary_intent: Optional[IntentType] = None
+            if len(sorted_sims) > 1:
+                top1_score = sorted_sims[0][1]
+                top2_intent, top2_score = sorted_sims[1]
+                if (top1_score - top2_score) < INTENT_AMBIGUITY_GAP:
+                    is_ambiguous = True
+                    secondary_intent = top2_intent
 
             # Step 7: Get topic from intent mapping
             topic = self.intent_patterns[best_intent]["topic"]
@@ -769,11 +812,74 @@ class IntentRecognizer:
                 semantic_scores=similarities,
                 off_topic_indicators=[],
                 settlement_relevance=settlement_relevance,
+                is_ambiguous=is_ambiguous,
+                secondary_intent=secondary_intent,
             )
 
         except Exception as e:
             logger.error(f"Intent classification failed: {str(e)}")
             return self._fallback_classification(query)
+
+    @retry(
+        stop=stop_after_attempt(LLM_RETRY_ATTEMPTS),
+        wait=wait_exponential(
+            multiplier=1, min=LLM_RETRY_WAIT_MIN, max=LLM_RETRY_WAIT_MAX
+        ),
+        retry=retry_if_exception_type(
+            (openai_errors.RateLimitError, openai_errors.APITimeoutError)
+        ),
+        reraise=True,
+    )
+    def _llm_fallback_classify(self, query: str) -> Optional[IntentType]:
+        """
+        Call the INTENT_FALLBACK_LLM_MODEL LLM to classify a query whose cosine similarity
+        falls in the uncertain range where semantic similarity alone is
+        insufficient. Uses one representative example per intent in a few-shot
+        prompt and parses the model's response into an IntentType value.
+        :param query: str - The user query to classify.
+        :return: Optional[IntentType] - The classified intent, or None when the
+            response cannot be parsed into a valid non-OFF_TOPIC intent.
+        """
+        examples_block = "\n".join(
+            f'- {intent.value}: "{pattern_data["examples"][0]}"'
+            for intent, pattern_data in self.intent_patterns.items()
+            if intent != IntentType.OFF_TOPIC
+        )
+        valid_values = ", ".join(
+            intent.value for intent in IntentType if intent != IntentType.OFF_TOPIC
+        )
+        system_prompt = (
+            "You are an intent classifier for a settlement assistant. "
+            "Given a user query, respond with exactly one intent label from "
+            f"the list below and nothing else.\n\nValid intents: {valid_values}"
+        )
+        user_prompt = (
+            f"Examples of each intent:\n{examples_block}\n\n"
+            f'Classify this query: "{query}"\n\n'
+            "Respond with only the intent label, e.g.: housing_inquiry"
+        )
+        try:
+            response = self.openai_client.chat.completions.create(
+                model=INTENT_FALLBACK_LLM_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.0,
+                max_tokens=20,
+                timeout=LLM_CALL_TIMEOUT_SECONDS,
+            )
+            raw = response.choices[0].message.content.strip().lower()
+            for intent in IntentType:
+                if intent != IntentType.OFF_TOPIC and intent.value == raw:
+                    return intent
+            logger.debug("intent_llm_fallback_unparseable response=%s", raw)
+            return None
+        except (openai_errors.RateLimitError, openai_errors.APITimeoutError):
+            raise
+        except Exception as exc:
+            logger.warning("intent_llm_fallback_failed error=%s", str(exc))
+            return None
 
     def _get_query_embedding(self, query: str) -> Optional[np.ndarray]:
         """Get embedding for the query."""
@@ -912,6 +1018,8 @@ class IntentRecognizer:
             "off_topic_indicators": result.off_topic_indicators,
             "classification_method": "semantic_embedding",
             "is_off_topic": result.intent_type == IntentType.OFF_TOPIC,
+            "is_ambiguous": result.is_ambiguous,
+            "secondary_intent": result.secondary_intent,
         }
 
     def get_stats(self) -> Dict[str, Any]:
