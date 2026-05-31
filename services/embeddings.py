@@ -12,7 +12,9 @@ from typing import Optional
 import numpy as np
 from tqdm import tqdm
 from openai import OpenAI
+from cachetools import LRUCache
 
+from config.constants import EMBEDDING_LRU_CACHE_SIZE
 from config.settings import settings
 from config.settings import ROOT_DIR
 
@@ -70,6 +72,11 @@ class EmbeddingService:
         # Cache metadata
         self.metadata_file = self.embeddings_dir / "embeddings_metadata.json"
         self.embeddings_metadata = self._load_metadata()
+
+        # Per-instance LRU cache for single query embeddings
+        self._query_embedding_cache: LRUCache = LRUCache(
+            maxsize=EMBEDDING_LRU_CACHE_SIZE
+        )
 
         # Settlement-specific optimization
         self.settlement_keywords = [
@@ -303,12 +310,29 @@ class EmbeddingService:
         return np.array(all_embeddings, dtype=np.float32)
 
     def embed_query(self, query: str) -> Optional[np.ndarray]:
-        """Generate embedding for a single query with settlement optimization."""
+        """
+        Generate embedding for a single query with settlement optimization and LRU caching.
+        :param query: str - The raw user query to embed.
+        :return: Optional[np.ndarray] - The embedding array, or None on empty input or failure.
+        """
         if not query or not query.strip():
             logger.warning("Empty query provided")
             return None
 
-        # Optimize query for settlement context
+        if query in self._query_embedding_cache:
+            logger.debug("query_embedding_cache_hit", query_preview=query[:50])
+            return self._query_embedding_cache[query]
+
+        result = self._fetch_query_embedding(query)
+        self._query_embedding_cache[query] = result
+        return result
+
+    def _fetch_query_embedding(self, query: str) -> Optional[np.ndarray]:
+        """
+        Fetch a fresh embedding from the OpenAI API for a query string.
+        :param query: str - The raw user query.
+        :return: Optional[np.ndarray] - The embedding array, or None on failure.
+        """
         optimized_query = self._optimize_query_for_embedding(query)
 
         max_retries = 3
@@ -319,8 +343,7 @@ class EmbeddingService:
                     input=[optimized_query],
                     encoding_format="float",
                 )
-                embedding = np.array(response.data[0].embedding, dtype=np.float32)
-                return embedding
+                return np.array(response.data[0].embedding, dtype=np.float32)
 
             except Exception as e:
                 if attempt < max_retries - 1:

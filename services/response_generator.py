@@ -16,16 +16,25 @@ from tenacity import wait_exponential
 from tenacity import retry_if_exception_type
 
 import openai as openai_errors
+from cachetools import TTLCache
+
 from config.constants import GROUNDING_RULE
 from config.constants import LLM_CALL_TIMEOUT_SECONDS
+from config.constants import LLM_EMERGENCY_MAX_TOKENS
+from config.constants import LLM_RESPONSE_MAX_TOKENS
 from config.constants import LLM_RETRY_ATTEMPTS
 from config.constants import LLM_RETRY_WAIT_MAX
 from config.constants import LLM_RETRY_WAIT_MIN
 from config.constants import LLM_TAVILY_TIMEOUT_SECONDS
+from config.constants import TAVILY_CACHE_MAXSIZE
+from config.constants import TAVILY_CACHE_TTL
 from config.settings import settings
 from services.intent_recognizer import IntentType
 from services.language_processor import LanguageProcessor
 from utilities.sanitisation import sanitise_web_content
+
+# Module-level Tavily result cache shared across all requests in the process
+_tavily_cache: TTLCache = TTLCache(maxsize=TAVILY_CACHE_MAXSIZE, ttl=TAVILY_CACHE_TTL)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("response_generator")
@@ -363,9 +372,25 @@ I'm here to assist you with questions about:
         return formatted_time, time_only
 
     def search_web_for_current_info(
-        self, query: str, intent_type: IntentType
+        self,
+        query: str,
+        intent_type: IntentType,
+        crisis_level: str = "none",
     ) -> Optional[Dict]:
-        """Search web for current information using Tavily AI search API."""
+        """
+        Search web for current information using Tavily AI search API.
+        Results are cached by (intent_type, query) with a TTL; crisis queries bypass the cache.
+        :param query: str - The search query.
+        :param intent_type: IntentType - Used as part of the cache key.
+        :param crisis_level: str - Pass "high" to bypass the Tavily result cache.
+        :return: Optional[Dict] - Search results dict, or None when unavailable.
+        """
+        cache_key = (intent_type.value, query[:100])
+
+        if crisis_level != "high" and cache_key in _tavily_cache:
+            logger.debug("tavily_cache_hit", intent=intent_type.value)
+            return _tavily_cache[cache_key]
+
         try:
             # Import Tavily client
             try:
@@ -374,6 +399,8 @@ I'm here to assist you with questions about:
                 logger.warning(
                     "tavily-python library not installed. Install with: pip install tavily-python"
                 )
+                if crisis_level != "high":
+                    _tavily_cache[cache_key] = None
                 return None
 
             # Get API key from environment
@@ -382,6 +409,8 @@ I'm here to assist you with questions about:
                 logger.warning(
                     "TAVILY_API_KEY not found in environment variables. Skipping web search."
                 )
+                if crisis_level != "high":
+                    _tavily_cache[cache_key] = None
                 return None
 
             # Initialize Tavily client
@@ -475,13 +504,20 @@ I'm here to assist you with questions about:
             else:
                 logger.info("Tavily search completed but no results were retrieved")
 
-            return {
+            result = {
                 "results": web_results,
                 "search_successful": len(web_results) > 0,
             }
 
+            if crisis_level != "high":
+                _tavily_cache[cache_key] = result
+
+            return result
+
         except Exception as e:
             logger.error(f"Tavily search orchestration failed: {str(e)}")
+            if crisis_level != "high":
+                _tavily_cache[cache_key] = None
             return None
 
     def _build_search_queries(self, query: str, intent_type: IntentType) -> List[str]:
@@ -656,10 +692,17 @@ I'm here to assist you with questions about:
         intent_info: Dict[str, Any],
         conversation_context: Optional[Dict[str, Any]] = None,
         user_preferences: Optional[Dict[str, str]] = None,
+        web_info: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Generate comprehensive, optimized responses with speed improvements.
-        Uses parallel processing where possible and gpt-4.1-mini throughout.
+        :param query: str - The user query.
+        :param retrieved_context: List[Dict] - RAG chunks from vector search.
+        :param intent_info: Dict - Classified intent from IntentRecognizer.
+        :param conversation_context: Optional[Dict] - Prior conversation turns.
+        :param user_preferences: Optional[Dict] - User style preferences.
+        :param web_info: Optional[Dict] - Pre-fetched Tavily results; skips internal search when provided.
+        :return: Dict[str, Any] - Response data including text and metadata.
         """
         try:
             # Process language detection and translation
@@ -713,21 +756,22 @@ I'm here to assist you with questions about:
             # Get current time
             current_time_full, current_time = self.get_current_nairobi_time()
 
-            # OPTIMIZATION: Run emotion detection and web search in parallel
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                # Submit both tasks
-                emotion_future = executor.submit(
-                    self.detect_emotional_state, english_query
-                )
-                web_future = executor.submit(
-                    self.search_web_for_current_info,
-                    english_query,
-                    intent_info["intent_type"],
-                )
-
-                # Get results (blocks until both complete)
-                emotional_state = emotion_future.result()
-                web_info = web_future.result()
+            # OPTIMIZATION: Run emotion detection and web search in parallel.
+            # When web_info is pre-fetched by the caller, skip the Tavily call.
+            if web_info is not None:
+                emotional_state = self.detect_emotional_state(english_query)
+            else:
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    emotion_future = executor.submit(
+                        self.detect_emotional_state, english_query
+                    )
+                    web_future = executor.submit(
+                        self.search_web_for_current_info,
+                        english_query,
+                        intent_info["intent_type"],
+                    )
+                    emotional_state = emotion_future.result()
+                    web_info = web_future.result()
 
             # Assess crisis indicators
             crisis_assessment = self.assess_crisis_indicators(
@@ -1106,13 +1150,19 @@ CRITICAL REQUIREMENTS:
 - Make sure each section is substantial and complete
 - Focus on practical, actionable guidance they can use right away"""
 
+        intent_max_tokens = (
+            LLM_EMERGENCY_MAX_TOKENS
+            if intent_info["intent_type"] == IntentType.EMERGENCY_HELP
+            else LLM_RESPONSE_MAX_TOKENS
+        )
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
         try:
             start_time = time.perf_counter()
-            response_content = self._call_generation_llm(messages, self.max_tokens)
+            response_content = self._call_generation_llm(messages, intent_max_tokens)
             end_time = time.perf_counter()
             logger.info(
                 "llm_call_completed",

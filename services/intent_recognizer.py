@@ -14,6 +14,8 @@ import numpy as np
 from openai import OpenAI
 from sklearn.metrics.pairwise import cosine_similarity
 
+from config.settings import settings
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("intent_recognizer")
 
@@ -620,7 +622,19 @@ class IntentRecognizer:
                 intent.value for intent in IntentType if intent != IntentType.OFF_TOPIC
             )
 
-            return cached_intents == current_intents
+            if cached_intents != current_intents:
+                return False
+
+            cached_model = metadata.get("embedding_model", "")
+            if cached_model != settings.embedding.model:
+                logger.info(
+                    "intent_cache_model_mismatch",
+                    cached=cached_model,
+                    current=settings.embedding.model,
+                )
+                return False
+
+            return True
         except Exception as e:
             logger.warning(f"Cache validation failed: {str(e)}")
             return False
@@ -657,7 +671,7 @@ class IntentRecognizer:
             # Save metadata
             metadata = {
                 "intent_types": [intent.value for intent in embeddings.keys()],
-                "embedding_model": "text-embedding-ada-002",
+                "embedding_model": settings.embedding.model,
                 "embedding_dim": 1536,
             }
             with open(self.metadata_file, "w") as f:
@@ -677,7 +691,7 @@ class IntentRecognizer:
             try:
                 # Get embeddings for all examples
                 response = self.openai_client.embeddings.create(
-                    input=examples, model="text-embedding-ada-002"
+                    input=examples, model=settings.embedding.model
                 )
 
                 embeddings = [item.embedding for item in response.data]
@@ -697,19 +711,21 @@ class IntentRecognizer:
 
         return pattern_embeddings
 
-    def classify_intent(self, query: str) -> IntentResult:
+    def classify_intent(
+        self,
+        query: str,
+        query_embedding: Optional[np.ndarray] = None,
+    ) -> IntentResult:
         """
         Classify intent using pure semantic similarity - no aggressive filtering.
-
-        Args:
-            query: User query to classify
-
-        Returns:
-            IntentResult with classification details
+        :param query: str - User query to classify.
+        :param query_embedding: Optional[np.ndarray] - Pre-computed embedding to reuse.
+        :return: IntentResult - Classification result with intent type and confidence.
         """
         try:
-            # Step 1: Get query embedding
-            query_embedding = self._get_query_embedding(query)
+            # Step 1: Get query embedding (use pre-computed if provided)
+            if query_embedding is None:
+                query_embedding = self._get_query_embedding(query)
             if query_embedding is None:
                 return self._fallback_classification(query)
 
@@ -764,11 +780,11 @@ class IntentRecognizer:
         try:
             start_time = time.perf_counter()
             response = self.openai_client.embeddings.create(
-                input=[query], model="text-embedding-ada-002"
+                input=[query], model=settings.embedding.model
             )
             end_time = time.perf_counter()
             logger.info(
-                "intent_classification_completed",
+                "intent_embedding_completed",
                 elapsed_seconds=round(end_time - start_time, 3),
             )
             return np.array(response.data[0].embedding)
@@ -874,17 +890,18 @@ class IntentRecognizer:
                 settlement_relevance=0.0,
             )
 
-    def get_intent_info(self, query: str) -> Dict[str, Any]:
+    def get_intent_info(
+        self,
+        query: str,
+        query_embedding: Optional[np.ndarray] = None,
+    ) -> Dict[str, Any]:
         """
         Main method for compatibility with existing code.
-
-        Args:
-            query: User query to analyze
-
-        Returns:
-            Dictionary with intent information
+        :param query: str - User query to analyze.
+        :param query_embedding: Optional[np.ndarray] - Pre-computed embedding to reuse.
+        :return: Dict[str, Any] - Intent information dictionary.
         """
-        result = self.classify_intent(query)
+        result = self.classify_intent(query, query_embedding=query_embedding)
 
         return {
             "intent_type": result.intent_type,
@@ -904,7 +921,7 @@ class IntentRecognizer:
             "classification_method": "semantic_embedding",
             "off_topic_threshold": self.off_topic_threshold,
             "confidence_threshold": self.confidence_threshold,
-            "embedding_model": "text-embedding-ada-002",
+            "embedding_model": settings.embedding.model,
             "supported_intents": [intent.value for intent in IntentType],
             "supported_topics": [topic.value for topic in TopicType],
             "cache_enabled": True,

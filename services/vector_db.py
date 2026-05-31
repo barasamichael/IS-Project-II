@@ -7,6 +7,7 @@ from typing import List
 from typing import Union
 from typing import Optional
 
+import numpy as np
 import chromadb
 from chromadb.config import Settings
 
@@ -109,13 +110,9 @@ class VectorDBService:
                 # Delete existing collection
                 try:
                     self.client.delete_collection(name=self.collection_name)
-                    logger.info(
-                        f"Deleted existing collection: {self.collection_name}"
-                    )
+                    logger.info(f"Deleted existing collection: {self.collection_name}")
                 except Exception as e:
-                    logger.warning(
-                        f"No existing collection to delete: {str(e)}"
-                    )
+                    logger.warning(f"No existing collection to delete: {str(e)}")
 
                 # Create new collection
                 self.collection = self.client.create_collection(
@@ -137,9 +134,7 @@ class VectorDBService:
             logger.error(f"Error initializing collection: {str(e)}")
             raise VectorDBError(f"Collection initialization failed: {str(e)}")
 
-    def index_chunks(
-        self, chunks_file: Optional[Union[str, Path]] = None
-    ) -> None:
+    def index_chunks(self, chunks_file: Optional[Union[str, Path]] = None) -> None:
         """Index chunks with settlement-specific optimization."""
         try:
             # Check for deduplicated chunks first
@@ -183,12 +178,8 @@ class VectorDBService:
                     logger.error(f"Failed to index {chunk_file.name}: {str(e)}")
                     failed += 1
 
-            logger.info(
-                f"Indexing complete: {successful} succeeded, {failed} failed"
-            )
-            logger.info(
-                f"Total vectors in collection: {self.collection.count()}"
-            )
+            logger.info(f"Indexing complete: {successful} succeeded, {failed} failed")
+            logger.info(f"Total vectors in collection: {self.collection.count()}")
 
         except Exception as e:
             logger.error(f"Error during indexing: {str(e)}")
@@ -211,9 +202,7 @@ class VectorDBService:
                 self.embedding_service.embed_chunks(chunks_file)
 
             # Load embeddings and chunks
-            embeddings_data = self.embedding_service.load_embeddings(
-                embeddings_file
-            )
+            embeddings_data = self.embedding_service.load_embeddings(embeddings_file)
             if embeddings_data is None:
                 raise VectorDBError(f"Failed to load embeddings for {doc_id}")
 
@@ -254,13 +243,9 @@ class VectorDBService:
                 # Add settlement-specific metadata
                 chunk_metadata = chunk.get("metadata", {})
                 if "settlement_score" in chunk_metadata:
-                    metadata["settlement_score"] = chunk_metadata[
-                        "settlement_score"
-                    ]
+                    metadata["settlement_score"] = chunk_metadata["settlement_score"]
                 if "topic_tags" in chunk_metadata:
-                    metadata["topic_tags"] = json.dumps(
-                        chunk_metadata["topic_tags"]
-                    )
+                    metadata["topic_tags"] = json.dumps(chunk_metadata["topic_tags"])
                 if "location_entities" in chunk_metadata:
                     metadata["location_entities"] = json.dumps(
                         chunk_metadata["location_entities"]
@@ -290,9 +275,7 @@ class VectorDBService:
             logger.info(f"Successfully indexed {len(ids)} chunks from {doc_id}")
 
         except Exception as e:
-            logger.error(
-                f"Error indexing chunks file {chunks_file.name}: {str(e)}"
-            )
+            logger.error(f"Error indexing chunks file {chunks_file.name}: {str(e)}")
             raise VectorDBError(f"Failed to index {chunks_file.name}: {str(e)}")
 
     def _index_deduplicated_chunks(self, dedup_file: Path) -> None:
@@ -307,9 +290,7 @@ class VectorDBService:
                 self.embedding_service.embed_deduplicated_chunks()
 
             # Load embeddings and chunks
-            embeddings_data = self.embedding_service.load_embeddings(
-                embeddings_file
-            )
+            embeddings_data = self.embedding_service.load_embeddings(embeddings_file)
             if embeddings_data is None:
                 raise VectorDBError("Failed to load deduplicated embeddings")
 
@@ -347,14 +328,10 @@ class VectorDBService:
                 # Add deduplication metadata
                 chunk_metadata = chunk.get("metadata", {})
                 if "settlement_score" in chunk_metadata:
-                    metadata["settlement_score"] = chunk_metadata[
-                        "settlement_score"
-                    ]
+                    metadata["settlement_score"] = chunk_metadata["settlement_score"]
                 if "is_merged" in chunk_metadata:
                     metadata["is_merged"] = True
-                    metadata["merged_count"] = chunk_metadata.get(
-                        "merge_count", 0
-                    )
+                    metadata["merged_count"] = chunk_metadata.get("merge_count", 0)
 
                 metadatas.append(metadata)
 
@@ -377,9 +354,7 @@ class VectorDBService:
 
         except Exception as e:
             logger.error(f"Error indexing deduplicated chunks: {str(e)}")
-            raise VectorDBError(
-                f"Failed to index deduplicated chunks: {str(e)}"
-            )
+            raise VectorDBError(f"Failed to index deduplicated chunks: {str(e)}")
 
     def search(
         self,
@@ -388,15 +363,29 @@ class VectorDBService:
         filter_doc_id: Optional[str] = None,
         topic_filter: Optional[str] = None,
         location_filter: Optional[str] = None,
+        embedding: Optional[np.ndarray] = None,
     ) -> List[Dict[str, Any]]:
-        """Search with settlement-specific optimization and filtering."""
+        """
+        Search with settlement-specific optimization and filtering.
+        :param query: str - The query string (used for boosting even when embedding is pre-supplied).
+        :param top_k: int - Maximum number of results to return.
+        :param filter_doc_id: Optional[str] - Restrict results to a single document.
+        :param topic_filter: Optional[str] - Boost results matching this topic.
+        :param location_filter: Optional[str] - Boost results matching this location.
+        :param embedding: Optional[np.ndarray] - Pre-computed query embedding; skips embed_query call.
+        :return: List[Dict[str, Any]] - Ranked list of matching chunks.
+        """
         try:
             if self.collection.count() == 0:
                 logger.warning("Collection is empty")
                 return []
 
-            # Generate query embedding with settlement optimization
-            query_embedding = self.embedding_service.embed_query(query)
+            # Use pre-computed embedding when provided to avoid a duplicate API call
+            query_embedding = (
+                embedding
+                if embedding is not None
+                else self.embedding_service.embed_query(query)
+            )
 
             if query_embedding is None:
                 raise VectorDBError("Failed to generate query embedding")
@@ -432,13 +421,9 @@ class VectorDBService:
                     )
 
                     result = {
-                        "chunk_id": results["metadatas"][0][i].get(
-                            "chunk_id", ""
-                        ),
+                        "chunk_id": results["metadatas"][0][i].get("chunk_id", ""),
                         "doc_id": results["metadatas"][0][i].get("doc_id", ""),
-                        "chunk_index": results["metadatas"][0][i].get(
-                            "chunk_index", 0
-                        ),
+                        "chunk_index": results["metadatas"][0][i].get("chunk_index", 0),
                         "text": results["documents"][0][i],
                         "score": boosted_score,
                         "base_score": base_score,
@@ -447,22 +432,18 @@ class VectorDBService:
                     # Add settlement metadata
                     metadata = results["metadatas"][0][i]
                     if "settlement_score" in metadata:
-                        result["settlement_score"] = metadata[
-                            "settlement_score"
-                        ]
+                        result["settlement_score"] = metadata["settlement_score"]
                     if "topic_tags" in metadata:
                         try:
-                            result["topic_tags"] = json.loads(
-                                metadata["topic_tags"]
-                            )
-                        except:
+                            result["topic_tags"] = json.loads(metadata["topic_tags"])
+                        except Exception:
                             result["topic_tags"] = []
                     if "location_entities" in metadata:
                         try:
                             result["location_entities"] = json.loads(
                                 metadata["location_entities"]
                             )
-                        except:
+                        except Exception:
                             result["location_entities"] = []
 
                     formatted_results.append(result)
@@ -504,7 +485,7 @@ class VectorDBService:
                     # Extra boost if topic matches query
                     if topic in query_lower:
                         boosted_score *= 1.15
-            except:
+            except Exception:
                 pass
 
         # Location boost
@@ -512,15 +493,13 @@ class VectorDBService:
             try:
                 locations = json.loads(metadata["location_entities"])
                 for location in locations:
-                    location_boost = self.location_boost.get(
-                        location.lower(), 1.0
-                    )
+                    location_boost = self.location_boost.get(location.lower(), 1.0)
                     boosted_score *= location_boost
 
                     # Extra boost if location mentioned in query
                     if location.lower() in query_lower:
                         boosted_score *= 1.2
-            except:
+            except Exception:
                 pass
 
         # High-value keyword boost
@@ -613,7 +592,7 @@ class VectorDBService:
             # Fallback to regular search
             try:
                 return self.search(query, top_k, filter_doc_id, topic_filter)
-            except:
+            except Exception:
                 return []
 
     def _generate_settlement_queries(self, original_query: str) -> List[str]:
@@ -630,9 +609,7 @@ class VectorDBService:
             alternatives.append(f"international student {original_query}")
 
         # Topic-specific expansions
-        if any(
-            word in query_lower for word in ["house", "room", "accommodation"]
-        ):
+        if any(word in query_lower for word in ["house", "room", "accommodation"]):
             alternatives.extend(
                 [
                     f"{original_query} for international students",
@@ -640,9 +617,7 @@ class VectorDBService:
                 ]
             )
 
-        elif any(
-            word in query_lower for word in ["transport", "travel", "commute"]
-        ):
+        elif any(word in query_lower for word in ["transport", "travel", "commute"]):
             alternatives.extend(
                 [
                     f"{original_query} public transport Nairobi",
@@ -658,9 +633,7 @@ class VectorDBService:
                 ]
             )
 
-        elif any(
-            word in query_lower for word in ["safe", "security", "danger"]
-        ):
+        elif any(word in query_lower for word in ["safe", "security", "danger"]):
             alternatives.extend(
                 [
                     f"{original_query} student safety Nairobi",
@@ -679,9 +652,7 @@ class VectorDBService:
 
         return alternatives[:4]  # Limit to avoid too many queries
 
-    def search_by_topic(
-        self, topic: str, top_k: int = 10
-    ) -> List[Dict[str, Any]]:
+    def search_by_topic(self, topic: str, top_k: int = 10) -> List[Dict[str, Any]]:
         """Search specifically by settlement topic."""
         try:
             # Use topic-specific query
@@ -754,20 +725,18 @@ class VectorDBService:
                                     topic_distribution[topic] = (
                                         topic_distribution.get(topic, 0) + 1
                                     )
-                            except:
+                            except Exception:
                                 pass
 
                         # Collect settlement scores
                         if "settlement_score" in metadata:
-                            settlement_scores.append(
-                                metadata["settlement_score"]
-                            )
+                            settlement_scores.append(metadata["settlement_score"])
 
                     stats["topic_distribution"] = topic_distribution
                     if settlement_scores:
-                        stats["avg_settlement_score"] = sum(
+                        stats["avg_settlement_score"] = sum(settlement_scores) / len(
                             settlement_scores
-                        ) / len(settlement_scores)
+                        )
 
             return stats
 
@@ -816,16 +785,14 @@ class VectorDBService:
                 self.search("test query", top_k=1)
                 health["search_functional"] = True
 
-            except:
+            except Exception:
                 health["search_functional"] = False
 
             # Test embedding generation
             try:
                 test_embedding = self.embedding_service.embed_query("test")
-                health["embedding_generation_functional"] = (
-                    test_embedding is not None
-                )
-            except:
+                health["embedding_generation_functional"] = test_embedding is not None
+            except Exception:
                 health["embedding_generation_functional"] = False
 
             health["overall_health"] = all(

@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+import asyncio
 from typing import Any
 from typing import Dict
 from typing import List
@@ -619,24 +620,72 @@ async def process_query(
         logger.info("query_received", query_preview=query_request.query[:100])
         start_time = time.time()
 
-        # Intent recognition
-        intent_info = intent_recognizer.get_intent_info(query_request.query)
-        logger.info(f"Recognized intent: {intent_info['intent_type'].value}")
+        # Compute shared embedding once; passed to both intent recognizer and VDB search
+        shared_embedding = await asyncio.to_thread(
+            embedding_service.embed_query, query_request.query
+        )
 
-        # Retrieve relevant context
-        retrieved_chunks = []
+        # Intent recognition uses the shared embedding — no second embedding API call
+        intent_info = intent_recognizer.get_intent_info(
+            query_request.query, query_embedding=shared_embedding
+        )
+        logger.info("intent_recognized", intent=intent_info["intent_type"].value)
+
+        # For off-topic queries skip both retrieval and web search
+        retrieved_chunks: List[Dict[str, Any]] = []
+        web_info = None
+
         if intent_info["intent_type"] != IntentType.OFF_TOPIC:
-            retrieved_chunks = vector_db_service.search(
-                query=query_request.query, top_k=query_request.top_k
+            # Quick crisis check from query keywords (mirrors assess_crisis_indicators logic)
+            _crisis_words = {
+                "emergency",
+                "urgent",
+                "help",
+                "crisis",
+                "danger",
+                "threat",
+                "scared",
+                "afraid",
+                "attacked",
+                "robbed",
+                "stolen",
+                "stranded",
+            }
+            _ql = query_request.query.lower()
+            _matches = sum(1 for w in _crisis_words if w in _ql)
+            crisis_level = (
+                "high"
+                if _matches >= 3
+                or any(w in _ql for w in {"emergency", "urgent", "danger"})
+                else "none"
             )
 
-        # Generate comprehensive response (language detection runs here)
+            # VDB search and Tavily search run in parallel — neither waits for the other
+            vdb_task = asyncio.to_thread(
+                vector_db_service.search,
+                query_request.query,
+                query_request.top_k,
+                None,
+                None,
+                None,
+                shared_embedding,
+            )
+            tavily_task = asyncio.to_thread(
+                response_generator.search_web_for_current_info,
+                query_request.query,
+                intent_info["intent_type"],
+                crisis_level,
+            )
+            retrieved_chunks, web_info = await asyncio.gather(vdb_task, tavily_task)
+
+        # Generate comprehensive response; language detection runs inside here
         response_data = response_generator.generate_response(
             query=query_request.query,
             retrieved_context=retrieved_chunks,
             intent_info=intent_info,
             conversation_context=query_request.conversation_context,
             user_preferences=query_request.user_preferences,
+            web_info=web_info,
         )
 
         # Create language info from response_data (single detection source of truth)
