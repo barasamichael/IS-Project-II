@@ -5,6 +5,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -18,6 +19,7 @@ from tenacity import retry_if_exception_type
 import openai as openai_errors
 from cachetools import TTLCache
 
+from config.constants import GROUNDING_FALLBACK_CONTACT
 from config.constants import GROUNDING_RULE
 from config.constants import LLM_CALL_TIMEOUT_SECONDS
 from config.constants import LLM_EMERGENCY_MAX_TOKENS
@@ -26,11 +28,15 @@ from config.constants import LLM_RETRY_ATTEMPTS
 from config.constants import LLM_RETRY_WAIT_MAX
 from config.constants import LLM_RETRY_WAIT_MIN
 from config.constants import LLM_TAVILY_TIMEOUT_SECONDS
+from config.constants import PHONE_RE
 from config.constants import TAVILY_CACHE_MAXSIZE
 from config.constants import TAVILY_CACHE_TTL
+from config.locale import LocaleFactStore
 from config.settings import settings
 from services.intent_recognizer import IntentType
 from services.language_processor import LanguageProcessor
+from utilities.factcheck import extract_phones_from_context
+from utilities.factcheck import normalise_phone
 from utilities.sanitisation import sanitise_web_content
 
 # Module-level Tavily result cache shared across all requests in the process
@@ -46,241 +52,24 @@ class ResponseGenerator:
     Uses gpt-4.1-mini throughout and Tavily search for current information.
     """
 
-    def __init__(self):
-        self.model = "gpt-4.1-mini"  # Fast, cost-efficient model
+    def __init__(self, fact_store: LocaleFactStore) -> None:
+        """
+        Initialise the response generator with a pre-loaded locale fact store.
+        :param fact_store: LocaleFactStore - Verified contact data for the active locale.
+            Must be loaded once at startup and passed in; never instantiated per-request.
+        """
+        self.model = "gpt-4.1-mini"
         self.temperature = settings.llm.temperature
         self.max_tokens = settings.llm.max_tokens
 
-        # Initialize OpenAI client
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Initialize language processor
         self.language_processor = LanguageProcessor()
 
-        # Context quality thresholds
+        self.fact_store = fact_store
+
         self.min_context_relevance = 0.3
         self.min_chunks_for_response = 1
-
-        # Essential settlement information
-        self.essential_info = {
-            "emergency_numbers": {
-                "universal_emergency": "999",
-                "police": "999",
-                "ambulance": "999",
-                "fire_service": "999",
-                "red_cross": "0700 395 395",
-                "aa_kenya": "0700 200 007",
-            },
-            "immigration_office": {
-                "main_office": "Nyayo House, Uhuru Highway",
-                "contact": "Department of Immigration Services",
-                "phone": "+254 20 222 2022",
-                "hours": "8:00 AM - 5:00 PM (Monday - Friday)",
-                "services": "Visa applications, renewals, permits",
-            },
-            "key_hospitals": {
-                "nairobi_hospital": {
-                    "name": "The Nairobi Hospital",
-                    "address": "Argwings Kodhek Road, Upper Hill, Nairobi",
-                    "phone": "+254 20 2845000 / +254 703 082000",
-                    "email": "inquiry@nbihosp.org",
-                    "website": "https://www.nairobihosp.co.ke",
-                    "notes": "Large private hospital with advanced specialist and diagnostic services.",
-                },
-                "aga_khan": {
-                    "name": "Aga Khan University Hospital",
-                    "address": "3rd Parklands Avenue / Limuru Road, Nairobi",
-                    "phone": "+254 20 3740000 / +254 73 0011888",
-                    "email": "akhn@akhskenya.org",
-                    "website": "https://hospitals.aku.edu/nairobi/Pages/default.aspx",
-                    "notes": "Tertiary teaching hospital with wide range of specialty services.",
-                },
-                "mp_shah": {
-                    "name": "MP Shah Hospital",
-                    "address": "Shivachi Road, Parklands, Nairobi",
-                    "phone": "+254 20 3742763‑7",
-                    "email": "info@mpshahhosp.org",
-                    "website": "https://www.mpshahhospitals.com",
-                    "notes": "Well-known multi-specialty private hospital.",
-                },
-                "knh": {
-                    "name": "Kenyatta National Hospital",
-                    "address": "Hospital Road, Upper Hill, Nairobi",
-                    "phone": "+254 20 2726300",
-                    "email": "knhadmin@knh.or.ke",
-                    "website": "https://www.knh.or.ke",
-                    "notes": "Kenya's largest public referral and teaching hospital.",
-                },
-                "mater": {
-                    "name": "Mater Misericordiae Hospital",
-                    "address": "Dunga Road, South B, Nairobi",
-                    "phone": "+254 20 531197 / +254 72 4531199",
-                    "email": "ceo@materkenya.com",
-                    "website": "https://www.materkenya.com",
-                    "notes": "Faith-based hospital, widely respected.",
-                },
-                "gertrude": {
-                    "name": "Gertrude's Children's Hospital",
-                    "address": "Muthaiga Road, Muthaiga, Nairobi",
-                    "phone": "+254 20 7206000",
-                    "email": "info@gerties.org",
-                    "website": "https://www.gertschospital.com",
-                    "notes": "Specialized pediatric hospital.",
-                },
-                "karenn": {
-                    "name": "Karen Hospital",
-                    "address": "Lang'ata Road, Karen, Nairobi",
-                    "phone": "+254 20 6613000 / +254 71 9240000",
-                    "email": "info@karenhospital.org",
-                    "website": "https://www.karenhospital.org",
-                    "notes": "Multi-specialty private hospital in Karen.",
-                },
-                "nairobi_womens": {
-                    "name": "The Nairobi Women's Hospital",
-                    "address": "Hurlingham Court / Argwings Kodhek Road, Nairobi",
-                    "phone": "+254 709 667000",
-                    "email": "info@nwch.co.ke",
-                    "website": "https://nwh.co.ke",
-                    "notes": "Focus on obstetrics, gynecology, and women's health.",
-                },
-                "coptic": {
-                    "name": "Coptic Hospital",
-                    "address": "Ngong Road, Nairobi",
-                    "phone": "+254 20 2720402 / +254 709 572000",
-                    "email": "info@coptichospital.org",
-                    "website": "https://www.coptichospital.org",
-                    "notes": "Private hospital offering various specialist services.",
-                },
-                "kenyatta_uni_hosp": {
-                    "name": "Kenyatta University Teaching, Referral & Research Hospital",
-                    "address": "Kahawa West, Northern Bypass, Nairobi",
-                    "website": "https://kutrrh.go.ke/",
-                    "notes": "University hospital, specialized teaching and referral facility.",
-                },
-                "mbagathi": {
-                    "name": "Mbagathi District Hospital",
-                    "address": "Ngumo Estate, Off Mbagathi Road, Nairobi",
-                    "phone": "+254 20 2724712 / +254 721 311808",
-                    "notes": "Public hospital serving Nairobi County.",
-                },
-                "mama_lucy": {
-                    "name": "Mama Lucy Kibaki Hospital",
-                    "address": "Umoja II, Kangundo Road, Nairobi",
-                    "phone": "+254 20 8022676",
-                    "email": "info@mamalucykibakihospital.or.ke",
-                    "website": "https://mamalucykibakihospital.or.ke",
-                    "notes": "Public district hospital under Nairobi County.",
-                },
-                "pumwani": {
-                    "name": "Pumwani Maternity Hospital",
-                    "address": "City Hall Way, Nairobi City County, Nairobi",
-                    "phone": "+254 725 624489 / +254 738 041292",
-                    "email": "info@nairobi.go.ke",
-                    "website": "https://nairobi.go.ke/pumwani-maternity-hospital",
-                    "notes": "Public maternity hospital in Nairobi.",
-                },
-                "st_francis": {
-                    "name": "St. Francis Community Hospital",
-                    "address": "Kasarani, Nairobi",
-                    "phone": "+254 20 2012230",
-                    "notes": "Faith-based community hospital.",
-                },
-                "nazareth": {
-                    "name": "Nazareth Hospital",
-                    "address": "Limuru Road, Nairobi",
-                    "phone": "+254 20 2720450",
-                    "notes": "Faith-based general medical services hospital.",
-                },
-            },
-            "universities": {
-                "uon": {
-                    "name": "University of Nairobi",
-                    "address": "University Way, Nairobi 00100, Kenya",
-                    "admissions_phone": "+254‑20‑4910000",
-                    "admissions_email": "admissions@uonbi.ac.ke",
-                    "website": "https://www.uonbi.ac.ke",
-                },
-                "jkuat": {
-                    "name": "Jomo Kenyatta University of Agriculture & Technology (Nairobi Campus)",
-                    "address": "JUJA / Nairobi",
-                    "website": "https://www.jkuat.ac.ke",
-                },
-                "mmu": {
-                    "name": "Multimedia University of Kenya",
-                    "address": "Magadi Road, Nairobi",
-                    "website": "https://www.mmu.ac.ke",
-                },
-                "tuk": {
-                    "name": "Technical University of Kenya",
-                    "address": "Haile Selassie Avenue, Nairobi",
-                    "website": "https://www.tukenya.ac.ke",
-                },
-                "kca": {
-                    "name": "KCA University",
-                    "address": "Thika Road, Ruaraka, Nairobi",
-                    "phone": "0709‑813800",
-                    "email": "ctle@kcau.ac.ke",
-                    "website": "https://www.kcau.ac.ke",
-                },
-                "strathmore": {
-                    "name": "Strathmore University",
-                    "address": "Ole Sangale Road, Madaraka, Nairobi",
-                    "phone": "0703‑034000",
-                    "website": "https://www.strathmore.edu",
-                },
-                "daystar": {
-                    "name": "Daystar University",
-                    "address": "Athi River (main campus), Nairobi campus",
-                    "website": "https://www.daystar.ac.ke",
-                },
-                "aiu": {
-                    "name": "Africa International University (AIU)",
-                    "address": "Nairobi, Kenya",
-                    "website": "https://www.aiu.ac.ke",
-                },
-                "anaz": {
-                    "name": "Africa Nazarene University",
-                    "address": "Nairobi, Kenya",
-                    "website": "https://www.anu.ac.ke",
-                },
-                "cuea": {
-                    "name": "Catholic University of Eastern Africa",
-                    "address": "Lang'ata Road, Nairobi",
-                    "website": "https://www.cuea.edu",
-                },
-                "amref": {
-                    "name": "Amref International University",
-                    "address": "Nairobi, Kenya",
-                    "website": "https://www.amref.ac.ke",
-                },
-                "pac": {
-                    "name": "Pan Africa Christian University (PAC)",
-                    "address": "Roysambu, Nairobi",
-                    "website": "https://www.pacuniversity.ac.ke",
-                },
-                "mua": {
-                    "name": "Management University of Africa",
-                    "address": "Waiyaki Way, Nairobi",
-                    "website": "https://www.mua.ac.ke",
-                },
-                "tangaza": {
-                    "name": "Tangaza University",
-                    "address": "Lang'ata, Nairobi",
-                    "website": "https://tangaza.ac.ke",
-                },
-                "kwust": {
-                    "name": "Kiriri Women's University of Science and Technology (KWUST)",
-                    "address": "Githurai / Nairobi",
-                    "website": "http://www.kwust.ac.ke",
-                },
-                "usiu": {
-                    "name": "United States International University – Africa (USIU‑A)",
-                    "address": "USIU Road, Kasarani, Nairobi",
-                    "phone": "0730‑116000",
-                    "website": "https://www.usiu.ac.ke",
-                },
-            },
-        }
 
         # Empathy and validation phrases by emotional state
         self.empathy_responses = {
@@ -784,7 +573,7 @@ I'm here to assist you with questions about:
             )
 
             # Format comprehensive context
-            enhanced_context = self._format_comprehensive_context(
+            enhanced_context, used_doc_ids = self._format_comprehensive_context(
                 retrieved_context, web_info, intent_info, context_evaluation
             )
 
@@ -806,6 +595,31 @@ I'm here to assist you with questions about:
                 crisis_assessment,
                 emotional_state,
             )
+
+            # Phone audit — replace unverified numbers before response leaves service
+            response_phones = PHONE_RE.findall(validated_response)
+            if response_phones:
+                verified_set = extract_phones_from_context(
+                    enhanced_context, self.fact_store
+                )
+                unverified = [
+                    p for p in response_phones if normalise_phone(p) not in verified_set
+                ]
+                if unverified:
+                    logger.warning(
+                        "unverified_phones_replaced unverified_phone_count=%d",
+                        len(unverified),
+                    )
+                    for phone in unverified:
+                        validated_response = validated_response.replace(
+                            phone, GROUNDING_FALLBACK_CONTACT
+                        )
+
+            # Append SOURCES section when retrieved chunks were used
+            if used_doc_ids:
+                validated_response += "\n\n## SOURCES\n" + "\n".join(
+                    f"- {d}" for d in dict.fromkeys(used_doc_ids)
+                )
 
             # Translate if needed
             if needs_translation and original_language != "english":
@@ -967,12 +781,20 @@ I'm here to assist you with questions about:
         web_info: Optional[Dict],
         intent_info: Dict[str, Any],
         context_evaluation: Dict[str, Any],
-    ) -> str:
-        """Format comprehensive context including all available information sources."""
+    ) -> Tuple[str, List[str]]:
+        """
+        Format comprehensive context including all available information sources.
+        Each retrieved chunk is labelled with its doc_id and chunk_id so the LLM
+        can cite sources and the caller can append a ## SOURCES section.
+        :param retrieved_context: List[Dict] - RAG chunks from vector search.
+        :param web_info: Optional[Dict] - Tavily search results.
+        :param intent_info: Dict - Classified intent information.
+        :param context_evaluation: Dict - Context evaluation and enhancement flags.
+        :return: Tuple[str, List[str]] - (formatted context string, list of doc_ids used).
+        """
+        context_parts: List[str] = []
+        used_doc_ids: List[str] = []
 
-        context_parts = []
-
-        # Add retrieved RAG context
         if retrieved_context:
             relevant_contexts = [
                 ctx
@@ -981,7 +803,7 @@ I'm here to assist you with questions about:
             ]
 
             if relevant_contexts:
-                context_parts.append("RETRIEVED SETTLEMENT INFORMATION:")
+                context_parts.append("KNOWLEDGE BASE — AUTHORITATIVE CONTENT:")
                 sorted_contexts = sorted(
                     relevant_contexts,
                     key=lambda x: x.get("score", 0),
@@ -989,21 +811,24 @@ I'm here to assist you with questions about:
                 )[:7]
 
                 for i, chunk in enumerate(sorted_contexts, 1):
+                    doc_id = chunk.get("doc_id", "unknown")
+                    chunk_id = chunk.get("chunk_id", "unknown")
+                    score = chunk.get("score", 0)
                     context_parts.append(
-                        f"Source {i} (Relevance: {chunk.get('score', 0):.2f}):"
+                        f"Source {i} (doc_id: {doc_id}, chunk: {chunk_id},"
+                        f" relevance: {score:.2f}):"
                     )
                     context_parts.append(chunk["text"].strip())
                     context_parts.append("")
+                    used_doc_ids.append(doc_id)
 
-        # Add web search results
         if web_info and web_info.get("search_successful"):
-            context_parts.append("CURRENT WEB INFORMATION:")
+            context_parts.append("WEB SUPPLEMENT — VERIFY BEFORE CITING:")
             for result in web_info["results"]:
                 context_parts.append(f"Recent Information - {result.get('query')}:")
                 context_parts.append(sanitise_web_content(result["content"]))
                 context_parts.append("")
 
-        # Add essential information
         essential_needed = context_evaluation.get("essential_needed", [])
         if essential_needed:
             context_parts.append("ESSENTIAL SETTLEMENT INFORMATION:")
@@ -1011,48 +836,47 @@ I'm here to assist you with questions about:
             for info_type in essential_needed:
                 if info_type == "emergency_numbers":
                     context_parts.append("EMERGENCY CONTACTS:")
-                    for service, number in self.essential_info[
-                        "emergency_numbers"
-                    ].items():
+                    for service, contact in self.fact_store.emergency_contacts.items():
                         context_parts.append(
-                            f"- {service.replace('_', ' ').title()}: {number}"
+                            f"- {service.replace('_', ' ').title()}: {contact.number}"
                         )
                     context_parts.append("")
 
                 elif info_type == "immigration_office":
                     context_parts.append("IMMIGRATION OFFICE:")
-                    for key, value in self.essential_info["immigration_office"].items():
-                        context_parts.append(
-                            f"- {key.replace('_', ' ').title()}: {value}"
-                        )
+                    for office in self.fact_store.government_offices:
+                        context_parts.append(f"- Name: {office.name}")
+                        context_parts.append(f"- Address: {office.address}")
+                        if office.phone:
+                            context_parts.append(f"- Phone: {office.phone}")
+                        if office.hours:
+                            context_parts.append(f"- Hours: {office.hours}")
+                        if office.services:
+                            context_parts.append(f"- Services: {office.services}")
                     context_parts.append("")
 
                 elif info_type == "hospitals":
                     context_parts.append("KEY HOSPITALS:")
-                    for hospital_key, hospital_info in self.essential_info[
-                        "key_hospitals"
-                    ].items():
+                    for hospital in self.fact_store.hospitals:
                         context_parts.append(
-                            f"- {hospital_info.get('name', '')}: {hospital_info.get('address', '')}, {hospital_info.get('phone', '')}"
+                            f"- {hospital.name}: {hospital.address},"
+                            f" {hospital.phone or ''}"
                         )
                     context_parts.append("")
 
                 elif info_type == "university_contacts":
                     context_parts.append("UNIVERSITY CONTACTS:")
-                    for uni_key, uni_info in self.essential_info[
-                        "universities"
-                    ].items():
-                        context_parts.append(
-                            f"- {uni_info.get('name', '')}: {uni_info.get('address', '')}"
-                        )
+                    for uni in self.fact_store.universities:
+                        context_parts.append(f"- {uni.name}: {uni.address}")
                     context_parts.append("")
 
         if not context_parts:
             context_parts = [
-                "Limited specific information available, will provide comprehensive general guidance."
+                "Limited specific information available, will provide"
+                " comprehensive general guidance."
             ]
 
-        return "\n".join(context_parts)
+        return "\n".join(context_parts), used_doc_ids
 
     @retry(
         stop=stop_after_attempt(LLM_RETRY_ATTEMPTS),
@@ -1209,6 +1033,7 @@ CORE PRINCIPLES:
 5. Provide multiple options and alternatives when possible
 6. Include practical details like operating hours and required documents where available in the provided context
 7. Make each section substantial and complete - never give superficial answers
+8. When citing a specific fact, reference the Source number from the KNOWLEDGE BASE — AUTHORITATIVE CONTENT section (e.g. 'According to Source 3').
 
 EMPATHY REQUIREMENTS:
 - Acknowledge the emotional aspect of their situation
@@ -1403,8 +1228,8 @@ CRISIS RESPONSE MODE:
     def _add_crisis_information(self, response: str) -> str:
         """Add crisis information for urgent situations."""
         crisis_info = "\n\n**EMERGENCY CONTACTS:**\n"
-        for service, number in self.essential_info["emergency_numbers"].items():
-            crisis_info += f"- {service.replace('_', ' ').title()}: {number}\n"
+        for service, contact in self.fact_store.emergency_contacts.items():
+            crisis_info += f"- {service.replace('_', ' ').title()}: {contact.number}\n"
 
         # Insert after DIRECT ANSWER
         if "## ADDITIONAL INFORMATION" in response:
@@ -1493,14 +1318,13 @@ CRISIS RESPONSE MODE:
         fallback += "- Fellow international students who have experience with similar situations\n"
         fallback += "- Official websites and documentation for current requirements and procedures\n\n"
 
-        # Add safety if relevant
         if intent_info["intent_type"] in [
             IntentType.SAFETY_CONCERN,
             IntentType.EMERGENCY_HELP,
         ]:
             fallback += "**EMERGENCY CONTACTS:**\n"
-            for service, number in self.essential_info["emergency_numbers"].items():
-                fallback += f"- {service.replace('_', ' ').title()}: {number}\n"
+            for service, contact in self.fact_store.emergency_contacts.items():
+                fallback += f"- {service.replace('_', ' ').title()}: {contact.number}\n"
             fallback += "\n"
 
         fallback += "## NEXT STEPS\n"

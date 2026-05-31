@@ -356,14 +356,11 @@ class TestIntentAwareMaxTokens:
                 "detected_language": "english",
                 "needs_translation": False,
             }
+            from config.locale import load_fact_store
+
             gen.min_context_relevance = 0.3
             gen.min_chunks_for_response = 1
-            gen.essential_info = {
-                "emergency_numbers": {},
-                "key_hospitals": {},
-                "universities": {},
-                "immigration_office": {},
-            }
+            gen.fact_store = load_fact_store("nairobi")
             gen.empathy_responses = {}
             gen.safety_protocols = {"general": []}
             gen.off_topic_response = "off-topic"

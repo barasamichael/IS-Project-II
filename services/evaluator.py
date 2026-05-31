@@ -9,6 +9,9 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from config.constants import PHONE_RE
+from utilities.factcheck import normalise_phone
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -396,6 +399,62 @@ class InternationalStudentRAGEvaluator:
                 "priority": "medium",
                 "reference_response": "Karen is an upscale suburb popular with expatriates and middle-class families. Pros: quiet and leafy environment, good security, Karen Hospital nearby, shopping at Karen Waterfront and The Hub, close to Wilson Airport. Cons: higher rent (KSh 25,000-60,000 for student housing), farther from most universities (30-45 minutes to city center), limited nightlife, fewer public transport options. Best for students who prioritize quiet study environment and safety over proximity to campus. Consider if you have reliable transport or can afford regular taxi rides to university.",
             },
+            # PHONE-NUMBER CORRECTNESS CASES
+            {
+                "id": "phone_001",
+                "query": "What is the emergency number I should call in Nairobi?",
+                "expected_intent": "emergency_help",
+                "expected_topic": "safety",
+                "expected_answer_contains": ["999", "emergency"],
+                "notes": "Response must cite 999; any fabricated number is a hallucination.",
+                "priority": "critical",
+                "reference_response": "The universal emergency number in Nairobi is 999, which connects to Police, Fire, and Ambulance services. Save this number immediately. Red Cross Kenya can be reached at 0700 395 395.",
+                "phone_numbers_expected": ["999"],
+            },
+            {
+                "id": "phone_002",
+                "query": "How do I contact Kenyatta National Hospital?",
+                "expected_intent": "healthcare",
+                "expected_topic": "healthcare",
+                "expected_answer_contains": ["Kenyatta National Hospital"],
+                "notes": "Response must use only verified KNH phone number +254 20 2726300.",
+                "priority": "high",
+                "reference_response": "Kenyatta National Hospital (KNH) is Kenya's largest public referral and teaching hospital, located on Hospital Road, Upper Hill, Nairobi. Contact: +254 20 2726300, email knhadmin@knh.or.ke. Website: https://www.knh.or.ke.",
+                "phone_numbers_expected": ["+254202726300"],
+            },
+            {
+                "id": "phone_003",
+                "query": "What is the phone number for the immigration office in Nairobi?",
+                "expected_intent": "immigration_visa",
+                "expected_topic": "legal",
+                "expected_answer_contains": ["immigration", "Nyayo House"],
+                "notes": "Response must cite the verified immigration office number only.",
+                "priority": "high",
+                "reference_response": "The Department of Immigration Services is located at Nyayo House, Uhuru Highway, Nairobi. Phone: +254 20 222 2022. Open Monday to Friday, 8:00 AM to 5:00 PM.",
+                "phone_numbers_expected": ["+254202222022"],
+            },
+            {
+                "id": "phone_004",
+                "query": "Which hospital should I go to for specialist care in Nairobi?",
+                "expected_intent": "healthcare",
+                "expected_topic": "healthcare",
+                "expected_answer_contains": ["hospital", "Nairobi"],
+                "notes": "Any phone numbers cited must match the fact store entries exactly.",
+                "priority": "high",
+                "reference_response": "For specialist care, The Nairobi Hospital (Argwings Kodhek Road, Upper Hill) is a leading private facility — phone +254 20 2845000. Aga Khan University Hospital (3rd Parklands Avenue) is also excellent — phone +254 20 3740000.",
+                "phone_numbers_expected": ["+254202845000"],
+            },
+            {
+                "id": "phone_005",
+                "query": "Is there a children's hospital in Nairobi?",
+                "expected_intent": "healthcare",
+                "expected_topic": "healthcare",
+                "expected_answer_contains": ["children", "hospital"],
+                "notes": "Gertrude's verified number is +254 20 7206000; no other number should appear.",
+                "priority": "medium",
+                "reference_response": "Gertrude's Children's Hospital on Muthaiga Road is Nairobi's leading pediatric facility — phone +254 20 7206000, website https://www.gertschospital.com.",
+                "phone_numbers_expected": ["+254207206000"],
+            },
         ]
 
         # Save as CSV
@@ -507,6 +566,7 @@ class InternationalStudentRAGEvaluator:
                     "practical_info_score": evaluation_metrics["practical_info_score"],
                     "empathy_score": evaluation_metrics["empathy_score"],
                     "overall_score": evaluation_metrics["overall_score"],
+                    "phone_correct": evaluation_metrics["phone_correct"],
                     "bleu_score": bleu_score,
                     "priority": row.get("priority", "medium"),
                     "token_usage": response_data.get("token_usage", {}),
@@ -636,6 +696,21 @@ class InternationalStudentRAGEvaluator:
 
         overall_score = min(base_score, 1.0)
 
+        # Phone correctness audit
+        phone_numbers_expected = expected.get("phone_numbers_expected", None)
+        phone_correct: Optional[bool] = None
+        if phone_numbers_expected:
+            if isinstance(phone_numbers_expected, str):
+                try:
+                    phone_numbers_expected = eval(phone_numbers_expected)
+                except Exception:
+                    phone_numbers_expected = [phone_numbers_expected]
+            response_phones = {
+                normalise_phone(p) for p in PHONE_RE.findall(response_text)
+            }
+            expected_normalised = {normalise_phone(p) for p in phone_numbers_expected}
+            phone_correct = expected_normalised.issubset(response_phones)
+
         return {
             "intent_match": intent_match,
             "topic_match": topic_match,
@@ -645,6 +720,7 @@ class InternationalStudentRAGEvaluator:
             "practical_info_score": practical_info_score,
             "empathy_score": empathy_score,
             "overall_score": overall_score,
+            "phone_correct": phone_correct,
         }
 
     def _calculate_student_relevance_score(
@@ -1051,8 +1127,20 @@ class InternationalStudentRAGEvaluator:
             intent_performance,
         )
 
+        # Phone hallucination rate
+        phone_cases = [
+            r for r in successful_results if r.get("phone_correct") is not None
+        ]
+        if phone_cases:
+            phone_hallucination_rate: Optional[float] = sum(
+                1 for r in phone_cases if r["phone_correct"] is False
+            ) / len(phone_cases)
+        else:
+            phone_hallucination_rate = None
+
         return {
             "status": "success",
+            "phone_hallucination_rate": phone_hallucination_rate,
             "evaluation_summary": {
                 "total_queries_evaluated": len(results),
                 "overall_system_score": overall_metrics["average_score"],

@@ -245,9 +245,10 @@ def test_response_generator_has_retry_helper():
     """
     ResponseGenerator must expose _call_generation_llm decorated with @retry.
     """
+    from config.locale import load_fact_store
     from services.response_generator import ResponseGenerator
 
-    rg = ResponseGenerator()
+    rg = ResponseGenerator(fact_store=load_fact_store("nairobi"))
     assert hasattr(rg, "_call_generation_llm")
     assert callable(rg._call_generation_llm)
 
@@ -285,9 +286,10 @@ def test_response_generator_retries_on_rate_limit_error():
     after LLM_RETRY_ATTEMPTS attempts.
     """
     import openai
+    from config.locale import load_fact_store
     from services.response_generator import ResponseGenerator
 
-    rg = ResponseGenerator()
+    rg = ResponseGenerator(fact_store=load_fact_store("nairobi"))
     call_count = 0
 
     def fake_create(**kwargs):

@@ -36,6 +36,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from config.locale import LocaleFactStore
+from config.locale import load_fact_store
 from config.settings import ROOT_DIR
 from config.settings import settings
 from config.constants import ERROR_CODE_RATE_LIMIT_EXCEEDED
@@ -129,7 +131,8 @@ embedding_service = EmbeddingService()
 vector_db_service = VectorDBService(embedding_service=embedding_service)
 intent_recognizer = IntentRecognizer()
 language_processor = LanguageProcessor()
-response_generator = ResponseGenerator()
+fact_store = load_fact_store(os.getenv("SETTLEBOT_LOCALE", "nairobi"))
+response_generator = ResponseGenerator(fact_store=fact_store)
 document_processor = DocumentProcessor(
     embedding_service=embedding_service,
     enable_deduplication=settings.deduplication.enabled,
@@ -2130,6 +2133,43 @@ async def get_system_configuration(api_key: str = Depends(get_api_key)):
         logger.error(f"Error getting configuration: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Error getting configuration: {str(e)}"
+        )
+
+
+@app.post("/admin/update-facts")
+async def update_fact_store(
+    payload: LocaleFactStore,
+    api_key: str = Depends(get_api_key),
+) -> Dict[str, Any]:
+    """
+    Replace the active locale fact store with a validated payload and persist it
+    to disk. The running process reloads immediately; no restart is required.
+    Emits a structured audit log entry on every successful update.
+    :param payload: LocaleFactStore - Fully validated replacement fact store.
+    :param api_key: str - Authenticated API key from the Authorization header.
+    :return: Dict[str, Any] - Success confirmation.
+    """
+    global fact_store
+    locale_name = os.getenv("SETTLEBOT_LOCALE", "nairobi")
+    locale_file = ROOT_DIR / "config" / "locale" / f"{locale_name}.json"
+    try:
+        import json as _json
+
+        with open(locale_file, "w", encoding="utf-8") as fh:
+            _json.dump(payload.model_dump(), fh, indent=2, ensure_ascii=False)
+        fact_store = payload
+        response_generator.fact_store = fact_store
+        logger.info(
+            "fact_store_updated",
+            locale=locale_name,
+            updated_by="api_key_redacted",
+        )
+        return {"success": True, "message": "Fact store updated."}
+    except Exception as exc:
+        logger.error("fact_store_update_failed", error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to persist fact store: {exc}",
         )
 
 

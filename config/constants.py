@@ -24,6 +24,8 @@ PHONE_RE = re.compile(
     r"(\+254[\s\-]?\d[\d\s\-]{7,}|\b0[17]\d{2}[\s\-]?\d{3}[\s\-]?\d{3}\b)"
 )
 
+GROUNDING_FALLBACK_CONTACT = "[contact details unavailable — verify at official source]"
+
 ERROR_CODE_INVALID_FILENAME = "INVALID_FILENAME"
 ERROR_CODE_INTENT_RECOGNITION_FAILED = "INTENT_RECOGNITION_FAILED"
 ERROR_CODE_RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"

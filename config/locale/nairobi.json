@@ -1,0 +1,343 @@
+{
+  "emergency_contacts": {
+    "universal_emergency": {
+      "number": "999",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    "police": {
+      "number": "999",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    "ambulance": {
+      "number": "999",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    "fire_service": {
+      "number": "999",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    "red_cross": {
+      "number": "0700 395 395",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    "aa_kenya": {
+      "number": "0700 200 007",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    }
+  },
+  "hospitals": [
+    {
+      "name": "The Nairobi Hospital",
+      "address": "Argwings Kodhek Road, Upper Hill, Nairobi",
+      "phone": "+254 20 2845000 / +254 703 082000",
+      "email": "inquiry@nbihosp.org",
+      "website": "https://www.nairobihosp.co.ke",
+      "notes": "Large private hospital with advanced specialist and diagnostic services.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.nairobihosp.co.ke"
+    },
+    {
+      "name": "Aga Khan University Hospital",
+      "address": "3rd Parklands Avenue / Limuru Road, Nairobi",
+      "phone": "+254 20 3740000 / +254 73 0011888",
+      "email": "akhn@akhskenya.org",
+      "website": "https://hospitals.aku.edu/nairobi/Pages/default.aspx",
+      "notes": "Tertiary teaching hospital with wide range of specialty services.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://hospitals.aku.edu/nairobi/Pages/default.aspx"
+    },
+    {
+      "name": "MP Shah Hospital",
+      "address": "Shivachi Road, Parklands, Nairobi",
+      "phone": "+254 20 3742763‐7",
+      "email": "info@mpshahhosp.org",
+      "website": "https://www.mpshahhospitals.com",
+      "notes": "Well-known multi-specialty private hospital.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.mpshahhospitals.com"
+    },
+    {
+      "name": "Kenyatta National Hospital",
+      "address": "Hospital Road, Upper Hill, Nairobi",
+      "phone": "+254 20 2726300",
+      "email": "knhadmin@knh.or.ke",
+      "website": "https://www.knh.or.ke",
+      "notes": "Kenya's largest public referral and teaching hospital.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.knh.or.ke"
+    },
+    {
+      "name": "Mater Misericordiae Hospital",
+      "address": "Dunga Road, South B, Nairobi",
+      "phone": "+254 20 531197 / +254 72 4531199",
+      "email": "ceo@materkenya.com",
+      "website": "https://www.materkenya.com",
+      "notes": "Faith-based hospital, widely respected.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.materkenya.com"
+    },
+    {
+      "name": "Gertrude's Children's Hospital",
+      "address": "Muthaiga Road, Muthaiga, Nairobi",
+      "phone": "+254 20 7206000",
+      "email": "info@gerties.org",
+      "website": "https://www.gertschospital.com",
+      "notes": "Specialized pediatric hospital.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.gertschospital.com"
+    },
+    {
+      "name": "Karen Hospital",
+      "address": "Lang'ata Road, Karen, Nairobi",
+      "phone": "+254 20 6613000 / +254 71 9240000",
+      "email": "info@karenhospital.org",
+      "website": "https://www.karenhospital.org",
+      "notes": "Multi-specialty private hospital in Karen.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.karenhospital.org"
+    },
+    {
+      "name": "The Nairobi Women's Hospital",
+      "address": "Hurlingham Court / Argwings Kodhek Road, Nairobi",
+      "phone": "+254 709 667000",
+      "email": "info@nwch.co.ke",
+      "website": "https://nwh.co.ke",
+      "notes": "Focus on obstetrics, gynecology, and women's health.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://nwh.co.ke"
+    },
+    {
+      "name": "Coptic Hospital",
+      "address": "Ngong Road, Nairobi",
+      "phone": "+254 20 2720402 / +254 709 572000",
+      "email": "info@coptichospital.org",
+      "website": "https://www.coptichospital.org",
+      "notes": "Private hospital offering various specialist services.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.coptichospital.org"
+    },
+    {
+      "name": "Kenyatta University Teaching, Referral & Research Hospital",
+      "address": "Kahawa West, Northern Bypass, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://kutrrh.go.ke/",
+      "notes": "University hospital, specialized teaching and referral facility.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://kutrrh.go.ke/"
+    },
+    {
+      "name": "Mbagathi District Hospital",
+      "address": "Ngumo Estate, Off Mbagathi Road, Nairobi",
+      "phone": "+254 20 2724712 / +254 721 311808",
+      "email": null,
+      "website": null,
+      "notes": "Public hospital serving Nairobi County.",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    {
+      "name": "Mama Lucy Kibaki Hospital",
+      "address": "Umoja II, Kangundo Road, Nairobi",
+      "phone": "+254 20 8022676",
+      "email": "info@mamalucykibakihospital.or.ke",
+      "website": "https://mamalucykibakihospital.or.ke",
+      "notes": "Public district hospital under Nairobi County.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://mamalucykibakihospital.or.ke"
+    },
+    {
+      "name": "Pumwani Maternity Hospital",
+      "address": "City Hall Way, Nairobi City County, Nairobi",
+      "phone": "+254 725 624489 / +254 738 041292",
+      "email": "info@nairobi.go.ke",
+      "website": "https://nairobi.go.ke/pumwani-maternity-hospital",
+      "notes": "Public maternity hospital in Nairobi.",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://nairobi.go.ke/pumwani-maternity-hospital"
+    },
+    {
+      "name": "St. Francis Community Hospital",
+      "address": "Kasarani, Nairobi",
+      "phone": "+254 20 2012230",
+      "email": null,
+      "website": null,
+      "notes": "Faith-based community hospital.",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    },
+    {
+      "name": "Nazareth Hospital",
+      "address": "Limuru Road, Nairobi",
+      "phone": "+254 20 2720450",
+      "email": null,
+      "website": null,
+      "notes": "Faith-based general medical services hospital.",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    }
+  ],
+  "universities": [
+    {
+      "name": "University of Nairobi",
+      "address": "University Way, Nairobi 00100, Kenya",
+      "phone": "+254‑20‑4910000",
+      "email": "admissions@uonbi.ac.ke",
+      "website": "https://www.uonbi.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.uonbi.ac.ke"
+    },
+    {
+      "name": "Jomo Kenyatta University of Agriculture & Technology (Nairobi Campus)",
+      "address": "JUJA / Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.jkuat.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.jkuat.ac.ke"
+    },
+    {
+      "name": "Multimedia University of Kenya",
+      "address": "Magadi Road, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.mmu.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.mmu.ac.ke"
+    },
+    {
+      "name": "Technical University of Kenya",
+      "address": "Haile Selassie Avenue, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.tukenya.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.tukenya.ac.ke"
+    },
+    {
+      "name": "KCA University",
+      "address": "Thika Road, Ruaraka, Nairobi",
+      "phone": "0709‑813800",
+      "email": "ctle@kcau.ac.ke",
+      "website": "https://www.kcau.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.kcau.ac.ke"
+    },
+    {
+      "name": "Strathmore University",
+      "address": "Ole Sangale Road, Madaraka, Nairobi",
+      "phone": "0703‑034000",
+      "email": null,
+      "website": "https://www.strathmore.edu",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.strathmore.edu"
+    },
+    {
+      "name": "Daystar University",
+      "address": "Athi River (main campus), Nairobi campus",
+      "phone": null,
+      "email": null,
+      "website": "https://www.daystar.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.daystar.ac.ke"
+    },
+    {
+      "name": "Africa International University (AIU)",
+      "address": "Nairobi, Kenya",
+      "phone": null,
+      "email": null,
+      "website": "https://www.aiu.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.aiu.ac.ke"
+    },
+    {
+      "name": "Africa Nazarene University",
+      "address": "Nairobi, Kenya",
+      "phone": null,
+      "email": null,
+      "website": "https://www.anu.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.anu.ac.ke"
+    },
+    {
+      "name": "Catholic University of Eastern Africa",
+      "address": "Lang'ata Road, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.cuea.edu",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.cuea.edu"
+    },
+    {
+      "name": "Amref International University",
+      "address": "Nairobi, Kenya",
+      "phone": null,
+      "email": null,
+      "website": "https://www.amref.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.amref.ac.ke"
+    },
+    {
+      "name": "Pan Africa Christian University (PAC)",
+      "address": "Roysambu, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.pacuniversity.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.pacuniversity.ac.ke"
+    },
+    {
+      "name": "Management University of Africa",
+      "address": "Waiyaki Way, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://www.mua.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.mua.ac.ke"
+    },
+    {
+      "name": "Tangaza University",
+      "address": "Lang'ata, Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "https://tangaza.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://tangaza.ac.ke"
+    },
+    {
+      "name": "Kiriri Women's University of Science and Technology (KWUST)",
+      "address": "Githurai / Nairobi",
+      "phone": null,
+      "email": null,
+      "website": "http://www.kwust.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "http://www.kwust.ac.ke"
+    },
+    {
+      "name": "United States International University – Africa (USIU‑A)",
+      "address": "USIU Road, Kasarani, Nairobi",
+      "phone": "0730‑116000",
+      "email": null,
+      "website": "https://www.usiu.ac.ke",
+      "verified_date": "2026-05-30",
+      "official_source_url": "https://www.usiu.ac.ke"
+    }
+  ],
+  "government_offices": [
+    {
+      "name": "Department of Immigration Services",
+      "address": "Nyayo House, Uhuru Highway",
+      "phone": "+254 20 222 2022",
+      "hours": "8:00 AM - 5:00 PM (Monday - Friday)",
+      "services": "Visa applications, renewals, permits",
+      "verified_date": "2026-05-30",
+      "official_source_url": ""
+    }
+  ]
+}

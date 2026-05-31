@@ -90,10 +90,12 @@ class TestGroundingRule(unittest.TestCase):
         from services.intent_recognizer import IntentType
         from services.response_generator import ResponseGenerator
 
+        from config.locale import load_fact_store
+
         gen = ResponseGenerator.__new__(ResponseGenerator)
         gen.empathy_responses = {}
         gen.safety_protocols = {}
-        gen.essential_info = {"emergency_numbers": {}}
+        gen.fact_store = load_fact_store("nairobi")
 
         for intent_type in IntentType:
             prompt = gen._get_comprehensive_system_prompt(
