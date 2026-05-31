@@ -7,8 +7,13 @@ from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Tuple
 from typing import Union
 from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from services.vector_db import VectorDBService
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -106,6 +111,7 @@ class DocumentProcessor:
         chunk_dir: Optional[Union[str, Path]] = None,
         dedup_dir: Optional[Union[str, Path]] = None,
         embedding_service: Optional[EmbeddingService] = None,
+        vector_db_service: Optional["VectorDBService"] = None,
         enable_deduplication: bool = True,
         similarity_threshold: float = 0.92,
         pdf_loader_strategy: str = "auto",
@@ -113,16 +119,11 @@ class DocumentProcessor:
         # Initialize paths
         self.raw_dir = Path(raw_dir) if raw_dir else ROOT_DIR / "data" / "raw"
         self.processed_dir = (
-            Path(processed_dir)
-            if processed_dir
-            else ROOT_DIR / "data" / "processed"
+            Path(processed_dir) if processed_dir else ROOT_DIR / "data" / "processed"
         )
-        self.chunk_dir = (
-            Path(chunk_dir) if chunk_dir else ROOT_DIR / "data" / "chunks"
-        )
+        self.chunk_dir = Path(chunk_dir) if chunk_dir else ROOT_DIR / "data" / "chunks"
         self.dedup_dir = (
-            Path(dedup_dir) if dedup_dir else ROOT_DIR /
-            "data" / "deduplicated"
+            Path(dedup_dir) if dedup_dir else ROOT_DIR / "data" / "deduplicated"
         )
 
         # Create directories
@@ -137,6 +138,7 @@ class DocumentProcessor:
         # Initialize services
         self.semantic_chunker = SemanticChunker()
         self.embedding_service = embedding_service or EmbeddingService()
+        self.vector_db_service = vector_db_service
 
         # Configuration
         self.enable_deduplication = enable_deduplication
@@ -153,9 +155,7 @@ class DocumentProcessor:
         # Document loaders
         self.loader_mapping = self._initialize_loader_mapping()
 
-        logger.info(
-            "DocumentProcessor initialized for settlement content processing"
-        )
+        logger.info("DocumentProcessor initialized for settlement content processing")
 
     def _initialize_settlement_processors(self):
         """Initialize settlement-specific content processors."""
@@ -345,9 +345,7 @@ class DocumentProcessor:
             },
         }
 
-    def process_document(
-        self, file_path: Union[str, Path]
-    ) -> Optional[Dict[str, Any]]:
+    def process_document(self, file_path: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """
         Process a document with settlement-specific optimization.
 
@@ -387,7 +385,7 @@ class DocumentProcessor:
                 f.write(cleaned_text)
 
             # Create optimized chunks
-            chunks = self._create_settlement_chunks(
+            chunks, skipped_duplicates = self._create_settlement_chunks(
                 cleaned_text, doc_id, str(file_path)
             )
 
@@ -408,14 +406,13 @@ class DocumentProcessor:
                 "processed_path": str(processed_path),
                 "chunks_path": str(chunk_path),
                 "num_chunks": len(chunks),
+                "skipped_duplicates": skipped_duplicates,
                 "file_size": file_path.stat().st_size,
                 "last_modified": file_path.stat().st_mtime,
                 "processed_date": datetime.now().timestamp(),
                 "settlement_optimized": True,
                 "chunking_strategy": self.semantic_chunker.strategy,
-                "avg_settlement_score": sum(
-                    chunk.settlement_score for chunk in chunks
-                )
+                "avg_settlement_score": sum(chunk.settlement_score for chunk in chunks)
                 / len(chunks),
             }
 
@@ -469,9 +466,7 @@ class DocumentProcessor:
                 raise Exception("No text extracted")
 
         except Exception as e:
-            logger.warning(
-                f"Primary loader failed for {file_path.name}: {str(e)}"
-            )
+            logger.warning(f"Primary loader failed for {file_path.name}: {str(e)}")
 
             # Try fallback loader
             if fallback_loader:
@@ -482,9 +477,7 @@ class DocumentProcessor:
                     if text.strip():
                         return text, doc_type
                 except Exception as fallback_error:
-                    logger.warning(
-                        f"Fallback loader failed: {str(fallback_error)}"
-                    )
+                    logger.warning(f"Fallback loader failed: {str(fallback_error)}")
 
             # Final fallback for PDFs
             if file_extension == ".pdf":
@@ -493,17 +486,13 @@ class DocumentProcessor:
                     try:
                         loader = pdf_loader_class(str(file_path))
                         documents = loader.load()
-                        text = "\n\n".join(
-                            doc.page_content for doc in documents
-                        )
+                        text = "\n\n".join(doc.page_content for doc in documents)
                         if text.strip():
                             return text, doc_type
                     except Exception:
                         continue
 
-            raise Exception(
-                f"All extraction methods failed for {file_path.name}"
-            )
+            raise Exception(f"All extraction methods failed for {file_path.name}")
 
     def _clean_settlement_text(self, text: str) -> str:
         """Clean text with settlement-specific preprocessing."""
@@ -535,20 +524,27 @@ class DocumentProcessor:
 
     def _create_settlement_chunks(
         self, text: str, doc_id: str, source_file: str
-    ) -> List[ProcessedChunk]:
-        """Create chunks optimized for settlement content."""
-        # Use semantic chunker
+    ) -> Tuple[List[ProcessedChunk], int]:
+        """
+        Create chunks optimized for settlement content.
+        When enable_deduplication is True and a vector_db_service is injected,
+        each chunk is compared against the existing ChromaDB collection and
+        near-duplicates (cosine similarity >= similarity_threshold) are skipped.
+        :param text: str - Cleaned document text to chunk.
+        :param doc_id: str - Document identifier.
+        :param source_file: str - Source file path or URL for metadata.
+        :return: Tuple[List[ProcessedChunk], int] - (chunks, skipped_duplicates_count).
+        """
         raw_chunks = self.semantic_chunker.create_chunks(text, doc_id)
 
-        processed_chunks = []
+        processed_chunks: List[ProcessedChunk] = []
+        skipped_duplicates = 0
+
         for i, chunk in enumerate(raw_chunks):
-            # Extract settlement-specific entities
             location_entities = self._extract_location_entities(chunk.text)
             cost_entities = self._extract_cost_entities(chunk.text)
             topic_tags = self._extract_topic_tags(chunk.text)
-            settlement_score = self._calculate_settlement_relevance_score(
-                chunk.text
-            )
+            settlement_score = self._calculate_settlement_relevance_score(chunk.text)
 
             processed_chunk = ProcessedChunk(
                 chunk_id=f"{doc_id}_{i:04d}",
@@ -570,9 +566,39 @@ class DocumentProcessor:
                 location_entities=location_entities,
                 cost_entities=cost_entities,
             )
+
+            if self.enable_deduplication and self.vector_db_service is not None:
+                embedding = self.embedding_service.embed_query(chunk.text)
+                if embedding is not None:
+                    try:
+                        neighbours = self.vector_db_service.search(
+                            query=chunk.text,
+                            top_k=5,
+                            embedding=embedding,
+                        )
+                        if (
+                            neighbours
+                            and neighbours[0].get("base_score", 0.0)
+                            >= self.similarity_threshold
+                        ):
+                            logger.debug(
+                                "deduplication_skip",
+                                chunk_id=processed_chunk.chunk_id,
+                                duplicate_of=neighbours[0].get("chunk_id", ""),
+                                similarity=neighbours[0].get("base_score", 0.0),
+                            )
+                            skipped_duplicates += 1
+                            continue
+                    except Exception as exc:
+                        logger.warning(
+                            "deduplication_search_failed",
+                            chunk_id=processed_chunk.chunk_id,
+                            error=str(exc),
+                        )
+
             processed_chunks.append(processed_chunk)
 
-        return processed_chunks
+        return processed_chunks, skipped_duplicates
 
     def _extract_location_entities(self, text: str) -> List[str]:
         """Extract Nairobi-specific location entities."""
@@ -662,16 +688,12 @@ class DocumentProcessor:
 
         return 0.1  # Default low relevance
 
-    def _save_settlement_chunks(
-        self, chunks: List[ProcessedChunk], output_path: Path
-    ):
+    def _save_settlement_chunks(self, chunks: List[ProcessedChunk], output_path: Path):
         """Save chunks with settlement metadata."""
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 for chunk in chunks:
-                    f.write(
-                        json.dumps(chunk.to_dict(), ensure_ascii=False) + "\n"
-                    )
+                    f.write(json.dumps(chunk.to_dict(), ensure_ascii=False) + "\n")
 
             logger.debug(
                 f"Saved {len(chunks)} settlement-optimized chunks to {output_path}"
@@ -715,9 +737,7 @@ class DocumentProcessor:
         """Generate unique document ID."""
         try:
             file_stat = file_path.stat()
-            unique_string = (
-                f"{file_path}_{file_stat.st_mtime}_{file_stat.st_size}"
-            )
+            unique_string = f"{file_path}_{file_stat.st_mtime}_{file_stat.st_size}"
             return hashlib.md5(unique_string.encode()).hexdigest()
         except Exception:
             fallback_string = f"{str(file_path)}_{datetime.now().timestamp()}"
@@ -780,8 +800,7 @@ class DocumentProcessor:
     def _calculate_avg_settlement_score(self) -> float:
         """Calculate average settlement score across all documents."""
         scores = [
-            doc.get("avg_settlement_score", 0)
-            for doc in self.document_index.values()
+            doc.get("avg_settlement_score", 0) for doc in self.document_index.values()
         ]
         return sum(scores) / len(scores) if scores else 0.0
 
@@ -792,8 +811,7 @@ class DocumentProcessor:
         try:
             logger.info(f"Processing URL: {url}")
 
-            loader = WebBaseLoader(
-                url, verify_ssl=settings.ssl.enable_verification)
+            loader = WebBaseLoader(url, verify_ssl=settings.ssl.enable_verification)
             documents = loader.load()
 
             if not documents:
@@ -825,7 +843,9 @@ class DocumentProcessor:
                 f.write(cleaned_text)
 
             # Create settlement-optimized chunks
-            chunks = self._create_settlement_chunks(cleaned_text, doc_id, url)
+            chunks, skipped_duplicates = self._create_settlement_chunks(
+                cleaned_text, doc_id, url
+            )
 
             # Save chunks with settlement metadata
             chunk_path = self.chunk_dir / f"{doc_id}_chunks.jsonl"
@@ -846,6 +866,7 @@ class DocumentProcessor:
                 "processed_path": str(processed_path),
                 "chunks_path": str(chunk_path),
                 "num_chunks": len(chunks),
+                "skipped_duplicates": skipped_duplicates,
                 "last_modified": None,
                 "processed_date": datetime.now().timestamp(),
                 "settlement_optimized": True,
@@ -883,9 +904,7 @@ class DocumentProcessor:
             for i, doc in enumerate(documents[:max_pages]):
                 try:
                     # Generate unique doc_id for each page
-                    source_url = doc.metadata.get(
-                        "source", f"{sitemap_url}_page_{i}"
-                    )
+                    source_url = doc.metadata.get("source", f"{sitemap_url}_page_{i}")
                     doc_id = hashlib.md5(source_url.encode()).hexdigest()
 
                     text = doc.page_content
@@ -894,9 +913,7 @@ class DocumentProcessor:
 
                     # Check if page is relevant to settlement before processing
                     if not self._is_settlement_relevant(text):
-                        logger.debug(
-                            f"Skipping non-settlement page: {source_url}"
-                        )
+                        logger.debug(f"Skipping non-settlement page: {source_url}")
                         continue
 
                     # Clean text with settlement optimization
@@ -908,7 +925,7 @@ class DocumentProcessor:
                         f.write(cleaned_text)
 
                     # Create settlement-optimized chunks
-                    chunks = self._create_settlement_chunks(
+                    chunks, skipped_duplicates = self._create_settlement_chunks(
                         cleaned_text, doc_id, source_url
                     )
 
@@ -920,14 +937,11 @@ class DocumentProcessor:
                     from urllib.parse import urlparse
 
                     parsed = urlparse(source_url)
-                    page_name = (
-                        f"{parsed.netloc}_{parsed.path.replace('/', '_')}"
-                    )
+                    page_name = f"{parsed.netloc}_{parsed.path.replace('/', '_')}"
 
                     # Calculate settlement relevance
                     avg_settlement_score = (
-                        sum(chunk.settlement_score for chunk in chunks)
-                        / len(chunks)
+                        sum(chunk.settlement_score for chunk in chunks) / len(chunks)
                         if chunks
                         else 0
                     )
@@ -940,6 +954,7 @@ class DocumentProcessor:
                         "processed_path": str(processed_path),
                         "chunks_path": str(chunk_path),
                         "num_chunks": len(chunks),
+                        "skipped_duplicates": skipped_duplicates,
                         "last_modified": None,
                         "processed_date": datetime.now().timestamp(),
                         "settlement_optimized": True,
@@ -958,8 +973,7 @@ class DocumentProcessor:
                     )
 
                 except Exception as e:
-                    logger.error(
-                        f"Error processing sitemap page {i}: {str(e)}")
+                    logger.error(f"Error processing sitemap page {i}: {str(e)}")
                     continue
 
             self._save_document_index()
@@ -1034,9 +1048,7 @@ class DocumentProcessor:
             "diploma",
         ]
 
-        all_keywords = (
-            settlement_keywords + nairobi_keywords + education_keywords
-        )
+        all_keywords = settlement_keywords + nairobi_keywords + education_keywords
 
         # Count keyword matches
         matches = sum(1 for keyword in all_keywords if keyword in text_lower)

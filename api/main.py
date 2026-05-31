@@ -143,7 +143,7 @@ evaluator = InternationalStudentRAGEvaluator(
     intent_recognizer=intent_recognizer,
     response_generator=response_generator,
 )
-semantic_chunker = SemanticChunker()
+semantic_chunker = SemanticChunker(strategy=ChunkingStrategy(settings.chunking.strategy))
 
 # Upload directory
 UPLOAD_DIR = Path("./uploads")

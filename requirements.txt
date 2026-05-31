@@ -174,7 +174,9 @@ python-pptx==1.0.2
 pytz==2025.2
 PyYAML==6.0.3
 pyyaml_env_tag==1.1
+rank-bm25
 RapidFuzz==3.14.3
+sentence-transformers
 rcssmin==1.2.1
 referencing==0.37.0
 regex==2025.11.3

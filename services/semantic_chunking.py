@@ -30,6 +30,7 @@ except LookupError:
 class ChunkingStrategy(str, Enum):
     SEMANTIC_ADAPTIVE = "semantic_adaptive"
     SEMANTIC_FIXED = "semantic_fixed"
+    SEMANTIC = "semantic"
     SETTLEMENT_OPTIMIZED = "settlement_optimized"
     TOPIC_AWARE = "topic_aware"
 
@@ -98,9 +99,7 @@ class SemanticChunker:
         # Settlement-specific patterns and topics
         self._initialize_settlement_patterns()
 
-        logger.info(
-            f"LLM-based SemanticChunker initialized with strategy: {strategy}"
-        )
+        logger.info(f"LLM-based SemanticChunker initialized with strategy: {strategy}")
 
     def _initialize_settlement_patterns(self):
         """Initialize settlement-specific patterns for content analysis."""
@@ -275,10 +274,11 @@ class SemanticChunker:
             cleaned_text = self._preprocess_text(text)
 
             # Choose chunking approach based on strategy
-            if self.strategy == ChunkingStrategy.SETTLEMENT_OPTIMIZED:
-                chunks = self._settlement_optimized_chunking(
-                    cleaned_text, doc_id
-                )
+            if self.strategy in (
+                ChunkingStrategy.SETTLEMENT_OPTIMIZED,
+                ChunkingStrategy.SEMANTIC,
+            ):
+                chunks = self._settlement_optimized_chunking(cleaned_text, doc_id)
             elif self.strategy == ChunkingStrategy.TOPIC_AWARE:
                 chunks = self._topic_aware_chunking(cleaned_text, doc_id)
             elif self.strategy == ChunkingStrategy.SEMANTIC_ADAPTIVE:
@@ -290,9 +290,7 @@ class SemanticChunker:
             validated_chunks = self._validate_and_fix_chunks(chunks)
 
             # Calculate semantic scores using LLM
-            enriched_chunks = self._enrich_chunks_with_llm_analysis(
-                validated_chunks
-            )
+            enriched_chunks = self._enrich_chunks_with_llm_analysis(validated_chunks)
 
             logger.info(
                 f"Created {len(enriched_chunks)} semantic chunks for doc {doc_id}"
@@ -371,10 +369,7 @@ class SemanticChunker:
                     current_start = text.find(paragraph)
 
         # Handle remaining text
-        if (
-            current_chunk
-            and len(current_chunk.split()) >= self.min_chunk_size // 4
-        ):
+        if current_chunk and len(current_chunk.split()) >= self.min_chunk_size // 4:
             chunk = self._create_chunk(
                 chunk_id=f"{doc_id}_{chunk_index:04d}",
                 doc_id=doc_id,
@@ -387,9 +382,7 @@ class SemanticChunker:
 
         return chunks
 
-    def _topic_aware_chunking(
-        self, text: str, doc_id: str
-    ) -> List[SemanticChunk]:
+    def _topic_aware_chunking(self, text: str, doc_id: str) -> List[SemanticChunk]:
         """Topic-aware chunking using LLM to identify topic boundaries."""
         # Get topic boundaries from LLM
         topic_boundaries = self._identify_topic_boundaries_with_llm(text)
@@ -409,9 +402,7 @@ class SemanticChunker:
                     end_pos=end,
                     chunk_type=ChunkType.TOPIC_SEGMENT,
                 )
-                chunk.topic_coherence = (
-                    0.8  # High coherence for topic-based chunks
-                )
+                chunk.topic_coherence = 0.8  # High coherence for topic-based chunks
                 chunks.append(chunk)
                 chunk_index += 1
 
@@ -441,9 +432,7 @@ class SemanticChunker:
         chunk_index = 0
 
         for sentence in sentences:
-            potential_chunk = (
-                current_chunk + (" " if current_chunk else "") + sentence
-            )
+            potential_chunk = current_chunk + (" " if current_chunk else "") + sentence
 
             if len(potential_chunk) > effective_chunk_size:
                 if current_chunk:
@@ -477,9 +466,7 @@ class SemanticChunker:
 
         return chunks
 
-    def _semantic_fixed_chunking(
-        self, text: str, doc_id: str
-    ) -> List[SemanticChunk]:
+    def _semantic_fixed_chunking(self, text: str, doc_id: str) -> List[SemanticChunk]:
         """Fixed-size semantic chunking with overlap."""
         chunks = []
         chunk_index = 0
@@ -680,36 +667,83 @@ Only return the JSON, no explanations.
                 "recommended_chunk_size": "medium",
             }
 
+    def _calculate_settlement_relevance_score(self, text: str) -> float:
+        """
+        Calculate settlement relevance score using deterministic keyword matching.
+        :param text: str - The chunk text to score.
+        :return: float - Score in [0.0, 1.0].
+        """
+        text_lower = text.lower()
+        score = 0.0
+        total_weight = 0.0
+
+        high_value = {
+            "international student": 3.0,
+            "accommodation": 2.5,
+            "housing": 2.0,
+            "university": 2.0,
+            "visa": 2.5,
+            "immigration": 2.5,
+            "cost of living": 2.5,
+        }
+        medium_value = {
+            "transport": 1.5,
+            "safety": 2.0,
+            "bank": 1.5,
+            "hospital": 1.5,
+            "culture": 1.0,
+            "language": 1.0,
+        }
+
+        for keyword, weight in {**high_value, **medium_value}.items():
+            if keyword in text_lower:
+                count = text_lower.count(keyword)
+                score += count * weight
+                total_weight += weight
+
+        if total_weight > 0:
+            return min(score / total_weight, 1.0)
+        return 0.1
+
+    def _calculate_topic_coherence(self, text: str) -> float:
+        """
+        Calculate topic coherence based on how focused the chunk is on a single topic.
+        :param text: str - The chunk text to evaluate.
+        :return: float - Score in [0.0, 1.0]; higher means more topically focused.
+        """
+        text_lower = text.lower()
+        distinct_topics = sum(
+            1
+            for keywords in self.settlement_topics.values()
+            if any(kw in text_lower for kw in keywords)
+        )
+        if distinct_topics == 0:
+            return 0.5
+        if distinct_topics == 1:
+            return 1.0
+        if distinct_topics == 2:
+            return 0.8
+        return max(0.4, 1.0 - distinct_topics * 0.1)
+
     def _enrich_chunks_with_llm_analysis(
         self, chunks: List[SemanticChunk]
     ) -> List[SemanticChunk]:
-        """Enrich chunks with LLM-based semantic analysis."""
+        """
+        Enrich chunks with deterministic settlement relevance scoring.
+        Replaces per-chunk LLM calls; the document-level LLM call in
+        _settlement_optimized_chunking() is retained for routing metadata.
+        :param chunks: List[SemanticChunk] - Validated chunks to enrich.
+        :return: List[SemanticChunk] - Chunks with settlement_relevance,
+                 topic_coherence, and semantic_score populated.
+        """
         enriched_chunks = []
-
         for chunk in chunks:
-            try:
-                # Analyze chunk with LLM
-                analysis = self._analyze_chunk_with_llm(chunk.text)
-
-                # Update chunk with analysis results
-                chunk.semantic_score = analysis.get("semantic_coherence", 0.7)
-                chunk.topic_coherence = analysis.get("topic_coherence", 0.7)
-                chunk.settlement_relevance = analysis.get(
-                    "settlement_relevance", 0.5
-                )
-
-                enriched_chunks.append(chunk)
-
-            except Exception as e:
-                logger.warning(
-                    f"Chunk enrichment failed for {chunk.chunk_id}: {str(e)}"
-                )
-                # Use default scores
-                chunk.semantic_score = 0.6
-                chunk.topic_coherence = 0.6
-                chunk.settlement_relevance = 0.4
-                enriched_chunks.append(chunk)
-
+            chunk.settlement_relevance = self._calculate_settlement_relevance_score(
+                chunk.text
+            )
+            chunk.topic_coherence = self._calculate_topic_coherence(chunk.text)
+            chunk.semantic_score = 0.7 if chunk.word_count >= 20 else 0.5
+            enriched_chunks.append(chunk)
         return enriched_chunks
 
     def _analyze_chunk_with_llm(self, chunk_text: str) -> Dict[str, float]:
@@ -737,7 +771,7 @@ Only return the JSON, no explanations.
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4.1-nano",
-               messages=[{"role": "user", "content": prompt}],
+                messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=100,
             )
@@ -839,9 +873,7 @@ Only return the JSON, no explanations.
         split_index = 0
 
         for sentence in sentences:
-            potential_text = (
-                current_text + (" " if current_text else "") + sentence
-            )
+            potential_text = current_text + (" " if current_text else "") + sentence
 
             if len(potential_text.split()) > self.target_chunk_size // 4:
                 if current_text:
@@ -851,8 +883,7 @@ Only return the JSON, no explanations.
                         doc_id=chunk.doc_id,
                         text=current_text.strip(),
                         start_pos=chunk.start_pos,  # Approximate
-                        end_pos=chunk.start_pos
-                        + len(current_text),  # Approximate
+                        end_pos=chunk.start_pos + len(current_text),  # Approximate
                         chunk_type=ChunkType.SPLIT,
                         word_count=len(current_text.split()),
                         char_count=len(current_text),
@@ -886,9 +917,7 @@ Only return the JSON, no explanations.
         chunk_index = 0
         words = text.split()
 
-        chunk_size_words = (
-            self.target_chunk_size // 4
-        )  # Rough conversion to word count
+        chunk_size_words = self.target_chunk_size // 4  # Rough conversion to word count
 
         for i in range(0, len(words), chunk_size_words):
             chunk_words = words[i : i + chunk_size_words]
@@ -920,9 +949,7 @@ Only return the JSON, no explanations.
             "overlap_size": self.overlap_size,
             "settlement_optimization": self.settlement_optimization,
             "llm_powered": True,
-            "supported_strategies": [
-                strategy.value for strategy in ChunkingStrategy
-            ],
+            "supported_strategies": [strategy.value for strategy in ChunkingStrategy],
             "settlement_topics": list(self.settlement_topics.keys()),
             "nairobi_locations_count": len(self.nairobi_locations),
         }
