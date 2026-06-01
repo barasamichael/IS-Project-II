@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+from enum import Enum
 from typing import Any
 from typing import Dict
 from typing import List
@@ -49,12 +50,114 @@ logger = logging.getLogger("response_generator")
 
 # Intent routing sets for Tavily web search gating.
 # Defined here (not in config/constants.py) because they reference IntentType.
+class ResponseStyle(str, Enum):
+    DIRECT = "direct"            # "Just the Facts" — concise, no headers
+    GUIDED = "guided"            # "Step by Step"   — structured 3-section (default)
+    CONVERSATIONAL = "conversational"  # "Talk to Me" — warm prose
+
+    @classmethod
+    def from_preference(cls, raw: Optional[str]) -> "ResponseStyle":
+        """Parse a style string, falling back to GUIDED for unknown values."""
+        try:
+            return cls(raw) if raw else cls.GUIDED
+        except ValueError:
+            return cls.GUIDED
+
+
+# Intents whose format is always overridden regardless of user style preference.
+# SAFETY_CONCERN uses a compact emergency-first format; user style is ignored.
+_SAFETY_OVERRIDE_INTENTS: set = {IntentType.SAFETY_CONCERN}
+
+# Intents where steps and documents are always fully enumerated even in DIRECT mode.
+_FORCE_COMPLETE_STEPS_INTENTS: set = {IntentType.IMMIGRATION_VISA}
+
+# Per-style system prompt instruction blocks (injected at the end of the system prompt)
+_STYLE_INSTRUCTIONS: Dict[ResponseStyle, str] = {
+    ResponseStyle.DIRECT: (
+        "RESPONSE STYLE — DIRECT:\n"
+        "Deliver the answer in the first sentence. Do not open with empathy phrases, "
+        "greetings, or acknowledgment of the question. Use numbered steps for any "
+        "procedure involving 3 or more actions. Do not use markdown section headers. "
+        "Present addresses, phone numbers, and fees on their own line. Include caveats "
+        "only if they change what the user must do. Keep responses under 160 words for "
+        "procedural queries and under 90 words for factual or cultural queries. End with "
+        "the most important next action as a plain sentence, not a labelled section."
+    ),
+    ResponseStyle.GUIDED: (
+        "RESPONSE STYLE — GUIDED:\n"
+        "Open with one sentence of orientation if the query signals the user is new or "
+        "uncertain. Provide one sentence of context for any unfamiliar institution or "
+        "process before explaining it. Use numbered steps for any procedure with 3 or "
+        "more actions. Present warnings and important exceptions as a visually separated "
+        "note after the main steps, never embedded within them. Include addresses, costs, "
+        "and contacts on their own labelled lines. End procedural responses with a "
+        "'Your next step is...' sentence. For simple factual or cultural questions, "
+        "respond in plain prose without headers or bullet points, keeping the response "
+        "under 100 words. Do not use section headers for non-procedural queries."
+    ),
+    ResponseStyle.CONVERSATIONAL: (
+        "RESPONSE STYLE — CONVERSATIONAL:\n"
+        "Open with brief acknowledgment of the user's situation if the query signals "
+        "newness, anxiety, or uncertainty — one sentence only, genuinely warm rather "
+        "than formulaic. Provide 1-2 sentences of normalising context for unfamiliar "
+        "systems before explaining them. Write in flowing prose using contractions and "
+        "second-person throughout. Use numbered steps when sequence matters for safety "
+        "or process compliance; otherwise integrate information into natural paragraphs. "
+        "Do not use markdown headers or section labels. Present contacts and addresses "
+        "within prose when 1-2 items; list separately when 3 or more. End with a brief, "
+        "grounding sentence that helps the user feel the task is manageable. Keep total "
+        "response under 220 words."
+    ),
+}
+
+# User prompt response requirement blocks per style
+_STYLE_RESPONSE_REQUIREMENTS: Dict[ResponseStyle, str] = {
+    ResponseStyle.DIRECT: (
+        "[RESPONSE REQUIREMENTS]\n"
+        "Answer in the first sentence. No markdown section headers. Use numbered steps "
+        "for any procedure with 3+ actions. Present addresses, phone numbers, and fees "
+        "on their own line. Caveats only if they change what the user must do. "
+        "Under 160 words for procedural queries, under 90 words for factual queries. "
+        "End with the most important next action as a plain sentence."
+    ),
+    ResponseStyle.GUIDED: (
+        "[RESPONSE REQUIREMENTS]\n"
+        "Use exactly these three sections:\n\n"
+        "## DIRECT ANSWER\n"
+        "One sentence answer first, then full specific details with locations, costs, contacts.\n\n"
+        "## ADDITIONAL INFORMATION\n"
+        "Context, background, caveats. Present warnings as: ⚠️ Note: [text] — never embedded in prose.\n\n"
+        "## NEXT STEPS\n"
+        "'Your next step is...' — numbered list if sequential. All required documents listed explicitly.\n\n"
+        "Make each section substantial. Never abbreviate a document list or step sequence."
+    ),
+    ResponseStyle.CONVERSATIONAL: (
+        "[RESPONSE REQUIREMENTS]\n"
+        "Open with one warm sentence if the query signals newness or anxiety. Provide "
+        "1-2 sentences of normalising context for unfamiliar systems. Write in flowing "
+        "prose using contractions and second-person. Number steps only when sequence "
+        "matters for safety or compliance; otherwise use natural prose. No markdown "
+        "headers or section labels. Under 220 words. End with a brief grounding sentence."
+    ),
+}
+
+# Safety override user prompt (always used for SAFETY_CONCERN, regardless of style)
+_SAFETY_OVERRIDE_REQUIREMENTS = (
+    "[RESPONSE REQUIREMENTS — SAFETY PRIORITY]\n"
+    "First sentence: the immediate action the student should take right now.\n"
+    "Second block: list emergency contacts one per line (label: number format).\n"
+    "Then: 2-3 sentences of specific, actionable safety guidance.\n"
+    "Final sentence: reassurance and next step.\n"
+    "No markdown section headers. Under 150 words. Emergency numbers must appear "
+    "in the first half of the response."
+)
+
+
 _WEB_SEARCH_ALWAYS: set = {
     IntentType.IMMIGRATION_VISA,
     IntentType.COST_INQUIRY,
 }
 _WEB_SEARCH_NEVER: set = {
-    IntentType.CULTURAL_ADAPTATION,
     IntentType.EMERGENCY_HELP,
 }
 
@@ -195,11 +298,12 @@ I'm here to assist you with questions about:
     ) -> bool:
         """
         Determine whether a Tavily web search should be performed for this request.
-        Intent types in _WEB_SEARCH_NEVER always return False (CULTURAL_ADAPTATION,
-        EMERGENCY_HELP). Intent types in _WEB_SEARCH_ALWAYS always return True
-        (IMMIGRATION_VISA, COST_INQUIRY). All other intents search only when the
-        top retrieved chunk relevance score is below WEB_SEARCH_CONFIDENCE_THRESHOLD,
-        indicating insufficient knowledge-base coverage.
+        EMERGENCY_HELP never searches — responses must be instant and the fact store
+        holds all emergency contacts. IMMIGRATION_VISA and COST_INQUIRY always search
+        because their data changes frequently and accuracy is critical. All other
+        intents, including CULTURAL_ADAPTATION, search when the top vector DB chunk
+        score falls below WEB_SEARCH_CONFIDENCE_THRESHOLD — web search adds current,
+        hyperlocal context the LLM's training data may not cover.
         :param intent_type: IntentType - The classified intent for this query.
         :param retrieved_context: List[Dict] - RAG chunks from vector search.
         :return: bool - True when a web search should be submitted, False otherwise.
@@ -256,6 +360,27 @@ I'm here to assist you with questions about:
             # Initialize Tavily client
             tavily_client = TavilyClient(api_key=tavily_api_key)
 
+            # --- Per-intent domain policy -------------------------------------------
+            # strict: Tavily include_domains + post-hoc hard filter
+            # open:   Tavily include_domains as preference only, accept all results
+            # (no entry): unrestricted search — for general/conversational queries
+            domain_cfg = None
+            if self.locale is not None and self.locale.intent_domains:
+                domain_cfg = self.locale.intent_domains.get(intent_type.value)
+
+            search_mode = domain_cfg.mode if domain_cfg else "none"
+            search_domains = (
+                domain_cfg.domains
+                if domain_cfg and domain_cfg.domains
+                else []
+            )
+            max_age_days = (
+                domain_cfg.max_result_age_days
+                if domain_cfg
+                else None
+            )
+            # -------------------------------------------------------------------------
+
             # Construct targeted search queries based on intent
             search_queries = self._build_search_queries(query, intent_type)
 
@@ -264,9 +389,8 @@ I'm here to assist you with questions about:
             # Limit to 2 searches to balance quality and cost
             for search_query in search_queries[:2]:
                 try:
-                    # Perform Tavily search - optimized for AI/RAG applications
-                    start_time = time.perf_counter()
-                    search_result = tavily_client.search(
+                    # Build Tavily call kwargs
+                    tavily_kwargs = dict(
                         query=search_query,
                         search_depth="basic",
                         max_results=3,
@@ -275,10 +399,21 @@ I'm here to assist you with questions about:
                         include_images=False,
                         timeout=LLM_TAVILY_TIMEOUT_SECONDS,
                     )
+                    if search_domains:
+                        tavily_kwargs["include_domains"] = search_domains
+                    if max_age_days is not None:
+                        tavily_kwargs["days"] = max_age_days
+
+                    # Perform Tavily search - optimized for AI/RAG applications
+                    start_time = time.perf_counter()
+                    search_result = tavily_client.search(**tavily_kwargs)
                     end_time = time.perf_counter()
                     logger.info(
                         "tavily_search_completed",
                         elapsed_seconds=round(end_time - start_time, 3),
+                        mode=search_mode,
+                        domains=search_domains or "unrestricted",
+                        max_age_days=max_age_days or "unlimited",
                     )
 
                     # Tavily returns structured data perfect for AI consumption
@@ -289,18 +424,23 @@ I'm here to assist you with questions about:
                         # Extract individual results with clean content
                         results_list = search_result.get("results", [])
 
-                        # Domain allowlist filtering: discard results from untrusted sources
-                        trusted = self.fact_store.trusted_domains
-                        filtered_list = []
-                        for r in results_list:
-                            if any(d in r.get("url", "") for d in trusted):
-                                filtered_list.append(r)
-                            else:
-                                logger.debug(
-                                    "tavily_result_filtered_untrusted_domain url=%s",
-                                    r.get("url", ""),
-                                )
-                        results_list = filtered_list
+                        # Domain filtering based on mode:
+                        #   strict → hard filter; discard results not in domain list
+                        #   open   → accept all (Tavily already biased by include_domains)
+                        #   none   → accept all (unrestricted / conversational queries)
+                        if search_mode == "strict" and search_domains:
+                            filtered_list = []
+                            for r in results_list:
+                                if any(d in r.get("url", "") for d in search_domains):
+                                    filtered_list.append(r)
+                                else:
+                                    logger.debug(
+                                        "tavily_result_filtered_strict url=%s",
+                                        r.get("url", ""),
+                                    )
+                            results_list = filtered_list
+                        # open / none: no filtering — all results accepted
+
                         if not results_list:
                             continue
 
@@ -698,6 +838,18 @@ I'm here to assist you with questions about:
                 retrieved_context, web_info, intent_info, context_evaluation
             )
 
+            # Resolve response style — safety_concern always overrides user preference
+            intent_type = intent_info["intent_type"]
+            requested_style = ResponseStyle.from_preference(
+                (user_preferences or {}).get("style")
+            )
+            if intent_type in _SAFETY_OVERRIDE_INTENTS:
+                effective_style = ResponseStyle.GUIDED  # safety prompt overrides requirements
+                safety_override = True
+            else:
+                effective_style = requested_style
+                safety_override = False
+
             # Generate comprehensive response
             response_content = self._generate_comprehensive_response(
                 english_query,
@@ -707,6 +859,9 @@ I'm here to assist you with questions about:
                 crisis_assessment,
                 current_time_full,
                 context_evaluation,
+                style=effective_style,
+                safety_override=safety_override,
+                force_complete_steps=intent_type in _FORCE_COMPLETE_STEPS_INTENTS,
             )
 
             # Apply final validation and safety checks
@@ -715,6 +870,7 @@ I'm here to assist you with questions about:
                 intent_info,
                 crisis_assessment,
                 emotional_state,
+                style=effective_style,
             )
 
             # Phone audit — replace unverified numbers before response leaves service
@@ -785,7 +941,7 @@ I'm here to assist you with questions about:
                 "token_usage": token_usage,
                 "current_time": current_time_full,
                 "settlement_optimized": True,
-                "response_style": "comprehensive_empathetic",
+                "response_style": effective_style.value,
                 "empathy_applied": emotional_state.get("needs_validation", False),
                 "safety_protocols_added": self._safety_protocols_applied(intent_info),
                 "crisis_level": crisis_assessment["crisis_level"],
@@ -1034,8 +1190,11 @@ I'm here to assist you with questions about:
         crisis_assessment: Dict[str, Any],
         current_time: str,
         context_evaluation: Dict[str, Any],
+        style: ResponseStyle = ResponseStyle.GUIDED,
+        safety_override: bool = False,
+        force_complete_steps: bool = False,
     ) -> str:
-        """Generate comprehensive response using gpt-4.1-mini."""
+        """Generate response using the requested style via gpt-4.1-mini."""
 
         # Build empathy component
         empathy_component = ""
@@ -1051,49 +1210,44 @@ I'm here to assist you with questions about:
         if crisis_assessment["needs_immediate_support"]:
             crisis_component = "CRISIS_PRIORITY: This appears to be an urgent situation requiring immediate attention.\n\n"
 
-        # Get comprehensive system prompt
+        # Get system prompt (style-aware)
         system_prompt = self._get_comprehensive_system_prompt(
-            intent_info["intent_type"], emotional_state, crisis_assessment
+            intent_info["intent_type"], emotional_state, crisis_assessment, style
         )
 
-        # Build comprehensive user prompt
-        user_prompt = f"""[CURRENT CONTEXT - NAIROBI, KENYA]
-Time: {current_time}
-Query Analysis: Intent={intent_info["intent_type"].value}, Emotion={emotional_state.get("primary_emotion", "neutral")}, Crisis Level={crisis_assessment["crisis_level"]}
+        # Select the response requirements block based on style and overrides
+        if safety_override:
+            requirements_block = _SAFETY_OVERRIDE_REQUIREMENTS
+        else:
+            requirements_block = _STYLE_RESPONSE_REQUIREMENTS[style]
 
-[STUDENT QUERY]
-"{query}"
+        # For immigration_visa, always append a completeness guard
+        completeness_note = ""
+        if force_complete_steps:
+            completeness_note = (
+                "\nCOMPLETENESS GUARD: List every required document and every step "
+                "explicitly. Never summarise as 'the usual documents' or 'standard steps'."
+            )
 
-{empathy_component}{crisis_component}[COMPREHENSIVE INFORMATION SOURCES]
-{context_text}
+        city = self.locale.city if self.locale is not None else "Nairobi"
+        country = self.locale.country if self.locale is not None else "Kenya"
 
-[RESPONSE REQUIREMENTS]
-Create a comprehensive, empathetic response that achieves 100/100 performance by:
-
-1. DIRECT ANSWER (Must be substantial and complete):
-- Provide a thorough, specific answer that directly addresses their question
-- Include concrete details, numbers, locations, and actionable information
-- Don't cut short - give them everything they need to know immediately
-- Use settlement-specific knowledge and current information
-
-2. ADDITIONAL INFORMATION (Must be comprehensive and valuable):
-- Provide extensive context, background, and related information
-- Include safety considerations, cost information, and practical tips
-- Add information about alternatives, options, and considerations
-- Cover related topics they might need to know
-- Include only specific details and contact information that appear verbatim in the RETRIEVED SETTLEMENT INFORMATION or ESSENTIAL SETTLEMENT INFORMATION sections provided.
-
-3. NEXT STEPS (Must be actionable and complete):
-- Give detailed, sequential steps they can take immediately
-- Provide timeline expectations and preparation requirements
-- Offer multiple pathways and backup options
-
-CRITICAL REQUIREMENTS:
-- Be genuinely helpful and comprehensive, not bureaucratic
-- Include safety protocols relevant to their situation
-- Use encouraging, supportive language appropriate to their emotional state
-- Make sure each section is substantial and complete
-- Focus on practical, actionable guidance they can use right away"""
+        user_prompt = (
+            f"[CURRENT CONTEXT - {city.upper()}, {country.upper()}]\n"
+            f"Time: {current_time}\n"
+            f"Intent: {intent_info['intent_type'].value} | "
+            f"Emotion: {emotional_state.get('primary_emotion', 'neutral')} | "
+            f"Crisis: {crisis_assessment['crisis_level']}\n\n"
+            f"[STUDENT QUERY]\n"
+            f'"{query}"\n\n'
+            f"{empathy_component}{crisis_component}"
+            f"[RETRIEVED INFORMATION]\n"
+            f"{context_text}\n\n"
+            f"{requirements_block}"
+            f"{completeness_note}\n\n"
+            "GROUNDING: Only include phone numbers, addresses, fees, and operating hours "
+            "that appear verbatim in the retrieved information above."
+        )
 
         intent_max_tokens = (
             LLM_EMERGENCY_MAX_TOKENS
@@ -1128,8 +1282,9 @@ CRITICAL REQUIREMENTS:
         intent_type: IntentType,
         emotional_state: Dict,
         crisis_assessment: Dict,
+        style: ResponseStyle = ResponseStyle.GUIDED,
     ) -> str:
-        """Get comprehensive system prompt optimized for 100/100 performance."""
+        """Build system prompt combining base grounding, intent guidance, and style instruction."""
         city = self.locale.city if self.locale is not None else "your city"
         country = self.locale.country if self.locale is not None else "your country"
         base_prompt = (
@@ -1236,6 +1391,8 @@ CRISIS RESPONSE MODE:
                 emotional_state.get("primary_emotion", "neutral"), ""
             )
             + crisis_guidance
+            + "\n\n"
+            + _STYLE_INSTRUCTIONS[style]
         )
 
     def _apply_final_validation_and_safety(
@@ -1244,15 +1401,16 @@ CRISIS RESPONSE MODE:
         intent_info: Dict[str, Any],
         crisis_assessment: Dict[str, Any],
         emotional_state: Dict[str, Any],
+        style: ResponseStyle = ResponseStyle.GUIDED,
     ) -> str:
         """Apply final validation and safety protocol integration."""
 
-        # Ensure proper structure
-        response = self._ensure_comprehensive_structure(response)
+        # Only enforce 3-section structure for GUIDED style
+        response = self._ensure_comprehensive_structure(response, style)
 
         # Add safety protocols if missing
         response = self._integrate_safety_protocols(
-            response, intent_info["intent_type"], crisis_assessment
+            response, intent_info["intent_type"], crisis_assessment, style
         )
 
         # Add empathy if emotional state detected but not addressed
@@ -1268,7 +1426,11 @@ CRISIS RESPONSE MODE:
         return response
 
     def _integrate_safety_protocols(
-        self, response: str, intent_type: IntentType, crisis_assessment: Dict
+        self,
+        response: str,
+        intent_type: IntentType,
+        crisis_assessment: Dict,
+        style: ResponseStyle = ResponseStyle.GUIDED,
     ) -> str:
         """Systematically integrate relevant safety protocols."""
 
@@ -1365,8 +1527,17 @@ CRISIS RESPONSE MODE:
 
         return response
 
-    def _ensure_comprehensive_structure(self, response: str) -> str:
-        """Ensure response has comprehensive three-section structure."""
+    def _ensure_comprehensive_structure(
+        self, response: str, style: ResponseStyle = ResponseStyle.GUIDED
+    ) -> str:
+        """
+        For GUIDED style, ensure the three-section structure is present.
+        For DIRECT and CONVERSATIONAL, return response unchanged — those styles
+        intentionally avoid section headers.
+        """
+        if style != ResponseStyle.GUIDED:
+            return response
+
         required_sections = [
             "## DIRECT ANSWER",
             "## ADDITIONAL INFORMATION",

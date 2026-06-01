@@ -184,9 +184,26 @@ class QueryRequest(BaseModel):
     conversation_context: Optional[Dict[str, Any]] = Field(
         default=None, description="Previous conversation context"
     )
-    user_preferences: Optional[Dict[str, str]] = Field(
-        default=None, description="User preferences for response style"
+    response_style: Optional[str] = Field(
+        default=None,
+        description=(
+            "Response style preference: 'direct' (Just the Facts — concise, no headers), "
+            "'guided' (Step by Step — structured with sections, default), "
+            "'conversational' (Talk to Me — warm prose). "
+            "Ignored for safety_concern intent, which always uses a compact emergency format."
+        ),
     )
+    user_preferences: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="Additional user preferences. 'style' key is merged with response_style if both provided.",
+    )
+
+    def model_post_init(self, __context: Any) -> None:
+        """Merge response_style into user_preferences so the service layer sees a single dict."""
+        if self.response_style is not None:
+            prefs = dict(self.user_preferences or {})
+            prefs.setdefault("style", self.response_style)
+            self.user_preferences = prefs
 
 
 class LanguageInfo(BaseModel):

@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from dataclasses import field
 
 from pathlib import Path
 from typing import Dict
@@ -112,6 +113,22 @@ class LocaleFactStore(BaseModel):
 
 
 @dataclass
+class IntentDomainConfig:
+    """
+    Per-intent web search domain policy.
+    :field mode: str - "strict" (hard restrict + Tavily include_domains) or
+        "open" (Tavily include_domains as preference only, no post-hoc filter).
+    :field domains: List[str] - Bare domain names (no scheme, no paths).
+    :field max_result_age_days: Optional[int] - Maximum age of Tavily results in
+        days. Passed as the Tavily ``days`` parameter. None means no age limit.
+    """
+
+    mode: str
+    domains: List[str]
+    max_result_age_days: Optional[int] = None
+
+
+@dataclass
 class LocaleConfig:
     """
     Deployment configuration for one SettleBot locale.
@@ -130,6 +147,9 @@ class LocaleConfig:
     :field collection_name: str - ChromaDB collection name for this locale.
     :field web_search_geo_bias: str - Country name appended to Tavily queries.
     :field fact_store_path: str - Relative path to the LocaleFactStore JSON file.
+    :field intent_domains: Dict[str, IntentDomainConfig] - Per-intent web search
+        domain policy. Keys are IntentType.value strings. When an intent is absent
+        from this map the search falls back to open mode with no domain restriction.
     """
 
     city: str
@@ -144,6 +164,7 @@ class LocaleConfig:
     collection_name: str
     web_search_geo_bias: str
     fact_store_path: str
+    intent_domains: Dict[str, IntentDomainConfig] = field(default_factory=dict)
 
     @classmethod
     def from_file(cls, locale_name: str) -> "LocaleConfig":
@@ -189,6 +210,16 @@ class LocaleConfig:
                 f"Locale config for '{locale_name}' is missing required fields: {missing}"
             )
 
+        raw_intent_domains = data.get("intent_domains", {})
+        intent_domains: Dict[str, IntentDomainConfig] = {
+            intent: IntentDomainConfig(
+                mode=cfg.get("mode", "open"),
+                domains=cfg.get("domains", []),
+                max_result_age_days=cfg.get("max_result_age_days"),
+            )
+            for intent, cfg in raw_intent_domains.items()
+        }
+
         return cls(
             city=data["city"],
             country=data["country"],
@@ -202,6 +233,7 @@ class LocaleConfig:
             collection_name=data["collection_name"],
             web_search_geo_bias=data["web_search_geo_bias"],
             fact_store_path=data["fact_store_path"],
+            intent_domains=intent_domains,
         )
 
 

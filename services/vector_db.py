@@ -15,9 +15,11 @@ import numpy as np
 import chromadb
 from chromadb.config import Settings
 
+import os
+
 from config.constants import BM25_RRF_K
 from config.constants import BM25_INDEX_TOP_K
-from config.constants import CROSS_ENCODER_MODEL
+from config.constants import COHERE_RERANK_MODEL
 from config.settings import settings
 from config.settings import ROOT_DIR
 from services.embeddings import EmbeddingService
@@ -45,7 +47,7 @@ class VectorDBService:
     """
     Production-grade vector database service optimized for settlement content.
     Retrieval uses dense ChromaDB search fused with BM25 via Reciprocal Rank
-    Fusion, then reranked by a local cross-encoder.
+    Fusion, then reranked via the Cohere Rerank API.
     """
 
     _reranker: Any = None
@@ -438,7 +440,7 @@ class VectorDBService:
             raise VectorDBError(f"Failed to index deduplicated chunks: {str(e)}")
 
     # ------------------------------------------------------------------
-    # Retrieval — dense + BM25 + RRF + cross-encoder
+    # Retrieval — dense + BM25 + RRF + Cohere rerank
     # ------------------------------------------------------------------
 
     def _reciprocal_rank_fusion(
@@ -491,8 +493,8 @@ class VectorDBService:
     ) -> List[Dict[str, Any]]:
         """
         Search with settlement-specific optimisation: dense ChromaDB retrieval
-        fused with BM25 via Reciprocal Rank Fusion, then reranked by a
-        cross-encoder.
+        fused with BM25 via Reciprocal Rank Fusion, then reranked via the
+        Cohere Rerank API.
         :param query: str - The query string.
         :param top_k: int - Maximum number of results to return.
         :param filter_doc_id: Optional[str] - Restrict results to one document.
@@ -593,22 +595,21 @@ class VectorDBService:
             else:
                 fused = sorted(dense_results, key=lambda x: x["score"], reverse=True)
 
-            # --- Cross-encoder reranking ---
+            # --- Cohere reranking ---
             reranker = VectorDBService._reranker
             if reranker is not None and fused:
                 candidates = fused[: top_k * 2]
-                pairs = [(query, r["text"]) for r in candidates]
                 try:
-                    rerank_scores = reranker.predict(pairs)
-                    reranked = sorted(
-                        zip(candidates, rerank_scores),
-                        key=lambda x: float(x[1]),
-                        reverse=True,
+                    response = reranker.rerank(
+                        model=COHERE_RERANK_MODEL,
+                        query=query,
+                        documents=[r["text"] for r in candidates],
+                        top_n=top_k,
                     )
-                    return [r[0] for r in reranked[:top_k]]
+                    return [candidates[hit.index] for hit in response.results]
                 except Exception as exc:
                     if not VectorDBService._reranker_warning_logged:
-                        logger.warning(f"Reranker predict failed: {exc}")
+                        logger.warning(f"Cohere rerank failed: {exc}")
                         VectorDBService._reranker_warning_logged = True
                     return fused[:top_k]
             else:
@@ -618,7 +619,7 @@ class VectorDBService:
                     and not VectorDBService._reranker_warning_logged
                 ):
                     logger.warning(
-                        "Reranker unavailable: cross-encoder not loaded; "
+                        "Reranker unavailable: COHERE_API_KEY not set; "
                         "returning RRF-fused results"
                     )
                     VectorDBService._reranker_warning_logged = True
@@ -952,7 +953,7 @@ class VectorDBService:
     def optimize_collection(self) -> Dict[str, Any]:
         """
         Return collection status with planned optimisation notes.
-        The BM25 hybrid retrieval and cross-encoder reranker introduced in
+        The BM25 hybrid retrieval and Cohere reranker introduced in
         Milestone 7 are active; this endpoint records their availability.
         :return: Dict[str, Any] - Status and optimisation notes.
         """
@@ -963,7 +964,7 @@ class VectorDBService:
                 "collection_stats": stats,
                 "optimizations_available": [
                     "BM25 hybrid retrieval with Reciprocal Rank Fusion (active)",
-                    "Cross-encoder reranker (active when model loaded)",
+                    "Cohere reranker (active when COHERE_API_KEY is set)",
                     "Settlement-specific metadata indexing (active)",
                     "Topic-aware scoring (active)",
                     "Location-based boosting (active)",
@@ -1021,12 +1022,16 @@ class VectorDBService:
 
 
 # ------------------------------------------------------------------
-# Module-level cross-encoder initialisation (once per process)
+# Module-level Cohere client initialisation (once per process)
 # ------------------------------------------------------------------
 try:
-    from sentence_transformers import CrossEncoder as _CrossEncoder
+    import cohere as _cohere
 
-    VectorDBService._reranker = _CrossEncoder(CROSS_ENCODER_MODEL)
-    logger.info(f"Cross-encoder initialized: {CROSS_ENCODER_MODEL}")
+    _cohere_api_key = os.getenv("COHERE_API_KEY")
+    if _cohere_api_key:
+        VectorDBService._reranker = _cohere.ClientV2(_cohere_api_key)
+        logger.info(f"Cohere reranker initialized: {COHERE_RERANK_MODEL}")
+    else:
+        logger.warning("COHERE_API_KEY not set; reranking disabled")
 except Exception as _ce_exc:
-    logger.warning(f"Cross-encoder init failed: {_ce_exc}")
+    logger.warning(f"Cohere reranker init failed: {_ce_exc}")

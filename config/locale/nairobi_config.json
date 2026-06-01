@@ -7,37 +7,176 @@
   "emergency_number": "999",
   "primary_languages": ["sw", "en"],
   "key_neighborhoods": [
-    "Westlands",
-    "Kilimani",
-    "Karen",
-    "Lavington",
-    "Kileleshwa",
-    "Parklands",
-    "Hurlingham",
-    "Riverside",
-    "Runda",
-    "Muthaiga",
-    "Gigiri",
-    "Spring Valley",
-    "Loresho",
-    "Kitisuru",
-    "Rosslyn",
-    "Kabete",
-    "Langata",
-    "Ngong",
-    "Kasarani",
-    "Ruiru"
+    "Westlands", "Kilimani", "Karen", "Lavington", "Kileleshwa",
+    "Parklands", "Hurlingham", "Riverside", "Runda", "Muthaiga",
+    "Gigiri", "Spring Valley", "Loresho", "Kitisuru", "Rosslyn",
+    "Kabete", "Langata", "Ngong", "Kasarani", "Ruiru"
   ],
   "trusted_web_domains": [
-    "immigration.go.ke",
-    "ecitizen.go.ke",
-    "centralbank.go.ke",
-    "safaricom.co.ke",
-    "knh.or.ke",
-    "uonbi.ac.ke",
-    "strathmore.edu"
+    "immigration.go.ke", "ecitizen.go.ke", "centralbank.go.ke",
+    "safaricom.co.ke", "knh.or.ke", "uonbi.ac.ke", "strathmore.edu"
   ],
   "collection_name": "settlebot_nairobi",
   "web_search_geo_bias": "Kenya",
-  "fact_store_path": "config/locale/nairobi.json"
+  "fact_store_path": "config/locale/nairobi.json",
+
+  "intent_domains": {
+
+    "immigration_visa": {
+      "mode": "strict",
+      "max_result_age_days": 90,
+      "domains": [
+        "immigration.go.ke",
+        "ecitizen.go.ke",
+        "dis.ecitizen.go.ke",
+        "usajili.go.ke",
+        "etakenya.go.ke"
+      ]
+    },
+
+    "university_info": {
+      "mode": "strict",
+      "max_result_age_days": 365,
+      "domains": [
+        "cue.or.ke",
+        "uonbi.ac.ke",
+        "jkuat.ac.ke",
+        "strathmore.edu",
+        "usiu.ac.ke",
+        "daystar.ac.ke",
+        "cuea.edu",
+        "mmu.ac.ke",
+        "tukenya.ac.ke",
+        "kcau.ac.ke",
+        "mua.ac.ke",
+        "tangaza.ac.ke",
+        "pacuniversity.ac.ke",
+        "amref.ac.ke",
+        "kwust.ac.ke",
+        "anu.ac.ke",
+        "aiu.ac.ke"
+      ]
+    },
+
+    "healthcare": {
+      "mode": "strict",
+      "max_result_age_days": 365,
+      "domains": [
+        "sha.go.ke",
+        "afyayangu.go.ke",
+        "kmpdc.go.ke",
+        "health.go.ke",
+        "knh.or.ke",
+        "kutrrh.go.ke",
+        "hospitals.aku.edu",
+        "nairobihosp.co.ke",
+        "mpshahhospitals.com",
+        "materkenya.com",
+        "gertschospital.com",
+        "gertrudeshospital.com",
+        "karenhospital.org",
+        "nwh.co.ke",
+        "coptichospital.org",
+        "mamalucykibakihospital.or.ke",
+        "stjohnkenya.org",
+        "stjohnkenya.net",
+        "redcross.or.ke"
+      ]
+    },
+
+    "banking_finance": {
+      "mode": "strict",
+      "max_result_age_days": 180,
+      "domains": [
+        "centralbank.go.ke",
+        "kra.go.ke",
+        "safaricom.co.ke",
+        "ke.kcbgroup.com",
+        "equitygroupholdings.com",
+        "co-opbank.co.ke",
+        "standardchartered.com",
+        "dtbafrica.com",
+        "ncbabank.co.ke",
+        "absa.co.ke"
+      ]
+    },
+
+    "transportation": {
+      "mode": "strict",
+      "max_result_age_days": 365,
+      "domains": [
+        "ntsa.go.ke",
+        "ntsa.ecitizen.go.ke",
+        "krc.co.ke",
+        "kenha.co.ke",
+        "transport.go.ke",
+        "kura.go.ke"
+      ]
+    },
+
+    "safety_concern": {
+      "mode": "strict",
+      "max_result_age_days": 365,
+      "domains": [
+        "nationalpolice.go.ke",
+        "dci.go.ke",
+        "dci.ecitizen.go.ke",
+        "redcross.or.ke",
+        "stjohnkenya.org",
+        "ipoa.go.ke"
+      ]
+    },
+
+    "cost_inquiry": {
+      "mode": "strict",
+      "max_result_age_days": 180,
+      "domains": [
+        "knbs.or.ke",
+        "centralbank.go.ke",
+        "kra.go.ke",
+        "numbeo.com",
+        "expatistan.com"
+      ]
+    },
+
+    "procedural_query": {
+      "mode": "strict",
+      "max_result_age_days": 365,
+      "domains": [
+        "ecitizen.go.ke",
+        "immigration.go.ke",
+        "dis.ecitizen.go.ke",
+        "kra.go.ke",
+        "sha.go.ke",
+        "afyayangu.go.ke",
+        "ntsa.go.ke",
+        "ntsa.ecitizen.go.ke",
+        "centralbank.go.ke"
+      ]
+    },
+
+    "housing_inquiry": {
+      "mode": "open",
+      "max_result_age_days": 180,
+      "domains": [
+        "buyrentkenya.com",
+        "propertypro.co.ke",
+        "kenyapropertycentre.com",
+        "nairobi.go.ke",
+        "earb.go.ke"
+      ]
+    },
+
+    "cultural_adaptation": {
+      "mode": "open",
+      "max_result_age_days": 730,
+      "domains": [
+        "magicalkenya.com",
+        "tourism.go.ke",
+        "nation.africa",
+        "standardmedia.co.ke"
+      ]
+    }
+
+  }
 }
