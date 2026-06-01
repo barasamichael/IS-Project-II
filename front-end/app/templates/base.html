@@ -58,6 +58,7 @@
           </button>
           <div class="user-dropdown" id="userDropdown">
             <a href="{{ url_for('accounts.profile') }}">Profile</a>
+            <a href="{{ url_for('accounts.settlement_assistant') }}"><i class="fas fa-robot" style="margin-right:6px;font-size:0.85em;"></i>Ask SettleBot</a>
             <a href="{{ url_for('accounts.user_conversations') }}">Conversations</a>
             {% if current_user.role == 'admin' %}
             <a href="{{ url_for('administration.dashboard') }}">Admin Dashboard</a>

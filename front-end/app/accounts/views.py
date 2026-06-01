@@ -149,11 +149,15 @@ def view_conversation(conversation_id):
     )
 
 
+_VALID_STYLES = {"direct", "guided", "conversational"}
+
+
 @accounts.route("/settlement-assistant", methods=["GET", "POST"])
 @login_required
 def settlement_assistant():
     """
-    Enhanced settlement assistant interface using the new SettleBot API.
+    Settlement assistant interface — supports 3 response styles:
+    direct (Just the Facts), guided (Step by Step), conversational (Talk to Me).
 
     :return: Rendered settlement assistant template
     """
@@ -162,12 +166,25 @@ def settlement_assistant():
     api_response_details = {}
     error_message = None
 
+    # Persist style preference server-side in session as a fallback;
+    # client-side localStorage is the primary store (set in the template JS).
+    selected_style = flask.session.get("settlebot_style", "guided")
+
     if flask.request.method == "POST":
         query = flask.request.form.get("query", "").strip()
 
+        # Read and validate style from the radio group; fall back to session value
+        form_style = flask.request.form.get("response_style", "").strip()
+        if form_style in _VALID_STYLES:
+            selected_style = form_style
+            flask.session["settlebot_style"] = selected_style
+
         if not query:
-            flask.flash("Please enter a settlement question", "warning")
-            return flask.render_template("accounts/settlement_assistant.html")
+            flask.flash("Please enter a settlement question.", "warning")
+            return flask.render_template(
+                "accounts/settlement_assistant.html",
+                selected_style=selected_style,
+            )
 
         api_url = flask.current_app.config.get(
             "SETTLEBOT_API_URL", "http://localhost:8000"
@@ -180,78 +197,54 @@ def settlement_assistant():
                 "Authorization": f"Bearer {api_key}" if api_key else "",
             }
 
-            # Enhanced request payload for SettleBot API
             request_payload = {
                 "query": query,
                 "top_k": 15,
                 "include_context": True,
                 "language_detection": True,
-                "user_preferences": {
-                    "response_style": "comprehensive",
-                    "include_safety_info": True,
-                    "include_cost_info": True,
-                },
+                "response_style": selected_style,
             }
 
             response = requests.post(
                 f"{api_url}/query",
                 json=request_payload,
                 headers=headers,
-                timeout=None,
+                timeout=60,
             )
 
             if response.status_code == 200:
                 api_response = response.json()
-
-                # Extract main response
                 response_data = api_response.get("response", "")
-
-                # Extract detailed API response information
                 api_response_details = {
-                    "intent_type": api_response.get("intent_type", "Unknown"),
-                    "topic": api_response.get("topic", "Unknown"),
-                    "confidence": api_response.get("confidence", 0.0),
-                    "language_info": api_response.get("language_info", {}),
-                    "empathy_applied": api_response.get(
-                        "empathy_applied", False
-                    ),
-                    "safety_protocols_added": api_response.get(
-                        "safety_protocols_added", False
-                    ),
-                    "crisis_level": api_response.get("crisis_level", "none"),
-                    "emotional_state": api_response.get("emotional_state"),
-                    "web_search_used": api_response.get(
-                        "web_search_used", False
-                    ),
-                    "current_time": api_response.get("current_time"),
-                    "token_usage": api_response.get("token_usage", {}),
-                    "retrieved_chunks": api_response.get("retrieved_chunks", [])
-                    if flask.request.form.get("show_context")
-                    else [],
+                    "intent_type":          api_response.get("intent_type", "Unknown"),
+                    "topic":                api_response.get("topic", "Unknown"),
+                    "confidence":           api_response.get("confidence", 0.0),
+                    "language_info":        api_response.get("language_info", {}),
+                    "empathy_applied":      api_response.get("empathy_applied", False),
+                    "safety_protocols_added": api_response.get("safety_protocols_added", False),
+                    "crisis_level":         api_response.get("crisis_level", "none"),
+                    "emotional_state":      api_response.get("emotional_state"),
+                    "web_search_used":      api_response.get("web_search_used", False),
+                    "current_time":         api_response.get("current_time"),
+                    "token_usage":          api_response.get("token_usage", {}),
+                    # response_style echoed back from API (may differ for safety overrides)
+                    "response_style":       api_response.get("response_style", selected_style),
                 }
 
             elif response.status_code == 401:
-                error_message = "API authentication failed. Please check your API key configuration."
+                error_message = "API authentication failed. Check the SETTLEBOT_API_KEY configuration."
             elif response.status_code == 422:
                 error_message = f"Invalid request: {response.json().get('detail', 'Validation error')}"
             elif response.status_code >= 500:
-                error_message = (
-                    "SettleBot API server error. Please try again later."
-                )
+                error_message = "SettleBot API server error. Please try again later."
             else:
-                error_message = (
-                    f"API error ({response.status_code}): {response.text[:200]}"
-                )
+                error_message = f"API error ({response.status_code}): {response.text[:200]}"
 
         except requests.exceptions.Timeout:
-            error_message = "Request timeout - the SettleBot service is taking too long to respond"
+            error_message = "Request timed out. The SettleBot service is taking too long — please try again."
         except requests.exceptions.ConnectionError:
-            error_message = (
-                "Cannot connect to SettleBot service - please try again later"
-            )
-        except requests.exceptions.RequestIOError as e:
-            error_message = f"Request error: {str(e)}"
-        except IOError as e:
+            error_message = "Cannot connect to SettleBot service. Please try again later."
+        except Exception as e:
             error_message = f"Unexpected error: {str(e)}"
 
     return flask.render_template(
@@ -260,6 +253,7 @@ def settlement_assistant():
         query=query,
         api_response_details=api_response_details,
         error_message=error_message,
+        selected_style=selected_style,
     )
 
 

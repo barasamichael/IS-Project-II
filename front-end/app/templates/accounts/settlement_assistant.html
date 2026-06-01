@@ -1,0 +1,810 @@
+{% extends "base.html" %}
+
+{% block title %}Settlement Assistant | SettleBot{% endblock %}
+{% block meta_description %}Ask SettleBot anything about settling in Nairobi — housing, visas, healthcare, banking, transport and more.{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.sa-layout {
+    min-height: calc(100vh - 70px);
+    background: var(--gray-100);
+    padding: 1.5rem 0 3rem;
+}
+
+.sa-container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* ── Page header ────────────────────────────────────────────────────────── */
+.sa-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.sa-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 0.4rem;
+}
+
+.sa-header p {
+    color: var(--gray-500);
+    font-size: 0.95rem;
+}
+
+/* ── Style selector ─────────────────────────────────────────────────────── */
+.style-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.style-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.style-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.style-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    user-select: none;
+}
+
+.style-label:hover {
+    border-color: var(--brown-400);
+}
+
+.style-card input[type="radio"]:checked + .style-label {
+    border-color: var(--brown-700);
+    background: var(--brown-100);
+    box-shadow: 0 0 0 3px rgba(139, 95, 71, 0.12);
+}
+
+.style-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.style-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--brown-900);
+}
+
+.style-desc {
+    font-size: 0.78rem;
+    color: var(--gray-500);
+    line-height: 1.35;
+}
+
+.style-card input[type="radio"]:checked + .style-label .style-name {
+    color: var(--brown-800);
+}
+
+.style-check {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.6rem;
+    color: var(--brown-700);
+    font-size: 0.85rem;
+}
+
+.style-card input[type="radio"]:checked ~ .style-check {
+    display: block;
+}
+
+/* ── Query form ─────────────────────────────────────────────────────────── */
+.query-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.query-textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 0.8rem;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--gray-900);
+    resize: vertical;
+    transition: border-color 0.18s;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.query-textarea:focus {
+    border-color: var(--brown-500);
+    box-shadow: 0 0 0 3px rgba(139, 95, 71, 0.1);
+}
+
+.query-textarea::placeholder {
+    color: var(--gray-400);
+}
+
+.query-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.query-hint {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+}
+
+.query-actions .btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--brown-700);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.15s;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: var(--brown-900);
+    transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Error message ──────────────────────────────────────────────────────── */
+.error-banner {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: #991b1b;
+    font-size: 0.9rem;
+}
+
+.error-banner i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ── Response card ──────────────────────────────────────────────────────── */
+.response-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.response-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.25rem;
+    background: linear-gradient(135deg, var(--brown-700), var(--brown-900));
+    color: var(--white);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.response-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.95);
+    white-space: nowrap;
+}
+
+.badge.badge-web {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.badge.badge-crisis {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.badge.badge-style {
+    background: rgba(255, 255, 255, 0.1);
+    text-transform: capitalize;
+}
+
+/* ── Response body — markdown rendering ────────────────────────────────── */
+.response-body {
+    padding: 1.5rem 1.5rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--gray-800);
+}
+
+/* Markdown rendered output */
+.response-body h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brown-800);
+    margin: 1.25rem 0 0.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--brown-100);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.response-body h2:first-child {
+    margin-top: 0;
+}
+
+.response-body p {
+    margin: 0 0 0.75rem;
+}
+
+.response-body p:last-child {
+    margin-bottom: 0;
+}
+
+.response-body ol,
+.response-body ul {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    padding: 0;
+}
+
+.response-body li {
+    margin-bottom: 0.35rem;
+}
+
+.response-body strong {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+.response-body blockquote {
+    border-left: 3px solid var(--brown-300);
+    margin: 0.75rem 0;
+    padding: 0.5rem 0.75rem;
+    background: var(--brown-100);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    color: var(--brown-800);
+}
+
+/* Sources section */
+.response-body .sources-section {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--gray-200);
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+/* ── Metadata bar ───────────────────────────────────────────────────────── */
+.meta-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--gray-100);
+    border-top: 1px solid var(--gray-200);
+    font-size: 0.78rem;
+    color: var(--gray-500);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.meta-item strong {
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+.meta-item.confidence-high { color: #059669; }
+.meta-item.confidence-mid  { color: #d97706; }
+.meta-item.confidence-low  { color: #dc2626; }
+
+/* ── Previous query context ─────────────────────────────────────────────── */
+.query-echo {
+    background: var(--gray-100);
+    border-left: 3px solid var(--brown-400);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.query-echo-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gray-400);
+    margin-bottom: 0.25rem;
+}
+
+/* ── Topic examples ─────────────────────────────────────────────────────── */
+.topic-chips {
+    margin-bottom: 1.5rem;
+}
+
+.topic-chips-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: border-color 0.18s, color 0.18s;
+    user-select: none;
+}
+
+.chip:hover {
+    border-color: var(--brown-400);
+    color: var(--brown-700);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .style-selector {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .style-label {
+        flex-direction: row;
+        align-items: center;
+        padding: 0.75rem;
+    }
+
+    .style-icon { font-size: 1.1rem; }
+
+    .sa-header h1 { font-size: 1.4rem; }
+
+    .response-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .response-body { padding: 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sa-layout">
+<div class="sa-container">
+
+    <!-- Page header -->
+    <header class="sa-header">
+        <h1><i class="fas fa-robot"></i> Settlement Assistant</h1>
+        <p>Ask anything about settling in Nairobi — visas, housing, healthcare, banking, transport and more.</p>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="error-banner">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Error from API -->
+    {% if error_message %}
+    <div class="error-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>{{ error_message }}</span>
+    </div>
+    {% endif %}
+
+    <!-- ── Style selector ──────────────────────────────────────────────── -->
+    <form method="POST" id="queryForm" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="style-selector" role="group" aria-label="Response style">
+
+            <div class="style-card">
+                <input type="radio" name="response_style" id="style-direct"
+                       value="direct"
+                       {% if selected_style == 'direct' %}checked{% endif %}>
+                <label class="style-label" for="style-direct">
+                    <span class="style-icon">⚡</span>
+                    <span class="style-name">Just the Facts</span>
+                    <span class="style-desc">Short, direct. Answer first, no extra sections.</span>
+                </label>
+                <i class="fas fa-check-circle style-check"></i>
+            </div>
+
+            <div class="style-card">
+                <input type="radio" name="response_style" id="style-guided"
+                       value="guided"
+                       {% if selected_style == 'guided' or not selected_style %}checked{% endif %}>
+                <label class="style-label" for="style-guided">
+                    <span class="style-icon">📋</span>
+                    <span class="style-name">Step by Step</span>
+                    <span class="style-desc">Structured with clear sections and numbered steps.</span>
+                </label>
+                <i class="fas fa-check-circle style-check"></i>
+            </div>
+
+            <div class="style-card">
+                <input type="radio" name="response_style" id="style-conversational"
+                       value="conversational"
+                       {% if selected_style == 'conversational' %}checked{% endif %}>
+                <label class="style-label" for="style-conversational">
+                    <span class="style-icon">💬</span>
+                    <span class="style-name">Talk to Me</span>
+                    <span class="style-desc">Friendly, warm prose. Good when you're feeling unsure.</span>
+                </label>
+                <i class="fas fa-check-circle style-check"></i>
+            </div>
+
+        </div>
+
+        <!-- ── Query form ──────────────────────────────────────────────── -->
+        <div class="query-card">
+
+            {% if query %}
+            <div class="query-echo">
+                <div class="query-echo-label">Your question</div>
+                {{ query }}
+            </div>
+            {% endif %}
+
+            <textarea
+                class="query-textarea"
+                name="query"
+                id="queryInput"
+                placeholder="e.g. What do I need to register for health insurance? How do I open a bank account? Is Kilimani safe?"
+                rows="3"
+                required
+                maxlength="2000"
+            >{% if query %}{{ query }}{% endif %}</textarea>
+
+            <div class="query-actions">
+                <span class="query-hint" id="charCount">0 / 2000</span>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    Ask SettleBot
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+    <!-- ── Response ───────────────────────────────────────────────────── -->
+    {% if response_data %}
+    <div class="response-card" id="responseCard">
+
+        <div class="response-header">
+            <div class="response-header-left">
+                <i class="fas fa-robot"></i>
+                SettleBot
+            </div>
+            <div class="badge-row">
+                {% if api_response_details.intent_type and api_response_details.intent_type != 'Unknown' %}
+                <span class="badge">
+                    <i class="fas fa-tag"></i>
+                    {{ api_response_details.intent_type | replace('_', ' ') | title }}
+                </span>
+                {% endif %}
+
+                {% if api_response_details.web_search_used %}
+                <span class="badge badge-web">
+                    <i class="fas fa-globe"></i>
+                    Live search
+                </span>
+                {% endif %}
+
+                {% if api_response_details.crisis_level and api_response_details.crisis_level != 'none' %}
+                <span class="badge badge-crisis">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ api_response_details.crisis_level | title }} priority
+                </span>
+                {% endif %}
+
+                <span class="badge badge-style">
+                    <i class="fas fa-sliders-h"></i>
+                    {{ api_response_details.response_style | default(selected_style) | replace('_', ' ') }}
+                </span>
+            </div>
+        </div>
+
+        <div class="response-body" id="responseBody">
+            <!-- Rendered by marked.js below -->
+            <div id="markdownOutput"></div>
+        </div>
+
+        <div class="meta-bar">
+            {% if api_response_details.confidence %}
+            <div class="meta-item
+                {% if api_response_details.confidence >= 0.75 %}confidence-high
+                {% elif api_response_details.confidence >= 0.5 %}confidence-mid
+                {% else %}confidence-low{% endif %}">
+                <i class="fas fa-circle-check"></i>
+                <strong>Confidence:</strong>
+                {{ "%.0f"|format(api_response_details.confidence * 100) }}%
+            </div>
+            {% endif %}
+
+            {% if api_response_details.topic and api_response_details.topic != 'Unknown' %}
+            <div class="meta-item">
+                <i class="fas fa-bookmark"></i>
+                <strong>Topic:</strong>
+                {{ api_response_details.topic | replace('_', ' ') | title }}
+            </div>
+            {% endif %}
+
+            {% if api_response_details.language_info and api_response_details.language_info.detected_language and api_response_details.language_info.detected_language != 'english' %}
+            <div class="meta-item">
+                <i class="fas fa-language"></i>
+                <strong>Detected:</strong>
+                {{ api_response_details.language_info.detected_language | title }}
+            </div>
+            {% endif %}
+
+            {% if api_response_details.empathy_applied %}
+            <div class="meta-item">
+                <i class="fas fa-heart"></i>
+                Empathy applied
+            </div>
+            {% endif %}
+
+            {% if api_response_details.current_time %}
+            <div class="meta-item" style="margin-left:auto;">
+                <i class="fas fa-clock"></i>
+                {{ api_response_details.current_time }}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endif %}
+
+    <!-- ── Topic chips (shown when no response yet) ─────────────────── -->
+    {% if not response_data %}
+    <div class="topic-chips">
+        <div class="topic-chips-label">Try asking about</div>
+        <div class="chips-row">
+            <span class="chip" data-query="What do I need to get a student pass in Kenya?">
+                <i class="fas fa-passport"></i> Student pass
+            </span>
+            <span class="chip" data-query="How do I register for SHA health insurance as an international student?">
+                <i class="fas fa-heartbeat"></i> Health insurance
+            </span>
+            <span class="chip" data-query="What are safe and affordable neighbourhoods for students in Nairobi?">
+                <i class="fas fa-home"></i> Housing
+            </span>
+            <span class="chip" data-query="How do I open a bank account in Kenya as a foreign student?">
+                <i class="fas fa-university"></i> Banking
+            </span>
+            <span class="chip" data-query="How do I get a KRA PIN number?">
+                <i class="fas fa-file-alt"></i> KRA PIN
+            </span>
+            <span class="chip" data-query="How do I use public transport (matatu) in Nairobi?">
+                <i class="fas fa-bus"></i> Transport
+            </span>
+            <span class="chip" data-query="What is the cost of living for a student in Nairobi?">
+                <i class="fas fa-wallet"></i> Cost of living
+            </span>
+            <span class="chip" data-query="What is smocha?">
+                <i class="fas fa-utensils"></i> Local food
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+
+<!-- Raw response text passed to JS for markdown rendering -->
+{% if response_data %}
+<script id="responseRawData" type="application/json">
+{{ response_data | tojson }}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Restore style preference from localStorage ─────────────────────
+    const STYLE_KEY = 'settlebot_response_style';
+    const savedStyle = localStorage.getItem(STYLE_KEY);
+
+    // Only apply from localStorage if the server didn't already set one
+    // (server-set value comes from the POST, which takes priority)
+    const serverSetStyle = document.querySelector('input[name="response_style"]:checked')?.value;
+    const hasServerPost = {{ 'true' if query else 'false' }};
+
+    if (!hasServerPost && savedStyle) {
+        const radio = document.getElementById('style-' + savedStyle);
+        if (radio) {
+            document.querySelectorAll('input[name="response_style"]').forEach(r => r.checked = false);
+            radio.checked = true;
+        }
+    }
+
+    // Save style preference whenever it changes
+    document.querySelectorAll('input[name="response_style"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            localStorage.setItem(STYLE_KEY, this.value);
+        });
+    });
+
+    // ── Character counter ──────────────────────────────────────────────
+    const textarea = document.getElementById('queryInput');
+    const counter  = document.getElementById('charCount');
+
+    function updateCounter() {
+        const len = textarea.value.length;
+        counter.textContent = len + ' / 2000';
+        counter.style.color = len > 1800 ? 'var(--error)' : 'var(--gray-400)';
+    }
+
+    if (textarea) {
+        textarea.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+
+    // ── Submit loading state ───────────────────────────────────────────
+    const form      = document.getElementById('queryForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function () {
+            // Save style before submit
+            const checked = document.querySelector('input[name="response_style"]:checked');
+            if (checked) localStorage.setItem(STYLE_KEY, checked.value);
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking…';
+        });
+    }
+
+    // ── Topic chips ────────────────────────────────────────────────────
+    document.querySelectorAll('.chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const q = this.dataset.query;
+            if (textarea && q) {
+                textarea.value = q;
+                updateCounter();
+                textarea.focus();
+                textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    });
+
+    // ── Markdown rendering ─────────────────────────────────────────────
+    const rawDataEl = document.getElementById('responseRawData');
+    const outputEl  = document.getElementById('markdownOutput');
+
+    if (rawDataEl && outputEl && typeof marked !== 'undefined') {
+        const rawText = JSON.parse(rawDataEl.textContent);
+
+        // Configure marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+
+        // Render markdown
+        outputEl.innerHTML = marked.parse(rawText);
+
+        // Style the ## SOURCES section separately
+        outputEl.querySelectorAll('h2').forEach(function (h2) {
+            const text = h2.textContent.trim().toUpperCase();
+            if (text === 'SOURCES') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'sources-section';
+                let next = h2.nextSibling;
+                while (next) {
+                    const toMove = next;
+                    next = next.nextSibling;
+                    wrapper.appendChild(toMove);
+                }
+                h2.replaceWith(wrapper);
+            }
+        });
+
+        // Scroll response into view
+        const card = document.getElementById('responseCard');
+        if (card) {
+            setTimeout(function () {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }
+
+})();
+</script>
+{% endblock %}
