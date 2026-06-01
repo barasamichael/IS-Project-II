@@ -1,7 +1,6 @@
 import flask
 import flask_login
 import flask_moment
-import flask_mailman
 import flask_sqlalchemy
 from flask_minify import minify
 from flask_caching import Cache
@@ -26,7 +25,6 @@ def load_user(user_id):
 
 
 csrf = CSRFProtect()
-mail = flask_mailman.Mail()
 moment = flask_moment.Moment()
 db = flask_sqlalchemy.SQLAlchemy()
 cache = Cache()
@@ -49,7 +47,6 @@ def create_app(config_name="default"):
     db.init_app(app)
     csrf.init_app(app)
     cache.init_app(app)
-    mail.init_app(app)
     moment.init_app(app)
     login_manager.init_app(app)
 

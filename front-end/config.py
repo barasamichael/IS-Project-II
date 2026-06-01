@@ -31,22 +31,23 @@ class Config:
     UPLOAD_EXTENSIONS = [".jpg", ".gif", ".jpeg", ".png", ".webp"]
     DELETED_ACCOUNTS_FILE = os.path.join(basedir + "/deleted_accounts.json")
 
-    # Mail connection configuration options
-    MAIL_BACKEND = "smtp"
-    MAIL_SERVER = "smtp.zoho.com"
-    MAIL_PORT = 465
-    MAIL_USE_TLS = False
-    MAIL_USE_SSL = True
-    MAIL_TIMEOUT = None
+    # Zoho Mail API — OAuth credentials
+    ZOHO_CLIENT_ID = os.environ.get("ZOHO_CLIENT_ID")
+    ZOHO_CLIENT_SECRET = os.environ.get("ZOHO_CLIENT_SECRET")
+    ZOHO_REFRESH_TOKEN = os.environ.get("ZOHO_REFRESH_TOKEN")
+    ZOHO_ACCOUNT_ID = os.environ.get("ZOHO_ACCOUNT_ID")
 
-    # Mail Credentials Settings
-    MAIL_DEFAULT_SENDER = os.environ.get(
-        "MAIL_DEFAULT_SENDER", "SettleBot <info@jisortublow.co.ke>"
+    # Zoho Mail API — sending identity
+    ZOHO_FROM_ADDRESS = os.environ.get("ZOHO_FROM_ADDRESS")
+
+    # Zoho Mail API — base URLs (override for non-EU data centres)
+    ZOHO_ACCOUNTS_BASE = os.environ.get(
+        "ZOHO_ACCOUNTS_BASE", "https://accounts.zoho.com"
     )
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "info@jisortublow.co.ke")
-    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "5bFip_nx")
+    ZOHO_MAIL_BASE = os.environ.get("ZOHO_MAIL_BASE", "https://mail.zoho.com")
+    ZOHO_HTTP_TIMEOUT = int(os.environ.get("ZOHO_HTTP_TIMEOUT", "20"))
 
-    # Administrator Mail Settings
+    # Administrator notifications
     ADMINISTRATOR_SENDER = "Administrator <mkuu@jisortublow.co.ke>"
     ADMINISTRATOR_MAIL = os.environ.get(
         "ADMINISTRATOR_MAIL", "mkuu@jisortublow.co.ke"
