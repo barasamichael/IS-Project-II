@@ -4,6 +4,10 @@ import logging
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 import openai
 from tenacity import retry
@@ -27,53 +31,76 @@ class LanguageProcessor:
     Uses OpenAI for both detection and translation - more reliable and context-aware.
     """
 
-    def __init__(self):
+    def __init__(self, locale: Optional["LocaleConfig"] = None):
+        """
+        Initialise LanguageProcessor, deriving supported_languages from YAML config.
+        :param locale: Optional[LocaleConfig] - Active locale; used to build
+            country-language mapping and populate translation preservation terms.
+        """
+        self.locale = locale
         self.openai_client = openai.OpenAI()
 
-        # Supported languages for international students
-        self.supported_languages = {
-            "en": "english",
-            "es": "spanish",
-            "fr": "french",
-            "pt": "portuguese",
-            "it": "italian",
-            "de": "german",
-            "ru": "russian",
-            "zh": "chinese",
-            "ja": "japanese",
-            "ko": "korean",
-            "hi": "hindi",
-            "ar": "arabic",
-            "sw": "swahili",
-            "am": "amharic",
-            "so": "somali",
-            "ha": "hausa",
-            "yo": "yoruba",
-            "ig": "igbo",
-            "zu": "zulu",
-            "xh": "xhosa",
-            "af": "afrikaans",
-            "ny": "chewa",
-            "st": "sesotho",
-            "tn": "setswana",
+        # Map from language name (as it appears in config YAML) to ISO 639-1 code.
+        # YAML is the source of truth; this dict maps names → codes.
+        _name_to_code: Dict[str, str] = {
+            "english": "en",
+            "spanish": "es",
+            "french": "fr",
+            "portuguese": "pt",
+            "italian": "it",
+            "german": "de",
+            "russian": "ru",
+            "chinese": "zh",
+            "japanese": "ja",
+            "korean": "ko",
+            "hindi": "hi",
+            "arabic": "ar",
+            "swahili": "sw",
+            "amharic": "am",
+            "tigrinya": "ti",
+            "oromo": "om",
+            "kinyarwanda": "rw",
+            "kirundi": "rn",
+            "luganda": "lg",
+            "kikuyu": "ki",
+            "luo": "luo",
+            "somali": "so",
+            "hausa": "ha",
+            "yoruba": "yo",
+            "igbo": "ig",
+            "twi": "tw",
+            "akan": "ak",
+            "fulani": "ff",
+            "berber": "ber",
+            "afrikaans": "af",
+            "zulu": "zu",
+            "xhosa": "xh",
+            "sesotho": "st",
+            "setswana": "tn",
+            "venda": "ve",
+            "tsonga": "ts",
+            "siswati": "ss",
+            "ndebele": "nr",
+            "chewa": "ny",
+            "lingala": "ln",
+            "kikongo": "kg",
+            "luba": "lu",
         }
 
-        # Country-language mapping for context
-        self.country_languages = {
-            "kenya": ["sw", "en"],
-            "uganda": ["en", "sw"],
-            "tanzania": ["sw", "en"],
-            "rwanda": ["fr", "en"],
-            "burundi": ["fr", "en"],
-            "somalia": ["so", "ar", "en"],
-            "ethiopia": ["am", "en"],
-            "sudan": ["ar", "en"],
-            "nigeria": ["en", "ha", "yo", "ig"],
-            "ghana": ["en"],
-            "south_africa": ["en", "af", "zu", "xh"],
-            "malawi": ["en", "ny"],
-            "congo": ["fr"],
-        }
+        # Build supported_languages from YAML config; fall back to the full dict
+        yaml_languages: List[str] = settings.language.supported_languages or []
+        self.supported_languages: Dict[str, str] = {}
+        for lang_name in yaml_languages:
+            code = _name_to_code.get(lang_name.lower())
+            if code:
+                self.supported_languages[code] = lang_name.lower()
+        # Always ensure English is present as a fallback
+        self.supported_languages.setdefault("en", "english")
+
+        # Country-language mapping derived from locale when available
+        self.country_languages: Dict[str, List[str]] = {}
+        if locale is not None:
+            self.country_languages[locale.country.lower()] = locale.primary_languages
 
         self.primary_language = settings.language.primary_language
         self.detection_enabled = settings.language.detection_enabled
@@ -161,17 +188,27 @@ class LanguageProcessor:
         Returns:
             Dictionary with detection and translation results
         """
-        prompt = f"""Analyze this query from an international student about settlement in Nairobi, Kenya.
+        city = self.locale.city if self.locale is not None else "the city"
+        country = self.locale.country if self.locale is not None else "the country"
+        currency = (
+            self.locale.currency_symbol if self.locale is not None else "local currency"
+        )
+        neighborhoods_hint = (
+            ", ".join(self.locale.key_neighborhoods[:5])
+            if self.locale is not None
+            else "local neighbourhoods"
+        )
+        prompt = f"""Analyze this query from an international student about settlement in {city}, {country}.
 
 Query: "{query}"
 
 Tasks:
 1. Detect the language
 2. If not English, translate to English while preserving settlement context
-3. Keep ALL location names unchanged (Westlands, Kilimani, Karen, Lavington, etc.)
-4. Keep ALL institution names unchanged (University of Nairobi, Strathmore, JKUAT, USIU, etc.)
-5. Keep currency references as "KSh"
-6. Keep transport terms unchanged (matatu, boda boda)
+3. Keep ALL location names unchanged ({neighborhoods_hint}, etc.)
+4. Keep ALL institution names unchanged (local universities, colleges, etc.)
+5. Keep currency references as "{currency}"
+6. Keep local transport terms unchanged
 7. Preserve the student's intent and urgency level
 
 Respond with JSON only:
@@ -187,7 +224,7 @@ Respond with JSON only:
         messages = [
             {
                 "role": "system",
-                "content": "You are an expert language processor specializing in international student settlement queries for Nairobi, Kenya. Provide accurate language detection and context-preserving translation.",
+                "content": f"You are an expert language processor specialising in international student settlement queries for {city}, {country}. Provide accurate language detection and context-preserving translation.",
             },
             {"role": "user", "content": prompt},
         ]
@@ -265,17 +302,29 @@ Respond with JSON only:
         try:
             language_name = self.supported_languages.get(target_code, target_language)
 
-            prompt = f"""Translate this settlement response for international students in Nairobi to {language_name}.
+            _city = self.locale.city if self.locale is not None else "the city"
+            _country = self.locale.country if self.locale is not None else "the country"
+            _currency = (
+                self.locale.currency_symbol
+                if self.locale is not None
+                else "local currency"
+            )
+            _neighborhoods = (
+                ", ".join(self.locale.key_neighborhoods[:6])
+                if self.locale is not None
+                else "local neighbourhoods"
+            )
+            prompt = f"""Translate this settlement response for international students in {_city} to {language_name}.
 
 English response: "{text}"
 
 CRITICAL TRANSLATION RULES:
-1. Preserve ALL location names exactly: Westlands, Kilimani, Karen, Lavington, Kileleshwa, Parklands, Hurlingham, etc.
-2. Keep ALL institution names unchanged: University of Nairobi, Strathmore University, JKUAT, USIU, Kenyatta University, etc.
-3. Keep currency as "KSh" (do not translate)
-4. Keep transport terms: matatu, boda boda, M-Pesa (do not translate)
+1. Preserve ALL location names exactly: {_neighborhoods}, etc.
+2. Keep ALL institution names unchanged (local universities, colleges, government offices, etc.)
+3. Keep currency as "{_currency}" (do not translate)
+4. Keep local transport terms unchanged (do not translate)
 5. Preserve all contact numbers and addresses exactly
-6. Keep emergency numbers: 999, +254 numbers
+6. Keep emergency numbers exactly as written
 7. Maintain helpful, supportive tone for students
 8. Keep technical visa/permit terminology
 9. Preserve the three-section structure (## DIRECT ANSWER, ## ADDITIONAL INFORMATION, ## NEXT STEPS)
@@ -287,7 +336,7 @@ Translate to {language_name}:"""
                 messages=[
                     {
                         "role": "system",
-                        "content": f"You are an expert translator for international student settlement information in Nairobi, Kenya. Translate to {language_name} while preserving ALL crucial settlement details, location names, and institutional information exactly.",
+                        "content": f"You are an expert translator for international student settlement information in {_city}, {_country}. Translate to {language_name} while preserving ALL crucial settlement details, location names, and institutional information exactly.",
                     },
                     {"role": "user", "content": prompt},
                 ],
@@ -327,29 +376,12 @@ Translate to {language_name}:"""
             # Length ratio check
             length_ratio = len(translated) / len(original) if original else 0
 
-            # Critical settlement terms that must be preserved
-            critical_terms = [
-                "Nairobi",
-                "Westlands",
-                "Kilimani",
-                "Karen",
-                "Lavington",
-                "Kileleshwa",
-                "Parklands",
-                "Hurlingham",
-                "Riverside",
-                "University of Nairobi",
-                "Strathmore",
-                "JKUAT",
-                "USIU",
-                "KSh",
-                "matatu",
-                "boda boda",
-                "M-Pesa",
-                "999",
-                "Immigration",
-                "Nyayo House",
-            ]
+            # Critical settlement terms that must be preserved — derived from locale
+            critical_terms: List[str] = ["999", "Immigration"]
+            if self.locale is not None:
+                critical_terms.append(self.locale.city)
+                critical_terms.append(self.locale.currency_symbol)
+                critical_terms.extend(self.locale.key_neighborhoods)
 
             # Count preserved terms
             preserved_count = 0
@@ -454,25 +486,35 @@ Translate to {language_name}:"""
         return [self.supported_languages.get(code, code) for code in lang_codes]
 
     def detect_country_context(self, query: str) -> Optional[str]:
-        """Detect country context from query for language prioritization."""
-        country_indicators = {
-            "kenya": ["kenya", "nairobi", "mombasa", "kisumu", "nakuru"],
+        """
+        Detect country context from query for language prioritisation.
+        The active locale country is checked first; other countries use generic indicators.
+        :param query: str - The user query string.
+        :return: Optional[str] - Lowercase country key, or None if undetected.
+        """
+        query_lower = query.lower()
+
+        # Check active locale country first using city and country from locale
+        if self.locale is not None:
+            locale_indicators = [
+                self.locale.city.lower(),
+                self.locale.country.lower(),
+            ] + [n.lower() for n in self.locale.key_neighborhoods[:3]]
+            if any(ind in query_lower for ind in locale_indicators):
+                return self.locale.country.lower()
+
+        # Generic non-locale country detection (no locale-specific strings)
+        generic_indicators = {
             "uganda": ["uganda", "kampala", "entebbe"],
             "tanzania": ["tanzania", "dar es salaam", "dodoma", "arusha"],
-            "somalia": ["somalia", "mogadishu", "somali"],
-            "ethiopia": ["ethiopia", "addis ababa", "ethiopian"],
-            "nigeria": ["nigeria", "lagos", "abuja", "nigerian"],
-            "ghana": ["ghana", "accra", "ghanaian"],
-            "south_africa": [
-                "south africa",
-                "johannesburg",
-                "cape town",
-                "durban",
-            ],
+            "somalia": ["somalia", "mogadishu"],
+            "ethiopia": ["ethiopia", "addis ababa"],
+            "nigeria": ["nigeria", "lagos", "abuja"],
+            "ghana": ["ghana", "accra"],
+            "south_africa": ["south africa", "johannesburg", "cape town"],
         }
 
-        query_lower = query.lower()
-        for country, indicators in country_indicators.items():
+        for country, indicators in generic_indicators.items():
             if any(indicator in query_lower for indicator in indicators):
                 return country
 

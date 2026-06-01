@@ -8,6 +8,10 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 from config.constants import PHONE_RE
 from utilities.factcheck import normalise_phone
@@ -45,10 +49,22 @@ class InternationalStudentRAGEvaluator:
         vector_db_service: Optional[VectorDBService] = None,
         intent_recognizer: Optional[IntentRecognizer] = None,
         response_generator: Optional[ResponseGenerator] = None,
+        locale: Optional["LocaleConfig"] = None,
     ):
+        """
+        Initialise the evaluator with injected services and optional locale config.
+        :param vector_db_service: Optional[VectorDBService] - Vector search service.
+        :param intent_recognizer: Optional[IntentRecognizer] - Intent classifier.
+        :param response_generator: Optional[ResponseGenerator] - Response generator.
+        :param locale: Optional[LocaleConfig] - Active locale; used to build
+            location-specific evaluation terms.
+        """
+        self.locale = locale
         self.vector_db_service = vector_db_service or VectorDBService()
         self.intent_recognizer = intent_recognizer or IntentRecognizer()
-        self.response_generator = response_generator or ResponseGenerator()
+        self.response_generator = response_generator or ResponseGenerator(
+            fact_store=None
+        )
 
         self.eval_dir = ROOT_DIR / "tests" / "eval_data"
         if not self.eval_dir.exists():
@@ -90,9 +106,9 @@ class InternationalStudentRAGEvaluator:
                 "expected_intent": "housing_inquiry",
                 "expected_topic": "housing",
                 "expected_answer_contains": [
-                    "Kilimani",
-                    "Kileleshwa",
-                    "Westlands",
+                    "neighbourhood",
+                    "area",
+                    "location",
                     "safe",
                     "affordable",
                     "students",
@@ -107,9 +123,9 @@ class InternationalStudentRAGEvaluator:
                 "expected_intent": "cost_inquiry",
                 "expected_topic": "housing",
                 "expected_answer_contains": [
-                    "KES",
+                    "currency",
                     "rent",
-                    "Kilimani",
+                    "neighbourhood",
                     "bedroom",
                     "cost",
                 ],
@@ -172,7 +188,7 @@ class InternationalStudentRAGEvaluator:
                 "expected_intent": "safety_concern",
                 "expected_topic": "safety",
                 "expected_answer_contains": [
-                    "Westlands",
+                    "location",
                     "night",
                     "safe",
                     "precautions",
@@ -207,7 +223,7 @@ class InternationalStudentRAGEvaluator:
                 "expected_answer_contains": [
                     "JKIA",
                     "airport",
-                    "Westlands",
+                    "location",
                     "taxi",
                     "uber",
                     "safe",
@@ -224,9 +240,9 @@ class InternationalStudentRAGEvaluator:
                 "expected_answer_contains": [
                     "cost",
                     "transport",
-                    "matatu",
+                    "transport",
                     "uber",
-                    "KES",
+                    "currency",
                 ],
                 "notes": "Should provide cost ranges for different transport modes",
                 "priority": "medium",
@@ -254,7 +270,7 @@ class InternationalStudentRAGEvaluator:
                 "expected_intent": "banking_finance",
                 "expected_topic": "finance",
                 "expected_answer_contains": [
-                    "M-Pesa",
+                    "mobile money",
                     "mobile money",
                     "Kenya",
                     "how to use",
@@ -389,7 +405,7 @@ class InternationalStudentRAGEvaluator:
                 "expected_intent": "housing_inquiry",
                 "expected_topic": "housing",
                 "expected_answer_contains": [
-                    "Karen",
+                    "residential",
                     "living",
                     "area",
                     "students",
@@ -758,19 +774,13 @@ class InternationalStudentRAGEvaluator:
             "tip",
         ]
 
-        # Location-specific indicators
-        location_terms = [
-            "nairobi",
-            "kenya",
-            "kilimani",
-            "westlands",
-            "karen",
-            "eastleigh",
-            "cbd",
-            "upperhill",
-            "parklands",
-            "kileleshwa",
-        ]
+        # Location-specific indicators — derived from locale when available
+        location_terms = (
+            [n.lower() for n in self.locale.key_neighborhoods]
+            + [self.locale.city.lower(), self.locale.country.lower()]
+            if self.locale is not None
+            else []
+        )
 
         score = 0.0
 

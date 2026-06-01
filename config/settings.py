@@ -1,7 +1,10 @@
 import os
 import yaml
 from pathlib import Path
+from typing import Any
+from typing import Optional
 from pydantic import BaseModel
+from pydantic import PrivateAttr
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -62,6 +65,12 @@ class APIConfig(BaseModel):
 
 
 class Settings(BaseModel):
+    """
+    Validated application settings loaded from config/config.yaml and environment
+    variables. The locale property is lazily loaded on first access from the
+    SETTLEBOT_LOCALE environment variable.
+    """
+
     environment: str
     llm: LLMConfig
     embedding: EmbeddingConfig
@@ -72,11 +81,36 @@ class Settings(BaseModel):
     api: APIConfig
     ssl: SSLConfig
 
+    _locale: Optional[Any] = PrivateAttr(default=None)
+
     @classmethod
     def from_yaml(cls, file_path: Path) -> "Settings":
+        """
+        Load Settings from a YAML configuration file.
+        :param file_path: Path - Path to the YAML config file.
+        :return: Settings - Validated settings instance.
+        """
         with open(file_path, "r") as file:
             config_dict = yaml.safe_load(file)
         return cls.parse_obj(config_dict)
+
+    @property
+    def locale(self) -> Optional[Any]:
+        """
+        Lazily loaded LocaleConfig for the active deployment.
+        Reads SETTLEBOT_LOCALE and loads config/locale/{locale_name}_config.json
+        on first access. Returns None when SETTLEBOT_LOCALE is not set; services
+        operate without locale injection in that case.
+        :return: Optional[LocaleConfig] - Active locale configuration, or None.
+        """
+        if self._locale is None:
+            locale_name = os.getenv("SETTLEBOT_LOCALE")
+            if not locale_name:
+                return None
+            from config.locale import LocaleConfig  # lazy import to avoid circular
+
+            object.__setattr__(self, "_locale", LocaleConfig.from_file(locale_name))
+        return self._locale
 
 
 # Initialize settings from YAML config file

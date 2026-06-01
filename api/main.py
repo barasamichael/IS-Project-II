@@ -127,14 +127,17 @@ API_KEY_NAME = "Authorization"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 # Initialize services
-embedding_service = EmbeddingService()
-vector_db_service = VectorDBService(embedding_service=embedding_service)
-intent_recognizer = IntentRecognizer()
-language_processor = LanguageProcessor()
-fact_store = load_fact_store(os.getenv("SETTLEBOT_LOCALE", "nairobi"))
-response_generator = ResponseGenerator(fact_store=fact_store)
+_locale = settings.locale
+embedding_service = EmbeddingService(locale=_locale)
+vector_db_service = VectorDBService(embedding_service=embedding_service, locale=_locale)
+intent_recognizer = IntentRecognizer(locale=_locale)
+language_processor = LanguageProcessor(locale=_locale)
+_settlebot_locale = os.getenv("SETTLEBOT_LOCALE")
+fact_store = load_fact_store(_settlebot_locale) if _settlebot_locale else None
+response_generator = ResponseGenerator(fact_store=fact_store, locale=_locale)
 document_processor = DocumentProcessor(
     embedding_service=embedding_service,
+    locale=_locale,
     enable_deduplication=settings.deduplication.enabled,
     similarity_threshold=settings.deduplication.similarity_threshold,
 )
@@ -143,7 +146,9 @@ evaluator = InternationalStudentRAGEvaluator(
     intent_recognizer=intent_recognizer,
     response_generator=response_generator,
 )
-semantic_chunker = SemanticChunker(strategy=ChunkingStrategy(settings.chunking.strategy))
+semantic_chunker = SemanticChunker(
+    strategy=ChunkingStrategy(settings.chunking.strategy), locale=_locale
+)
 
 # Upload directory
 UPLOAD_DIR = Path("./uploads")
@@ -1914,11 +1919,9 @@ async def get_settlement_topics():
             ],
             "transportation": [
                 "transport",
-                "matatu",
                 "bus",
                 "taxi",
                 "uber",
-                "boda",
             ],
             "education": [
                 "university",
@@ -1939,18 +1942,7 @@ async def get_settlement_topics():
             ],
             "culture": ["culture", "language", "food", "custom", "tradition"],
         },
-        "nairobi_locations": [
-            "Westlands",
-            "Kilimani",
-            "Karen",
-            "Lavington",
-            "Kileleshwa",
-            "Parklands",
-            "Hurlingham",
-            "Riverside",
-            "CBD",
-            "Eastleigh",
-        ],
+        "locale_locations": _locale.key_neighborhoods if _locale else [],
         "universities": [
             "University of Nairobi",
             "Strathmore University",
@@ -2150,8 +2142,14 @@ async def update_fact_store(
     :return: Dict[str, Any] - Success confirmation.
     """
     global fact_store
-    locale_name = os.getenv("SETTLEBOT_LOCALE", "nairobi")
-    locale_file = ROOT_DIR / "config" / "locale" / f"{locale_name}.json"
+    locale_name = os.getenv("SETTLEBOT_LOCALE")
+    locale_file = (
+        ROOT_DIR / "config" / "locale" / f"{locale_name}.json" if locale_name else None
+    )
+    if locale_file is None:
+        raise HTTPException(
+            status_code=400, detail="SETTLEBOT_LOCALE environment variable not set"
+        )
     try:
         import json as _json
 

@@ -8,6 +8,10 @@ from typing import Dict
 from typing import List
 from typing import Union
 from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 import numpy as np
 from tqdm import tqdm
@@ -39,6 +43,7 @@ class EmbeddingService:
         chunks_dir: Optional[Union[str, Path]] = None,
         embeddings_dir: Optional[Union[str, Path]] = None,
         dedup_dir: Optional[Union[str, Path]] = None,
+        locale: Optional["LocaleConfig"] = None,
     ):
         # Initialize OpenAI client
         api_key = os.getenv("OPENAI_API_KEY")
@@ -78,11 +83,12 @@ class EmbeddingService:
             maxsize=EMBEDDING_LRU_CACHE_SIZE
         )
 
-        # Settlement-specific optimization
-        self.settlement_keywords = [
+        self.locale = locale
+
+        # Settlement-specific optimisation keywords — locale-specific terms
+        # added when a LocaleConfig is supplied.
+        base_keywords = [
             "international student",
-            "nairobi",
-            "kenya",
             "accommodation",
             "housing",
             "university",
@@ -95,6 +101,9 @@ class EmbeddingService:
             "bank",
             "hospital",
         ]
+        if locale is not None:
+            base_keywords += [locale.city.lower(), locale.country.lower()]
+        self.settlement_keywords = base_keywords
 
         logger.info(f"EmbeddingService initialized with model: {self.model_name}")
 
@@ -231,10 +240,12 @@ class EmbeddingService:
         # Add settlement context markers for better embedding
         optimized_text = text
 
-        # Enhance location context
-        for location in ["Westlands", "Kilimani", "Karen", "Lavington"]:
+        # Enhance location context using locale-specific neighbourhoods
+        neighborhoods = self.locale.key_neighborhoods if self.locale else []
+        city_prefix = self.locale.city if self.locale else ""
+        for location in neighborhoods:
             if location in text:
-                optimized_text = f"Nairobi {location} area: " + optimized_text
+                optimized_text = f"{city_prefix} {location} area: " + optimized_text
                 break
 
         # Enhance settlement topic context
@@ -358,17 +369,26 @@ class EmbeddingService:
     def _optimize_query_for_embedding(self, query: str) -> str:
         """Optimize query for better settlement content matching."""
         # Add implicit settlement context if not present
+        city = self.locale.city if self.locale else ""
+        country = self.locale.country if self.locale else ""
         settlement_indicators = [
-            "nairobi",
-            "kenya",
+            city.lower(),
+            country.lower(),
             "student",
             "international",
             "university",
         ]
 
-        if not any(indicator in query.lower() for indicator in settlement_indicators):
-            # Add settlement context
-            return f"International student in Nairobi Kenya: {query}"
+        if not any(
+            indicator in query.lower()
+            for indicator in settlement_indicators
+            if indicator
+        ):
+            # Add settlement context prefix using locale values when available
+            if city and country:
+                return f"International student in {city} {country}: {query}"
+
+        return query
 
         return query
 

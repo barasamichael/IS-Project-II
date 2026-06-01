@@ -13,6 +13,7 @@ from typing import Optional
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from config.locale import LocaleConfig
     from services.vector_db import VectorDBService
 from datetime import datetime
 from dataclasses import dataclass
@@ -112,6 +113,7 @@ class DocumentProcessor:
         dedup_dir: Optional[Union[str, Path]] = None,
         embedding_service: Optional[EmbeddingService] = None,
         vector_db_service: Optional["VectorDBService"] = None,
+        locale: Optional["LocaleConfig"] = None,
         enable_deduplication: bool = True,
         similarity_threshold: float = 0.92,
         pdf_loader_strategy: str = "auto",
@@ -136,6 +138,7 @@ class DocumentProcessor:
             dir_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize services
+        self.locale = locale
         self.semantic_chunker = SemanticChunker()
         self.embedding_service = embedding_service or EmbeddingService()
         self.vector_db_service = vector_db_service
@@ -159,66 +162,27 @@ class DocumentProcessor:
 
     def _initialize_settlement_processors(self):
         """Initialize settlement-specific content processors."""
-        # Nairobi location patterns
+        # Location patterns derived from locale when available
+        neighborhoods = self.locale.key_neighborhoods if self.locale is not None else []
         self.nairobi_locations = {
-            "neighborhoods": [
-                "Westlands",
-                "Kilimani",
-                "Karen",
-                "Lavington",
-                "Kileleshwa",
-                "Parklands",
-                "Hurlingham",
-                "Riverside",
-                "Runda",
-                "Muthaiga",
-                "Gigiri",
-                "Spring Valley",
-                "Loresho",
-                "Kitisuru",
-                "Rosslyn",
-                "Kabete",
-                "Langata",
-                "Ngong",
-                "Kasarani",
-                "Ruiru",
-            ],
-            "universities": [
-                "University of Nairobi",
-                "Kenyatta University",
-                "JKUAT",
-                "Strathmore University",
-                "USIU",
-                "Daystar University",
-                "Catholic University",
-                "Kenya Methodist University",
-                "Multimedia University",
-                "Technical University of Kenya",
-            ],
-            "landmarks": [
-                "KICC",
-                "Uhuru Park",
-                "Nairobi National Park",
-                "City Market",
-                "Sarit Centre",
-                "Westgate Mall",
-                "Junction Mall",
-                "Village Market",
-                "Two Rivers Mall",
-                "Garden City Mall",
-                "Yaya Centre",
-            ],
+            "neighborhoods": neighborhoods,
+            "universities": [],
+            "landmarks": [],
         }
 
-        # Cost pattern recognition
+        # Cost pattern recognition — currency patterns come from locale
+        sym = self.locale.currency_symbol if self.locale is not None else ""
+        code = self.locale.currency_code if self.locale is not None else ""
         self.cost_patterns = [
-            r"KSh?\s*[\d,]+(?:\.\d{2})?",  # Kenyan Shilling amounts
             r"USD?\s*[\d,]+(?:\.\d{2})?",  # US Dollar amounts
-            r"[\d,]+\s*(?:shilling|bob|KES)",  # Alternative currency formats
-            r"rent.*?KSh?\s*[\d,]+",  # Rent costs
-            r"deposit.*?KSh?\s*[\d,]+",  # Deposit amounts
-            r"fee.*?KSh?\s*[\d,]+",  # Fee amounts
         ]
+        if sym:
+            self.cost_patterns.insert(0, rf"{re.escape(sym)}\s*[\d,]+(?:\.\d{{2}})?")
+            self.cost_patterns.append(rf"rent.*?{re.escape(sym)}\s*[\d,]+")
+            self.cost_patterns.append(rf"deposit.*?{re.escape(sym)}\s*[\d,]+")
+            self.cost_patterns.append(rf"fee.*?{re.escape(sym)}\s*[\d,]+")
+        if code:
+            self.cost_patterns.append(rf"[\d,]+\s*(?:shilling|bob|{re.escape(code)})")
 
         # Settlement topics
         self.settlement_topics = {
@@ -512,10 +476,12 @@ class DocumentProcessor:
                 pattern = re.compile(re.escape(location), re.IGNORECASE)
                 text = pattern.sub(location, text)
 
-        # Normalize currency mentions
-        text = re.sub(r"Kenya\s+Shilling", "KSh", text, flags=re.IGNORECASE)
-        text = re.sub(r"Kenyan\s+Shilling", "KSh", text, flags=re.IGNORECASE)
-        text = re.sub(r"\bKES\b", "KSh", text)
+        # Normalize currency mentions to the locale symbol
+        if self.locale is not None:
+            sym = self.locale.currency_symbol
+            code = self.locale.currency_code
+            text = re.sub(r"\w+\s+Shilling", sym, text, flags=re.IGNORECASE)
+            text = re.sub(rf"\b{re.escape(code)}\b", sym, text)
 
         # Clean up contact information formatting
         text = re.sub(r"\+254\s*(\d)", r"+254-\1", text)
@@ -648,11 +614,9 @@ class DocumentProcessor:
         text_lower = text.lower()
         score = 0.0
 
-        # High-value settlement keywords
+        # High-value settlement keywords — locale city/country added dynamically
         high_value_keywords = {
             "international student": 3.0,
-            "nairobi": 2.5,
-            "kenya": 2.0,
             "accommodation": 2.5,
             "housing": 2.0,
             "university": 2.0,
@@ -660,6 +624,9 @@ class DocumentProcessor:
             "immigration": 2.5,
             "cost of living": 2.5,
         }
+        if self.locale is not None:
+            high_value_keywords[self.locale.city.lower()] = 2.5
+            high_value_keywords[self.locale.country.lower()] = 2.0
 
         # Medium-value keywords
         medium_value_keywords = {
@@ -995,8 +962,6 @@ class DocumentProcessor:
             "international student",
             "student accommodation",
             "housing",
-            "nairobi",
-            "kenya",
             "visa",
             "immigration",
             "university",
@@ -1013,32 +978,21 @@ class DocumentProcessor:
             "expat",
             "foreign student",
         ]
+        if self.locale is not None:
+            settlement_keywords += [
+                self.locale.city.lower(),
+                self.locale.country.lower(),
+            ]
 
-        # Location-specific keywords for Nairobi
-        nairobi_keywords = [
-            "westlands",
-            "kilimani",
-            "karen",
-            "lavington",
-            "kileleshwa",
-            "parklands",
-            "cbd",
-            "uhuru park",
-            "city market",
-            "matatu",
-            "boda boda",
-            "mpesa",
-        ]
+        # Location-specific keywords from locale neighbourhoods
+        locale_keywords = (
+            [n.lower() for n in self.locale.key_neighborhoods]
+            if self.locale is not None
+            else []
+        )
 
-        # Education-specific keywords
+        # Generic education keywords (institution names come from locale fact store)
         education_keywords = [
-            "university of nairobi",
-            "kenyatta university",
-            "strathmore",
-            "usiu",
-            "jkuat",
-            "daystar",
-            "catholic university",
             "admission",
             "enrollment",
             "academic",
@@ -1048,7 +1002,7 @@ class DocumentProcessor:
             "diploma",
         ]
 
-        all_keywords = settlement_keywords + nairobi_keywords + education_keywords
+        all_keywords = settlement_keywords + locale_keywords + education_keywords
 
         # Count keyword matches
         matches = sum(1 for keyword in all_keywords if keyword in text_lower)
@@ -1065,11 +1019,7 @@ class DocumentProcessor:
             return True
         elif any(
             keyword in text_lower
-            for keyword in [
-                "international student",
-                "student accommodation",
-                "nairobi university",
-            ]
+            for keyword in ["international student", "student accommodation"]
         ):
             return True
 

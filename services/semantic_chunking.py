@@ -7,7 +7,12 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Optional
+from typing import TYPE_CHECKING
 from dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 import nltk
 from openai import OpenAI
@@ -80,6 +85,7 @@ class SemanticChunker:
         target_chunk_size: int = 512,
         overlap_size: int = 50,
         settlement_optimization: bool = True,
+        locale: Optional["LocaleConfig"] = None,
     ):
         # Initialize OpenAI client
         api_key = os.getenv("OPENAI_API_KEY")
@@ -95,6 +101,7 @@ class SemanticChunker:
         self.target_chunk_size = target_chunk_size
         self.overlap_size = overlap_size
         self.settlement_optimization = settlement_optimization
+        self.locale = locale
 
         # Settlement-specific patterns and topics
         self._initialize_settlement_patterns()
@@ -124,12 +131,10 @@ class SemanticChunker:
             ],
             "transportation": [
                 "transport",
-                "matatu",
                 "bus",
                 "taxi",
                 "uber",
                 "bolt",
-                "boda",
                 "motorcycle",
                 "public transport",
                 "route",
@@ -212,26 +217,10 @@ class SemanticChunker:
             ],
         }
 
-        self.nairobi_locations = [
-            "Westlands",
-            "Kilimani",
-            "Karen",
-            "Lavington",
-            "Kileleshwa",
-            "Parklands",
-            "Hurlingham",
-            "Riverside",
-            "Runda",
-            "Muthaiga",
-            "Gigiri",
-            "Spring Valley",
-            "CBD",
-            "Eastleigh",
-            "Kasarani",
-            "Ruiru",
-            "Ngong",
-            "Langata",
-        ]
+        # Neighbourhood list loaded from locale; empty when no locale injected
+        self.nairobi_locations = (
+            list(self.locale.key_neighborhoods) if self.locale is not None else []
+        )
 
         self.topic_transition_markers = [
             "however",
@@ -506,8 +495,10 @@ class SemanticChunker:
 
     def _analyze_text_with_llm(self, text: str) -> Dict[str, Any]:
         """Analyze text using LLM for settlement-specific insights."""
+        city = self.locale.city if self.locale is not None else "this city"
+        country = self.locale.country if self.locale is not None else "this country"
         prompt = f"""
-Analyze this text for international student settlement content in Nairobi, Kenya.
+Analyze this text for international student settlement content in {city}, {country}.
 
 Text: "{text[:2000]}..."
 
@@ -568,8 +559,9 @@ Only return the JSON, no explanations.
         boundaries = []
 
         for start_pos, segment in segments:
+            city = self.locale.city if self.locale is not None else "this city"
             prompt = f"""
-Identify topic transitions in this text about international student settlement in Nairobi.
+Identify topic transitions in this text about international student settlement in {city}.
 
 Text: "{segment}"
 
@@ -748,6 +740,7 @@ Only return the JSON, no explanations.
 
     def _analyze_chunk_with_llm(self, chunk_text: str) -> Dict[str, float]:
         """Analyze individual chunk with LLM."""
+        city = self.locale.city if self.locale is not None else "this city"
         prompt = f"""
 Analyze this settlement information chunk:
 
@@ -755,8 +748,8 @@ Text: "{chunk_text}"
 
 Rate on scale 0.0-1.0:
 - semantic_coherence: How well the text flows and connects
-- topic_coherence: How focused the text is on a single topic  
-- settlement_relevance: How useful this is for international students in Nairobi
+- topic_coherence: How focused the text is on a single topic
+- settlement_relevance: How useful this is for international students in {city}
 
 Respond with JSON:
 {{

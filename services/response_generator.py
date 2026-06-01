@@ -32,6 +32,7 @@ from config.constants import PHONE_RE
 from config.constants import TAVILY_CACHE_MAXSIZE
 from config.constants import TAVILY_CACHE_TTL
 from config.constants import WEB_SEARCH_CONFIDENCE_THRESHOLD
+from config.locale import LocaleConfig
 from config.locale import LocaleFactStore
 from config.settings import settings
 from services.intent_recognizer import IntentType
@@ -64,12 +65,21 @@ class ResponseGenerator:
     Uses gpt-4.1-mini throughout and Tavily search for current information.
     """
 
-    def __init__(self, fact_store: LocaleFactStore) -> None:
+    def __init__(
+        self,
+        fact_store: Optional[LocaleFactStore],
+        locale: Optional[LocaleConfig] = None,
+    ) -> None:
         """
         Initialise the response generator with a pre-loaded locale fact store.
-        :param fact_store: LocaleFactStore - Verified contact data for the active locale.
-            Must be loaded once at startup and passed in; never instantiated per-request.
+        :param fact_store: Optional[LocaleFactStore] - Verified contact data for the
+            active locale. May be None when SETTLEBOT_LOCALE is not configured;
+            fact-based grounding is degraded but the generator remains functional.
+        :param locale: Optional[LocaleConfig] - Locale configuration; drives city,
+            country, and timezone references. When None, UTC and generic placeholders
+            are used.
         """
+        self.locale = locale
         self.model = "gpt-4.1-mini"
         self.temperature = settings.llm.temperature
         self.max_tokens = settings.llm.max_tokens
@@ -135,39 +145,45 @@ class ResponseGenerator:
             ],
         }
 
-        # Standard off-topic response
-        self.off_topic_response = """## DIRECT ANSWER
-I'm specifically designed to help international students with settlement in Nairobi, Kenya. I don't have information about this topic as it falls outside my area of expertise.
+        # Standard off-topic response — locale-aware
+        _city = locale.city if locale is not None else "your city"
+        _country = locale.country if locale is not None else "your country"
+        self.off_topic_response = f"""## DIRECT ANSWER
+I'm specifically designed to help international students with settlement in {_city}, {_country}. I don't have information about this topic as it falls outside my area of expertise.
 
 ## ADDITIONAL INFORMATION
 I'm here to assist you with questions about:
 
-**Housing and Accommodation**: Finding safe, affordable places to live near universities, understanding rental processes, neighborhood recommendations
+**Housing and Accommodation**: Finding safe, affordable places to live near universities, understanding rental processes, neighbourhood recommendations
 
-**University Information**: Admission processes, academic requirements, campus facilities, student services for institutions like University of Nairobi, Strathmore, JKUAT, and USIU
+**University Information**: Admission processes, academic requirements, campus facilities, student services for universities in {_city}
 
 **Immigration and Legal**: Student visa applications, permit renewals, immigration office locations and procedures
 
-**Transportation**: Matatu routes, public transport, taxi services, getting around Nairobi safely and affordably
+**Transportation**: Public transport, taxi services, getting around {_city} safely and affordably
 
-**Safety and Security**: Neighborhood safety, personal security measures, emergency procedures, areas to avoid
+**Safety and Security**: Neighbourhood safety, personal security measures, emergency procedures, areas to avoid
 
-**Banking and Finance**: Opening bank accounts, using M-Pesa, money transfers, budgeting for student life
+**Banking and Finance**: Opening bank accounts, mobile money, transfers, budgeting for student life
 
 **Healthcare**: Finding medical services, health insurance options, hospitals and clinics that serve international patients
 
-**Cultural Adaptation**: Understanding Kenyan customs, making local connections, adapting to life in Nairobi
+**Cultural Adaptation**: Understanding local customs, making local connections, adapting to life in {_city}
 
 ## NEXT STEPS
-1. Ask me anything about settling in Nairobi as an international student - I have comprehensive information to help make your transition smooth
-2. If you have urgent settlement needs, I can prioritize the most critical information first
+1. Ask me anything about settling in {_city} as an international student — I have comprehensive information to help make your transition smooth
+2. If you have urgent settlement needs, I can prioritise the most critical information first
 3. Consider joining international student groups at your university for peer support and additional advice
 4. Feel free to ask follow-up questions to get more specific guidance on any settlement topic"""
 
-    def get_current_nairobi_time(self):
-        """Get current date and time in Nairobi (EAT - UTC+3)."""
-        nairobi_tz = pytz.timezone("Africa/Nairobi")
-        current_time = nairobi_tz.localize(datetime.now())
+    def get_current_nairobi_time(self) -> Tuple[str, str]:
+        """
+        Get current date and time in the active locale's timezone.
+        :return: Tuple[str, str] - (full formatted datetime string, HH:MM time string).
+        """
+        tz_name = self.locale.timezone if self.locale is not None else "UTC"
+        local_tz = pytz.timezone(tz_name)
+        current_time = local_tz.localize(datetime.now())
         formatted_time = current_time.strftime("%A, %B %d, %Y %H:%M")
         time_only = current_time.strftime("%H:%M")
         return formatted_time, time_only
@@ -360,41 +376,48 @@ I'm here to assist you with questions about:
             return None
 
     def _build_search_queries(self, query: str, intent_type: IntentType) -> List[str]:
-        """Build targeted search queries based on intent type."""
-        base_query = f"{query} Nairobi Kenya international students 2024"
+        """
+        Build targeted web search queries based on intent type using locale values.
+        :param query: str - The original user query.
+        :param intent_type: IntentType - Classified intent of the query.
+        :return: List[str] - Search queries to send to the Tavily client.
+        """
+        city = self.locale.city if self.locale is not None else "local city"
+        country = self.locale.country if self.locale is not None else "local country"
+        base_query = f"{query} {city} {country} international students 2024"
 
         intent_specific_queries = {
             IntentType.HOUSING_INQUIRY: [
-                f"student accommodation Nairobi 2024 prices areas {query}",
-                f"international student housing Nairobi safety {query}",
+                f"student accommodation {city} 2024 prices areas {query}",
+                f"international student housing {city} safety {query}",
             ],
             IntentType.UNIVERSITY_INFO: [
-                f"Kenya universities admission international students 2024 {query}",
-                f"University of Nairobi Strathmore JKUAT admission {query}",
+                f"{country} universities admission international students 2024 {query}",
+                f"universities {city} admission {query}",
             ],
             IntentType.IMMIGRATION_VISA: [
-                f"Kenya student visa 2024 requirements process {query}",
-                f"immigration office Nairobi visa renewal {query}",
+                f"{country} student visa 2024 requirements process {query}",
+                f"immigration office {city} visa renewal {query}",
             ],
             IntentType.TRANSPORTATION: [
-                f"Nairobi public transport matatu routes 2024 {query}",
-                f"student transport Nairobi safety tips {query}",
+                f"{city} public transport routes 2024 {query}",
+                f"student transport {city} safety tips {query}",
             ],
             IntentType.SAFETY_CONCERN: [
-                f"Nairobi safety international students 2024 areas {query}",
-                f"student safety Kenya crime prevention {query}",
+                f"{city} safety international students 2024 areas {query}",
+                f"student safety {country} crime prevention {query}",
             ],
             IntentType.COST_INQUIRY: [
-                f"cost of living Nairobi students 2024 budget {query}",
-                f"student expenses Kenya accommodation food transport {query}",
+                f"cost of living {city} students 2024 budget {query}",
+                f"student expenses {country} accommodation food transport {query}",
             ],
             IntentType.BANKING_FINANCE: [
-                f"Kenya banking international students M-Pesa 2024 {query}",
-                f"student bank accounts Nairobi requirements {query}",
+                f"{country} banking international students 2024 {query}",
+                f"student bank accounts {city} requirements {query}",
             ],
             IntentType.HEALTHCARE: [
-                f"Nairobi hospitals international students 2024 {query}",
-                f"student health insurance Kenya medical services {query}",
+                f"{city} hospitals international students 2024 {query}",
+                f"student health insurance {country} medical services {query}",
             ],
         }
 
@@ -1107,11 +1130,13 @@ CRITICAL REQUIREMENTS:
         crisis_assessment: Dict,
     ) -> str:
         """Get comprehensive system prompt optimized for 100/100 performance."""
+        city = self.locale.city if self.locale is not None else "your city"
+        country = self.locale.country if self.locale is not None else "your country"
         base_prompt = (
             GROUNDING_RULE
-            + """
+            + f"""
 
-You are SettleBot, an expert assistant for international students settling in Nairobi, Kenya. Your goal is to achieve 100/100 performance by being genuinely comprehensive, empathetic, and helpful.
+You are SettleBot, an expert assistant for international students settling in {city}, {country}. Your goal is to achieve 100/100 performance by being genuinely comprehensive, empathetic, and helpful.
 
 RESPONSE STRUCTURE (Always use exactly these sections):
 ## DIRECT ANSWER
@@ -1403,7 +1428,8 @@ CRISIS RESPONSE MODE:
         intent_name = intent_info["intent_type"].value.replace("_", " ").title()
 
         fallback = "## DIRECT ANSWER\n"
-        fallback += f"I understand you're asking about {intent_name.lower()} for your settlement in Nairobi. While I'm experiencing some technical difficulty accessing all my resources right now, I can provide you with essential guidance.\n\n"
+        _city = self.locale.city if self.locale is not None else "your city"
+        fallback += f"I understand you're asking about {intent_name.lower()} for your settlement in {_city}. While I'm experiencing some technical difficulty accessing all my resources right now, I can provide you with essential guidance.\n\n"
 
         # Add empathy if needed
         if emotional_state.get("needs_validation"):
@@ -1481,24 +1507,20 @@ While I resolve this technical difficulty, you can get immediate help with your 
 - Student counseling services if you're feeling overwhelmed by the settlement process
 - Academic advisors who can connect you with additional resources
 
-**Official Kenyan Resources:**
-- Department of Immigration Services at Nyayo House for visa and permit matters
-- Kenya Association of Private Colleges for educational institution information
-- County Government of Nairobi for local services and information
+**Official Resources:**
+- Department of Immigration Services for visa and permit matters
+- Your university's administrative office for local services information
 
 **Immediate Emergency Support:**
-If you have urgent needs, contact:
-- Universal Emergency Number: 999 (Police, Fire, Ambulance)
-- Red Cross Kenya: 0700 395 395
-- Your country's embassy or consulate in Nairobi
+If you have urgent needs, contact your local emergency services or your university's international student office.
 
 ## NEXT STEPS
-1. Try asking your question again in a few minutes - technical issues are usually temporary
+1. Try asking your question again in a few minutes — technical issues are usually temporary
 2. Contact your university's international student office for immediate assistance with any urgent settlement needs
-3. Save the emergency numbers listed above in your phone for future reference
+3. Save local emergency numbers in your phone for future reference
 4. Consider connecting with fellow international students through official university channels for peer support and advice
 
-I apologize for this interruption and am designed to provide comprehensive settlement guidance to help make your transition to studying in Nairobi successful."""
+I apologize for this interruption and am designed to provide comprehensive settlement guidance to help make your transition successful."""
 
         if language != "english":
             try:

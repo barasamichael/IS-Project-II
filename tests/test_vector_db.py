@@ -58,6 +58,7 @@ def _build_service(collection_name: str = "test_col") -> VectorDBService:
         svc = VectorDBService.__new__(VectorDBService)
         svc.embedding_service = embed_svc
         svc.dimension = _DIM
+        svc.locale = None
         svc.collection_name = collection_name
         svc.client = client
         svc._bm25_index = None

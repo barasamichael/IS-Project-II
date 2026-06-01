@@ -6,6 +6,10 @@ from typing import Dict
 from typing import List
 from typing import Union
 from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 import numpy as np
 import chromadb
@@ -47,7 +51,11 @@ class VectorDBService:
     _reranker: Any = None
     _reranker_warning_logged: bool = False
 
-    def __init__(self, embedding_service: Optional[EmbeddingService] = None):
+    def __init__(
+        self,
+        embedding_service: Optional[EmbeddingService] = None,
+        locale: Optional["LocaleConfig"] = None,
+    ):
         """
         Initialise VectorDBService with ChromaDB, embedding service, and BM25 index.
         :param embedding_service: Optional[EmbeddingService] - Pre-built embedding
@@ -56,7 +64,12 @@ class VectorDBService:
         try:
             self.embedding_service = embedding_service or EmbeddingService()
             self.dimension = self.embedding_service.dimension
-            self.collection_name = settings.vector_db.collection_name
+            self.locale = locale
+            self.collection_name = (
+                locale.collection_name
+                if locale is not None
+                else settings.vector_db.collection_name
+            )
 
             self.db_path = ROOT_DIR / "database" / "chroma_db"
             self.db_path.mkdir(parents=True, exist_ok=True)
@@ -124,13 +137,16 @@ class VectorDBService:
             "culture": 1.0,
         }
 
-        self.location_boost = {
-            "nairobi": 1.3,
-            "westlands": 1.2,
-            "kilimani": 1.2,
-            "karen": 1.2,
-            "lavington": 1.2,
-        }
+        # Build location_boost from locale neighbourhoods; the city itself gets
+        # a slightly higher boost than individual neighbourhoods.
+        if self.locale is not None:
+            self.location_boost = {
+                self.locale.city.lower(): 1.3,
+            }
+            for neighborhood in self.locale.key_neighborhoods:
+                self.location_boost[neighborhood.lower()] = 1.2
+        else:
+            self.location_boost = {}
 
     # ------------------------------------------------------------------
     # BM25 index management
@@ -668,8 +684,9 @@ class VectorDBService:
             "transport",
             "cost",
             "university",
-            "nairobi",
         ]
+        if self.locale is not None:
+            high_value_keywords.append(self.locale.city.lower())
         keyword_matches = sum(1 for kw in high_value_keywords if kw in text_lower)
         if keyword_matches > 0:
             boosted_score *= 1 + keyword_matches * 0.05

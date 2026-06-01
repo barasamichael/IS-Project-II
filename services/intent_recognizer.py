@@ -7,8 +7,12 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
 from dataclasses import dataclass
 from pathlib import Path
+
+if TYPE_CHECKING:
+    from config.locale import LocaleConfig
 
 import numpy as np
 from openai import OpenAI
@@ -89,7 +93,12 @@ class IntentRecognizer:
     Uses OpenAI embeddings for semantic similarity matching without aggressive filtering.
     """
 
-    def __init__(self, cache_dir: str = ".embeddings_cache"):
+    def __init__(
+        self,
+        cache_dir: str = ".embeddings_cache",
+        locale: Optional["LocaleConfig"] = None,
+    ):
+        self.locale = locale
         self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
@@ -106,20 +115,25 @@ class IntentRecognizer:
         self.off_topic_threshold = 0.40
         self.confidence_threshold = 0.75
 
-        # Settlement relevance keywords (weighted)
+        # Settlement relevance keywords — locale city/country added when locale is set
+        high_relevance = [
+            "international student",
+            "university",
+            "campus",
+            "accommodation",
+            "visa",
+            "immigration",
+            "settlement",
+            "studying abroad",
+        ]
+        if locale is not None:
+            high_relevance = [
+                locale.city.lower(),
+                locale.country.lower(),
+            ] + high_relevance
+
         self.settlement_keywords = {
-            "high_relevance": [
-                "nairobi",
-                "kenya",
-                "international student",
-                "university",
-                "campus",
-                "accommodation",
-                "visa",
-                "immigration",
-                "settlement",
-                "studying abroad",
-            ],
+            "high_relevance": high_relevance,
             "medium_relevance": [
                 "student",
                 "housing",
@@ -133,23 +147,11 @@ class IntentRecognizer:
                 "budget",
                 "emergency",
             ],
-            "location_specific": [
-                "westlands",
-                "kilimani",
-                "karen",
-                "lavington",
-                "kileleshwa",
-                "parklands",
-                "hurlingham",
-                "cbd",
-                "eastleigh",
-                "kasarani",
-                "juja",
-                "strathmore",
-                "jkuat",
-                "usiu",
-                "kenyatta",
-            ],
+            "location_specific": (
+                [n.lower() for n in locale.key_neighborhoods]
+                if locale is not None
+                else []
+            ),
         }
 
         logger.info(
@@ -313,7 +315,6 @@ class IntentRecognizer:
                 ],
                 "keywords": [
                     "transport",
-                    "matatu",
                     "bus",
                     "uber",
                     "taxi",
@@ -955,8 +956,13 @@ class IntentRecognizer:
             if indicator in query_lower:
                 relevance_score += 0.15
 
-        # Nairobi/Kenya specific boost
-        if any(location in query_lower for location in ["nairobi", "kenya", "kenyan"]):
+        # Locale-specific boost when locale city/country appear in query
+        _locale_terms = (
+            [self.locale.city.lower(), self.locale.country.lower()]
+            if self.locale is not None
+            else []
+        )
+        if _locale_terms and any(loc in query_lower for loc in _locale_terms):
             relevance_score += 0.2
 
         return min(relevance_score, 1.0)  # Cap at 1.0

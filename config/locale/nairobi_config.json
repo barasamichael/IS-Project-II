@@ -1,0 +1,43 @@
+{
+  "city": "Nairobi",
+  "country": "Kenya",
+  "currency_code": "KES",
+  "currency_symbol": "KSh",
+  "timezone": "Africa/Nairobi",
+  "emergency_number": "999",
+  "primary_languages": ["sw", "en"],
+  "key_neighborhoods": [
+    "Westlands",
+    "Kilimani",
+    "Karen",
+    "Lavington",
+    "Kileleshwa",
+    "Parklands",
+    "Hurlingham",
+    "Riverside",
+    "Runda",
+    "Muthaiga",
+    "Gigiri",
+    "Spring Valley",
+    "Loresho",
+    "Kitisuru",
+    "Rosslyn",
+    "Kabete",
+    "Langata",
+    "Ngong",
+    "Kasarani",
+    "Ruiru"
+  ],
+  "trusted_web_domains": [
+    "immigration.go.ke",
+    "ecitizen.go.ke",
+    "centralbank.go.ke",
+    "safaricom.co.ke",
+    "knh.or.ke",
+    "uonbi.ac.ke",
+    "strathmore.edu"
+  ],
+  "collection_name": "settlebot_nairobi",
+  "web_search_geo_bias": "Kenya",
+  "fact_store_path": "config/locale/nairobi.json"
+}

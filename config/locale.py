@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 
 from pathlib import Path
 from typing import Dict
@@ -110,10 +111,104 @@ class LocaleFactStore(BaseModel):
     trusted_domains: List[str]
 
 
+@dataclass
+class LocaleConfig:
+    """
+    Deployment configuration for one SettleBot locale.
+    All locale-specific values (city, country, currency, timezone, neighbourhoods)
+    flow through this object. No service may use hardcoded city, country, currency,
+    or timezone literals; read from this object instead.
+    :field city: str - Display-case city name (e.g. "Nairobi").
+    :field country: str - Display-case country name (e.g. "Kenya").
+    :field currency_code: str - ISO 4217 code (e.g. "KES").
+    :field currency_symbol: str - Short currency symbol (e.g. "KSh").
+    :field timezone: str - Pytz-compatible timezone string (e.g. "Africa/Nairobi").
+    :field emergency_number: str - Primary emergency services number (e.g. "999").
+    :field primary_languages: List[str] - ISO 639-1 language codes in priority order.
+    :field key_neighborhoods: List[str] - Well-known neighbourhood names for this city.
+    :field trusted_web_domains: List[str] - Domain suffixes trusted for Tavily results.
+    :field collection_name: str - ChromaDB collection name for this locale.
+    :field web_search_geo_bias: str - Country name appended to Tavily queries.
+    :field fact_store_path: str - Relative path to the LocaleFactStore JSON file.
+    """
+
+    city: str
+    country: str
+    currency_code: str
+    currency_symbol: str
+    timezone: str
+    emergency_number: str
+    primary_languages: List[str]
+    key_neighborhoods: List[str]
+    trusted_web_domains: List[str]
+    collection_name: str
+    web_search_geo_bias: str
+    fact_store_path: str
+
+    @classmethod
+    def from_file(cls, locale_name: str) -> "LocaleConfig":
+        """
+        Load and return a LocaleConfig from config/locale/{locale_name}_config.json.
+        :param locale_name: str - Locale identifier matching SETTLEBOT_LOCALE (e.g. "kampala").
+        :return: LocaleConfig - Validated locale configuration instance.
+        :raises ValueError: When the JSON file is missing or required fields are absent.
+        """
+        config_file: Path = (
+            ROOT_DIR / "config" / "locale" / f"{locale_name}_config.json"
+        )
+        if not config_file.exists():
+            raise ValueError(
+                f"Locale config file not found: {config_file}. "
+                f"Create config/locale/{locale_name}_config.json to enable this locale."
+            )
+        try:
+            with open(config_file, encoding="utf-8") as fh:
+                data = json.load(fh)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Locale config file is not valid JSON for locale '{locale_name}': {exc}"
+            ) from exc
+
+        required_fields = [
+            "city",
+            "country",
+            "currency_code",
+            "currency_symbol",
+            "timezone",
+            "emergency_number",
+            "primary_languages",
+            "key_neighborhoods",
+            "trusted_web_domains",
+            "collection_name",
+            "web_search_geo_bias",
+            "fact_store_path",
+        ]
+        missing = [f for f in required_fields if f not in data]
+        if missing:
+            raise ValueError(
+                f"Locale config for '{locale_name}' is missing required fields: {missing}"
+            )
+
+        return cls(
+            city=data["city"],
+            country=data["country"],
+            currency_code=data["currency_code"],
+            currency_symbol=data["currency_symbol"],
+            timezone=data["timezone"],
+            emergency_number=data["emergency_number"],
+            primary_languages=data["primary_languages"],
+            key_neighborhoods=data["key_neighborhoods"],
+            trusted_web_domains=data["trusted_web_domains"],
+            collection_name=data["collection_name"],
+            web_search_geo_bias=data["web_search_geo_bias"],
+            fact_store_path=data["fact_store_path"],
+        )
+
+
 def load_fact_store(locale_name: str) -> LocaleFactStore:
     """
     Read, parse, and validate the fact store JSON for the given locale.
-    :param locale_name: str - The locale identifier (e.g. "nairobi"). Maps to
+    :param locale_name: str - The locale identifier (e.g. "kampala"). Maps to
         config/locale/{locale_name}.json.
     :return: LocaleFactStore - Validated fact store instance.
     :raises ValueError: When the JSON file is missing or fails schema validation.
