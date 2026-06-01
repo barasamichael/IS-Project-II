@@ -1,0 +1,16 @@
+[
+  {
+    "query": "student housing international",
+    "url": "https://uonbi.ac.ke/accommodation",
+    "title": "Student Accommodation Guide",
+    "content": "The university offers on-campus accommodation for students. Off-campus options include private apartments and shared housing. Students should budget carefully for accommodation costs.",
+    "score": 0.91
+  },
+  {
+    "query": "immigration student visa process",
+    "url": "https://immigration.go.ke/student-visa",
+    "title": "Student Visa Requirements",
+    "content": "International students require a valid student pass issued by immigration services. Applications should be submitted at least 60 days before the course start date. Required documents include admission letter, financial proof, and valid passport.",
+    "score": 0.87
+  }
+]

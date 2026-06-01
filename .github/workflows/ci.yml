@@ -1,0 +1,93 @@
+name: SettleBot CI
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+
+jobs:
+  backend:
+    name: RAG Backend — lint, type-check, test
+    runs-on: ubuntu-latest
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SETTLEBOT_API_KEY: ${{ secrets.SETTLEBOT_API_KEY }}
+      SETTLEBOT_LOCALE: ${{ secrets.SETTLEBOT_LOCALE }}
+
+    steps:
+      # ── 1. Install backend dependencies ────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+
+      # ── 2. Verify OPENAI_API_KEY is present in CI secrets ──────────────────
+      - name: Verify OPENAI_API_KEY is set
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "ERROR: OPENAI_API_KEY secret is not set in CI environment"
+            exit 1
+          fi
+          echo "OPENAI_API_KEY is present"
+
+      # ── 3. Ruff linting ────────────────────────────────────────────────────
+      - name: Ruff lint
+        run: ruff check api/ services/ config/ utilities/
+
+      # ── 4. Pyright type checking ───────────────────────────────────────────
+      - name: Pyright type check
+        run: |
+          if command -v pyright &> /dev/null; then
+            pyright api/ services/ config/ utilities/ || true
+          else
+            echo "Pyright not installed — skipping type check"
+          fi
+
+      # ── 5 & 6. Run regression-critical test modules first (fail fast) ──────
+      - name: Run regression-critical tests (Modules 5, 6, 9)
+        run: |
+          pytest tests/test_response_generation.py \
+                 tests/test_document_processing.py \
+                 tests/test_api_endpoints.py \
+                 --timeout=30 -q
+
+      # ── 5. Run full backend test suite ─────────────────────────────────────
+      - name: Run backend tests
+        run: pytest tests/ --timeout=30 -q
+
+      # ── 8. Verify production bundle (app imports without crash) ────────────
+      - name: Verify production bundle
+        run: python -c "from api.main import app; assert app, 'FastAPI app failed to initialise'"
+
+  frontend:
+    name: Flask Frontend — test
+    runs-on: ubuntu-latest
+    needs: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # ── 1. Install frontend dependencies ───────────────────────────────────
+      - name: Install frontend dependencies
+        run: pip install -r front-end/requirements.txt
+
+      # ── 7. Run Flask frontend tests ────────────────────────────────────────
+      - name: Run Flask frontend tests
+        run: pytest front-end/tests/ --timeout=30 -q

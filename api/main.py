@@ -934,6 +934,9 @@ async def upload_document(
             settlement_score=metadata.get("avg_settlement_score"),
         )
 
+    except HTTPException:
+        # Re-raise HTTPException (400 validation errors) without wrapping in 500
+        raise
     except Exception as e:
         logger.error(f"Error uploading document: {str(e)}")
         # Clean up temp file if it exists
